@@ -1,0 +1,1 @@
+print("Amberhall: клиент запущен")
