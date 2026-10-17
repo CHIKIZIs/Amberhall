@@ -11,8 +11,6 @@ const WAVES := [
 ]
 const RIP_SPEED := 3.0
 const SLOTS := 24
-const SIZE := 110.0
-const SUB := 150
 
 var t := 0.0
 var ripples := PackedVector4Array()
@@ -22,11 +20,7 @@ var follow: Node3D
 
 
 func _init() -> void:
-	var pm := PlaneMesh.new()
-	pm.size = Vector2(SIZE, SIZE)
-	pm.subdivide_width = SUB
-	pm.subdivide_depth = SUB
-	mesh = pm
+	mesh = _radial_mesh()
 	mat = ShaderMaterial.new()
 	mat.shader = load("res://shaders/water.gdshader")
 	mat.set_shader_parameter("nmap_a", Mats.nmap_a)
@@ -45,9 +39,48 @@ func _process(dt: float) -> void:
 	mat.set_shader_parameter("wave_time", t)
 	mat.set_shader_parameter("ripples", ripples)
 	if follow:
-		var step := SIZE / (SUB + 1)
 		var p := follow.global_position
-		position = Vector3(snappedf(p.x, step), 0.0, snappedf(p.z, step))
+		position = Vector3(snappedf(p.x, 0.5), 0.0, snappedf(p.z, 0.5))
+
+
+## Радиальная сетка до горизонта: густая у центра, редкая вдали.
+func _radial_mesh() -> ArrayMesh:
+	var segs := 160
+	var radii := PackedFloat32Array([0.0])
+	var r := 0.0
+	var step := 0.3
+	while r < 1800.0:
+		r += step
+		step *= 1.072
+		radii.append(r)
+	var verts := PackedVector3Array()
+	var norms := PackedVector3Array()
+	var idx := PackedInt32Array()
+	verts.append(Vector3.ZERO)
+	norms.append(Vector3.UP)
+	for i in range(1, radii.size()):
+		for k in segs:
+			var a := TAU * k / segs + (0.5 * TAU / segs if i % 2 else 0.0)
+			verts.append(Vector3(cos(a) * radii[i], 0, sin(a) * radii[i]))
+			norms.append(Vector3.UP)
+	for k in segs:
+		idx.append_array([0, 1 + k, 1 + (k + 1) % segs])
+	for i in range(1, radii.size() - 1):
+		var a0 := 1 + (i - 1) * segs
+		var b0 := 1 + i * segs
+		for k in segs:
+			var k2 := (k + 1) % segs
+			idx.append_array([a0 + k, b0 + k, a0 + k2])
+			idx.append_array([a0 + k2, b0 + k, b0 + k2])
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = verts
+	arr[Mesh.ARRAY_NORMAL] = norms
+	arr[Mesh.ARRAY_INDEX] = idx
+	var m := ArrayMesh.new()
+	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	m.custom_aabb = AABB(Vector3(-1800, -2, -1800), Vector3(3600, 4, 3600))
+	return m
 
 
 ## Круг на воде: всплеск, поклёвка, след лодки.

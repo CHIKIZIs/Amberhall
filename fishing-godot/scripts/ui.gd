@@ -6,6 +6,7 @@ signal shop_buy(key: String)
 signal boat_action(what: String)
 signal result_closed
 signal sound_toggled
+signal view_toggled
 
 const AMBER := Color("#ffb85c")
 const UPS := [
@@ -24,6 +25,9 @@ var bite_mark: Control
 var reel_panel: Control
 var reel_fish: TextureRect
 var reel_state := {}
+var fight: Fight
+var fight_hud: Control
+var view_btn: Button
 var boat_box: VBoxContainer
 var result_layer: Control
 var result_view: SubViewport
@@ -66,7 +70,7 @@ func _ready() -> void:
 	zp.add_child(zone_l)
 	# кнопки справа
 	var tr := HBoxContainer.new()
-	_place(tr, Vector2(1, 0), Vector2(-470, 18), Vector2(446, 60))
+	_place(tr, Vector2(1, 0), Vector2(-640, 18), Vector2(616, 60))
 	tr.alignment = BoxContainer.ALIGNMENT_END
 	tr.add_theme_constant_override("separation", 10)
 	root.add_child(tr)
@@ -76,6 +80,9 @@ func _ready() -> void:
 	var b2 := _button("Улов")
 	b2.pressed.connect(func(): open_dex())
 	tr.add_child(b2)
+	view_btn = _button("Вид: глаза")
+	view_btn.pressed.connect(func(): view_toggled.emit())
+	tr.add_child(view_btn)
 	sound_btn = _button("Звук: вкл")
 	sound_btn.pressed.connect(func(): sound_toggled.emit())
 	tr.add_child(sound_btn)
@@ -112,7 +119,12 @@ func _ready() -> void:
 	bite_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(bite_mark)
 	# вываживание
-	reel_panel = Reel.new()
+	fight_hud = FightHud.new()
+	_place(fight_hud, Vector2(0.5, 1), Vector2(-330, -200), Vector2(660, 130))
+	fight_hud.visible = false
+	fight_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(fight_hud)
+	reel_panel = Control.new()
 	_place(reel_panel, Vector2(1, 0.5), Vector2(-150, -190), Vector2(120, 380))
 	reel_panel.visible = false
 	reel_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -253,6 +265,10 @@ func set_hint(text: String) -> void:
 		hint_l.text = "[center]" + text + "[/center]"
 
 
+func set_view(fp: bool) -> void:
+	view_btn.text = "Вид: глаза" if fp else "Вид: сверху"
+
+
 func set_sound(on: bool) -> void:
 	sound_btn.text = "Звук: вкл" if on else "Звук: выкл"
 
@@ -268,11 +284,10 @@ func _process(dt: float) -> void:
 		toast_l.modulate.a = clampf(_toast_t * 2.0, 0.0, 1.0)
 	charge.set_meta("v", charge_v)
 	charge.queue_redraw()
-	if reel_panel.visible:
-		reel_panel.set_meta("s", reel_state)
-		reel_panel.queue_redraw()
-		var tr: Rect2 = reel_panel.call("track_rect")
-		reel_fish.position = Vector2(tr.position.x + tr.size.x / 2 - 45, tr.position.y + (1.0 - reel_state.get("fish", 0.5)) * tr.size.y - 28)
+	if fight_hud.visible and fight:
+		fight_hud.set_meta("f", fight)
+		fight_hud.set_meta("font", font)
+		fight_hud.queue_redraw()
 	if bite_mark.visible:
 		bite_mark.queue_redraw()
 
@@ -371,6 +386,9 @@ func show_result(model: Node3D, f: Dictionary, weight: float, coins: int, first:
 	cam.position = Vector3(0, r * 0.3, r / tan(deg_to_rad(15)) * 0.95)
 	stage.add_child(cam)
 	cam.look_at(Vector3.ZERO)
+	var tl := _label(Fishes.TIER_NAMES[f.tier], 18, Fishes.tier_color(f))
+	tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	result_labels.add_child(tl)
 	if first:
 		var nl := _label("НОВЫЙ ВИД!", 18, AMBER)
 		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -426,21 +444,21 @@ func open_dex() -> void:
 	var got: int = save_ref.dex.size()
 	var card := _sheet(dex_layer, "Коллекция", "Открыто видов: %d из %d" % [got, Fishes.LIST.size()])
 	var grid := GridContainer.new()
-	grid.columns = 6
+	grid.columns = 7
 	grid.add_theme_constant_override("h_separation", 10)
 	grid.add_theme_constant_override("v_separation", 10)
 	card.add_child(grid)
 	for f in Fishes.LIST:
 		var d = save_ref.dex.get(f.id)
 		var cell := PanelContainer.new()
-		cell.add_theme_stylebox_override("panel", _box(Color(1, 1, 1, 0.06), 14))
-		cell.custom_minimum_size = Vector2(150, 0)
+		cell.add_theme_stylebox_override("panel", _box(Color(1, 1, 1, 0.06), 14, Fishes.tier_color(f) * Color(1, 1, 1, 0.7 if d != null else 0.25)))
+		cell.custom_minimum_size = Vector2(128, 0)
 		grid.add_child(cell)
 		var vb := VBoxContainer.new()
 		cell.add_child(vb)
 		var tr := TextureRect.new()
 		tr.texture = thumbs.get(f.id)
-		tr.custom_minimum_size = Vector2(140, 90)
+		tr.custom_minimum_size = Vector2(118, 74)
 		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		if d == null:
@@ -449,7 +467,7 @@ func open_dex() -> void:
 		var nm := _label(f.n if d != null else "???", 17, Color.WHITE)
 		nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vb.add_child(nm)
-		var info := ("x%d · рекорд %.2f кг" % [d.n, d.best]) if d != null else "не поймана"
+		var info := ("×%d · %.2f кг" % [d.n, d.best]) if d != null else "не поймана"
 		var il := _label(info, 13, Color(1, 1, 1, 0.6))
 		il.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vb.add_child(il)
@@ -522,6 +540,48 @@ class Bite:
 		draw_arc(c, 32, -PI / 2, -PI / 2 + TAU * (1.0 - k), 40, Color("#ffd36a"), 5, true)
 		var f := ThemeDB.fallback_font
 		draw_string(f, c + Vector2(-8, 14), "!", HORIZONTAL_ALIGNMENT_CENTER, -1, 40, Color.WHITE)
+
+
+class FightHud:
+	extends Control
+	func _draw() -> void:
+		var fi: Fight = get_meta("f", null)
+		if fi == null:
+			return
+		var fnt: Font = get_meta("font", ThemeDB.fallback_font)
+		var w := size.x
+		# метры лески
+		var txt := "%.1f м" % fi.line
+		draw_string(fnt, Vector2(0, 34), txt, HORIZONTAL_ALIGNMENT_CENTER, w, 36, Color.WHITE)
+		# натяжение
+		var bar := Rect2(Vector2(40, 52), Vector2(w - 80, 26))
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.04, 0.09, 0.1, 0.8)
+		sb.set_corner_radius_all(13)
+		draw_style_box(sb, bar.grow(5))
+		var zones := [[0.0, 0.3, Color(0.35, 0.55, 0.7, 0.55)], [0.3, 0.82, Color(0.35, 0.85, 0.45, 0.7)], [0.82, 0.94, Color(0.95, 0.75, 0.25, 0.75)], [0.94, 1.0, Color(0.95, 0.3, 0.2, 0.85)]]
+		for z in zones:
+			draw_rect(Rect2(bar.position + Vector2(bar.size.x * z[0], 0), Vector2(bar.size.x * (z[1] - z[0]), bar.size.y)), z[2])
+		var tx := bar.position.x + bar.size.x * clampf(fi.tension, 0.0, 1.0)
+		var shake := sin(Time.get_ticks_msec() * 0.06) * 3.0 * clampf(fi.overload() * 2.0, 0.0, 1.0)
+		draw_rect(Rect2(Vector2(tx - 3 + shake, bar.position.y - 8), Vector2(6, bar.size.y + 16)), Color.WHITE)
+		draw_string(fnt, bar.position + Vector2(0, bar.size.y + 26), "слабо", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(1, 1, 1, 0.55))
+		draw_string(fnt, bar.position + Vector2(0, bar.size.y + 26), "натяжение", HORIZONTAL_ALIGNMENT_CENTER, bar.size.x, 15, Color(1, 1, 1, 0.75))
+		draw_string(fnt, bar.position + Vector2(0, bar.size.y + 26), "обрыв!", HORIZONTAL_ALIGNMENT_RIGHT, bar.size.x, 15, Color(1, 0.5, 0.4, 0.8))
+		# силы рыбы
+		var st := Rect2(Vector2(w * 0.5 + 70, 12), Vector2(w * 0.5 - 110, 10))
+		draw_rect(st, Color(1, 1, 1, 0.15))
+		draw_rect(Rect2(st.position, Vector2(st.size.x * fi.stamina, st.size.y)), Color("#ff8a5a").lerp(Color("#ffd36a"), 1.0 - fi.stamina))
+		draw_string(fnt, st.position + Vector2(0, -4), "силы рыбы", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1, 1, 1, 0.6))
+		# рывок: подсказка вести удилище
+		if fi.running and abs(fi.run_dir) > 0.5:
+			var left: bool = fi.run_dir < 0
+			var c := Color("#ffb85c")
+			var cx := 18.0 if left else w - 18.0
+			var d := -1.0 if left else 1.0
+			draw_colored_polygon(PackedVector2Array([Vector2(cx + d * 14, 65), Vector2(cx - d * 8, 50), Vector2(cx - d * 8, 80)]), c)
+			var hint := "Рывок! Веди удочку " + ("вправо" if left else "влево") + " (тяни пальцем)"
+			draw_string(fnt, Vector2(0, -8), hint, HORIZONTAL_ALIGNMENT_CENTER, w, 19, c)
 
 
 class Reel:

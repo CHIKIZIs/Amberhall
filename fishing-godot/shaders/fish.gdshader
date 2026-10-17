@@ -44,6 +44,9 @@ void fragment() {
 	} else if (pattern == 3) {
 		float n = texture(noise_tex, lp.xz * 2.4 + vec2(lp.y * 1.7, 0.0)).r;
 		c = mix(c, pat_col.rgb, smoothstep(0.6, 0.67, n) * 0.85 * smoothstep(-0.6, 0.0, hy));
+	} else if (pattern == 4) {
+		float band = 1.0 - smoothstep(0.06, 0.24, abs(hy - 0.02));
+		c = mix(c, pat_col.rgb, band * 0.75);
 	}
 	// чешуя
 	vec2 sc = vec2(lp.x * 70.0 / body_len, lp.y * 70.0 / body_len + lp.z * 40.0);

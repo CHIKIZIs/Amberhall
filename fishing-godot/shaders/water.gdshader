@@ -22,10 +22,15 @@ uniform vec4 wave_d = vec4(0.85, -0.45, 0.045, 2.6);
 uniform float wave_time = 0.0;
 uniform float ripple_speed = 3.0;
 uniform vec4 ripples[24];
+uniform vec4 sky_horizon : source_color = vec4(0.94, 0.68, 0.5, 1.0);
+uniform vec4 sky_zenith : source_color = vec4(0.12, 0.3, 0.48, 1.0);
+uniform vec3 sun_dir = vec3(0.6, 0.35, -0.7);
+uniform vec4 sun_col : source_color = vec4(1.0, 0.8, 0.55, 1.0);
 
 varying vec3 wpos;
 varying float crest;
 varying float rip_foam;
+varying float vfade;
 
 vec3 gerstner(vec4 w, vec2 p, inout vec3 tg, inout vec3 bn) {
 	float k = 6.28318 / w.w;
@@ -42,6 +47,9 @@ vec3 gerstner(vec4 w, vec2 p, inout vec3 tg, inout vec3 bn) {
 void vertex() {
 	vec3 world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	vec2 p = world.xz;
+	// дальняя вода спокойнее — без мерцания у горизонта
+	float fade = 1.0 - smoothstep(70.0, 260.0, length(world.xz - CAMERA_POSITION_WORLD.xz));
+	vfade = fade;
 	vec3 tg = vec3(1.0, 0.0, 0.0);
 	vec3 bn = vec3(0.0, 0.0, 1.0);
 	vec3 disp = gerstner(wave_a, p, tg, bn) + gerstner(wave_b, p, tg, bn)
@@ -65,11 +73,13 @@ void vertex() {
 		rf += env * max(0.0, sin(ph));
 	}
 	disp.y += rh;
+	disp *= fade;
+	rg *= fade;
 	VERTEX += disp;
 	wpos = world + disp;
 	crest = disp.y;
 	rip_foam = rf;
-	vec3 n = normalize(cross(bn, tg));
+	vec3 n = normalize(mix(vec3(0.0, 1.0, 0.0), normalize(cross(bn, tg)), fade));
 	n = normalize(n + vec3(-rg.x, 0.0, -rg.y));
 	NORMAL = (VIEW_MATRIX * vec4(n, 0.0)).xyz;
 }
@@ -93,7 +103,7 @@ void fragment() {
 	vec3 n2 = texture(nmap_b, uv2).rgb;
 	vec3 nm = normalize(n1 + n2 - 1.0);
 	NORMAL_MAP = nm * 0.5 + 0.5;
-	NORMAL_MAP_DEPTH = 0.18;
+	NORMAL_MAP_DEPTH = 0.18 * (0.25 + 0.75 * vfade);
 
 	float surf = -VERTEX.z;
 	float thick = max(0.0, lin_depth(SCREEN_UV, INV_PROJECTION_MATRIX, surf) - surf);
@@ -115,8 +125,18 @@ void fragment() {
 	foam = clamp(foam, 0.0, 1.0);
 
 	float see = tr * 0.92 * (1.0 - foam);
-	ALBEDO = mix(body * (1.0 - see), foam_col.rgb, foam);
-	EMISSION = below * mix(vec3(1.0), shallow.rgb * 1.35, 0.55) * see;
+	// отражение неба по Френелю и солнечная дорожка
+	vec3 nw = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
+	nw = normalize(nw + vec3(nm.x, 0.0, nm.y) * 0.22 * (0.3 + 0.7 * vfade));
+	vec3 vw = normalize(CAMERA_POSITION_WORLD - wpos);
+	vec3 rw = reflect(-vw, nw);
+	float fres = 0.02 + 0.98 * pow(1.0 - clamp(dot(nw, vw), 0.0, 1.0), 5.0);
+	vec3 skyc = mix(sky_horizon.rgb, sky_zenith.rgb, pow(clamp(rw.y, 0.0, 1.0), 0.35)) * 0.62;
+	float sd = max(dot(rw, normalize(sun_dir)), 0.0);
+	skyc += sun_col.rgb * (pow(sd, 6.0) * 0.3 + pow(sd, 400.0) * 14.0);
+	fres = min(fres, 0.72) * (1.0 - foam);
+	ALBEDO = mix(body * (1.0 - see), foam_col.rgb, foam) * (1.0 - fres);
+	EMISSION = below * mix(vec3(1.0), shallow.rgb * 1.35, 0.55) * see * (1.0 - fres) + skyc * fres;
 	ROUGHNESS = mix(0.32, 0.85, foam);
 	SPECULAR = 0.12;
 	METALLIC = 0.0;

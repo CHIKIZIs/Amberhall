@@ -25,6 +25,7 @@ func build(w: Water) -> void:
 	_props()
 	_lamps()
 	_seabed()
+	_islands()
 
 
 # ───────── настил ─────────
@@ -399,7 +400,7 @@ func _lamps() -> void:
 	_lamp_post(-2.15, -9.8, DY, false)
 	_lamp_post(-2.15, -3.2, DY, true)
 	_lamp_post(-2.15, 3.4, DY, true)
-	_lamp_post(-2.15, 8.1, DY, false)
+	_lamp_post(-5.4, 8.15, DY, false)
 	_lamp_post(-8.7, 8.15, DY, true)
 	_lamp_post(-3.2, -10.4, DY + 0.3, false)
 	_lamp_post(-7.65, -3.05, UY, false)
@@ -409,7 +410,7 @@ func _lamps() -> void:
 # ───────── дно ─────────
 func _seabed() -> void:
 	var pm := PlaneMesh.new()
-	pm.size = Vector2(220, 220)
+	pm.size = Vector2(700, 700)
 	var m := ShaderMaterial.new()
 	m.shader = Mats.shader("res://shaders/seabed.gdshader")
 	m.set_shader_parameter("noise_tex", Mats.grain)
@@ -451,6 +452,58 @@ func _seabed() -> void:
 			wm.set_shader_parameter("phase", _rng.randf() * TAU)
 			wm.set_shader_parameter("col", Color("#2e6b3a").lerp(Color("#7a8a3a"), _rng.randf()))
 			Mats.mi(blade, wm, self, c + Vector3(_rng.randf_range(-0.3, 0.3), 0, _rng.randf_range(-0.3, 0.3)), Vector3(0, _rng.randf() * TAU, 0), false)
+
+
+# ───────── острова на горизонте ─────────
+func _island_mesh(radius: float, height: float, seed_v: int, flat_top: float) -> ArrayMesh:
+	var prof := PackedVector2Array()
+	for i in 9:
+		var t := i / 8.0
+		var r: float = radius * (1.0 - pow(t, 1.6) * (1.0 - flat_top))
+		prof.append(Vector2(r, t * height))
+	prof.append(Vector2(0, height))
+	var m := Geo.lathe(prof, 22, false, false)
+	var arr := m.surface_get_arrays(0)
+	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(-1)
+	var idx = arr[Mesh.ARRAY_INDEX]
+	var list: PackedInt32Array = idx if idx != null else PackedInt32Array(range(v.size()))
+	for k in list:
+		var p := v[k]
+		var n := sin(p.x * 0.09 + seed_v) * cos(p.z * 0.07 + seed_v * 2.0) * 0.18 + sin(p.y * 0.3 + seed_v) * 0.06
+		st.add_vertex(Vector3(p.x * (1.0 + n), p.y * (1.0 + n * 0.6), p.z * (1.0 + n)))
+	st.generate_normals()
+	return st.commit()
+
+
+func _islands() -> void:
+	var rock := Mats.std(Color("#6f6a5e"), 0.95)
+	var grass := Mats.std(Color("#4f7a3c"), 0.9)
+	var sand := Mats.std(Color("#d9c49a"), 0.95)
+	var spots := [[Vector3(330, -2, -180), 70.0, 34.0, 1], [Vector3(420, -2, 120), 95.0, 52.0, 2], [Vector3(150, -2, -420), 60.0, 26.0, 3], [Vector3(-80, -2, 480), 110.0, 60.0, 4], [Vector3(560, -2, -20), 45.0, 18.0, 5]]
+	for sp in spots:
+		var c: Vector3 = sp[0]
+		var r: float = sp[1]
+		var h: float = sp[2]
+		Mats.mi(_island_mesh(r, h, sp[3], 0.15), rock, self, c, Vector3.ZERO, false)
+		Mats.mi(_island_mesh(r * 0.82, h * 1.04, sp[3] + 7, 0.25), grass, self, c + Vector3(0, h * 0.12, 0), Vector3.ZERO, false)
+		Mats.mi(Geo.cylinder(r * 1.12, r * 1.0, 3.0, 24, false), sand, self, c + Vector3(0, 0.6, 0), Vector3.ZERO, false)
+		# деревья-конусы
+		for i in 8:
+			var a: float = i * 2.4 + sp[3]
+			var d := r * (0.15 + 0.4 * fmod(i * 0.37, 1.0))
+			var tp := c + Vector3(cos(a) * d, h * 0.95 - d * 0.35, sin(a) * d)
+			Mats.mi(Geo.cylinder(r * 0.07, 0.0, r * 0.25, 7, false), Mats.std(Color("#2f5a32"), 0.9), self, tp + Vector3(0, r * 0.12, 0), Vector3.ZERO, false)
+	# маяк на ближнем острове
+	var base: Vector3 = spots[0][0] + Vector3(-20, 30, 15)
+	var white := Mats.std(Color("#f2efe6"), 0.6)
+	var red := Mats.std(Color("#c8392c"), 0.6)
+	for i in 6:
+		Mats.mi(Geo.cylinder(3.0 - i * 0.25, 2.75 - i * 0.25, 3.0, 16), red if i % 2 else white, self, base + Vector3(0, 1.5 + i * 3.0, 0), Vector3.ZERO, false)
+	Mats.mi(Geo.cylinder(1.6, 1.6, 2.2, 12), Mats.glow(Color("#fff0b0"), 6.0), self, base + Vector3(0, 19.0, 0), Vector3.ZERO, false)
+	Mats.mi(Geo.cylinder(2.2, 0.2, 1.6, 12), Mats.std(Color("#2b2b2b"), 0.5, 0.5), self, base + Vector3(0, 20.9, 0), Vector3.ZERO, false)
 
 
 # ───────── чайки ─────────
