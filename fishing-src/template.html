@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#17484b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="screen-orientation" content="landscape">
+<title>Тихая Гавань — Рыбалка</title>
+<style>
+:root{--amber:#ffb85c;--glass:rgba(16,26,28,.6)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#17484b;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#fff;touch-action:none;overscroll-behavior:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#hud{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 8px) calc(env(safe-area-inset-right) + 12px) 0 calc(env(safe-area-inset-left) + 12px);display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:2}
+.pill{pointer-events:auto;background:var(--glass);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,184,92,.35);border-radius:999px;padding:7px 14px;font-weight:800;font-size:17px;color:var(--amber);box-shadow:0 2px 10px rgba(0,0,0,.3)}
+#btns{display:flex;gap:8px}
+.col{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.pill.zone{font-size:13px;font-weight:700;color:#e8f4f2;padding:5px 12px;border-color:rgba(255,255,255,.2)}
+#boatUI{position:fixed;left:calc(env(safe-area-inset-left) + 12px);bottom:calc(env(safe-area-inset-bottom) + 40px);display:flex;flex-direction:column;gap:8px;z-index:3}
+.act{border:1px solid rgba(255,184,92,.5);background:rgba(16,26,28,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#fff;font-weight:800;font-size:15px;border-radius:14px;padding:11px 14px;text-align:left;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.act.on{background:linear-gradient(#ffc56f,#e8893a);color:#2a1408}
+.act:active{transform:scale(.95)}
+.btn{pointer-events:auto;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,184,92,.35);background:var(--glass);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:19px;display:grid;place-items:center;color:#fff;padding:0;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.btn:active{transform:scale(.93)}
+#hint{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 10px);text-align:center;font-weight:700;font-size:16px;text-shadow:0 1px 6px rgba(0,0,0,.8);pointer-events:none;padding:0 20px;z-index:2}
+#hint b{color:var(--amber)}
+#charge{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 40px);width:240px;margin-left:-120px;height:16px;border-radius:9px;background:rgba(10,20,22,.65);border:2px solid rgba(255,255,255,.55);overflow:hidden;display:none;z-index:2}
+#charge i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7fd66a,#ffc24a 60%,#e8553a);background-size:240px 100%}
+#bite{position:fixed;width:46px;height:46px;margin:-70px 0 0 -23px;border-radius:50%;display:none;place-items:center;font:900 26px system-ui;color:#fff;background:#d8402f;box-shadow:0 0 0 3px #fff,0 4px 14px rgba(0,0,0,.4);pointer-events:none;z-index:2;animation:shake .12s infinite alternate}
+@keyframes shake{from{transform:translateY(-2px) rotate(-6deg)}to{transform:translateY(2px) rotate(6deg)}}
+#reel{position:fixed;right:calc(env(safe-area-inset-right) + 18px);top:50%;transform:translateY(-50%);height:min(66vh,300px);display:none;gap:8px;padding:10px;background:rgba(10,22,24,.72);border-radius:16px;border:1px solid rgba(255,184,92,.3);z-index:2}
+#reel .track{position:relative;width:46px;height:100%;border-radius:10px;background:linear-gradient(#3d8fa0,#1d4c5a);overflow:hidden}
+#reel .zone{position:absolute;left:3px;right:3px;border-radius:8px;background:rgba(110,230,120,.55);border:2px solid rgba(190,255,190,.8)}
+#reel .zone.on{background:rgba(120,240,120,.85)}
+#reel img{position:absolute;left:50%;width:58px;margin:-20px 0 0 -29px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+#reel .prog{position:relative;width:12px;height:100%;border-radius:6px;background:rgba(255,255,255,.14);overflow:hidden}
+#reel .prog i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#e8553a,#ffc24a 50%,#7fd66a);background-size:100% 300px;background-position:bottom}
+.overlay{position:fixed;inset:0;background:rgba(6,14,16,.72);display:none;align-items:center;justify-content:center;z-index:5;touch-action:pan-y}
+.overlay.on{display:flex}
+.sheet{width:min(94%,640px);max-height:90%;overflow:auto;background:linear-gradient(#1d2f31,#13201f);border:1px solid rgba(255,184,92,.3);border-radius:22px;padding:16px 18px}
+.sheet h2{margin:0 0 4px;font-size:21px;color:var(--amber)}
+.sheet .sub{opacity:.7;font-size:14px;margin-bottom:12px}
+.close{float:right;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#fff;font-size:18px}
+.row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.row .ic{font-size:28px;width:40px;text-align:center}
+.row .tx{flex:1;min-width:0}
+.row .tx b{display:block;font-size:16px}
+.row .tx small{opacity:.7;font-size:13px}
+.dots{display:flex;gap:4px;margin-top:6px}
+.dots i{width:16px;height:6px;border-radius:3px;background:rgba(255,255,255,.18)}
+.dots i.on{background:var(--amber)}
+.buy{border:0;border-radius:12px;padding:10px 14px;font-weight:800;font-size:15px;background:linear-gradient(#ffc56f,#e8893a);color:#2a1408;min-width:84px}
+.buy:disabled{background:rgba(255,255,255,.12);color:rgba(255,255,255,.45)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.card{background:rgba(255,255,255,.06);border-radius:14px;padding:8px 6px 10px;text-align:center;font-size:12px}
+.card img{width:100%;height:76px;object-fit:contain;display:block}
+.card.lock img{filter:brightness(0) opacity(.45)}
+.card b{display:block;font-size:13px;margin-top:2px}
+#result{position:fixed;inset:0;display:none;place-items:center;background:rgba(6,14,16,.5);z-index:4}
+#result.on{display:grid}
+.rc{width:min(86%,360px);background:linear-gradient(#26403f,#16282a);border:2px solid var(--amber);border-radius:24px;padding:14px 18px 16px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.5);animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.rc img{width:100%;max-height:150px;object-fit:contain}
+.rc h3{margin:0 0 2px;font-size:23px}
+.rc p{margin:2px 0;opacity:.85}
+.rc .coin{color:var(--amber);font-size:22px;font-weight:800;margin-top:6px}
+.rc .new{display:inline-block;background:var(--amber);color:#2a1408;font-weight:800;font-size:12px;border-radius:999px;padding:3px 10px}
+.rc .tap{margin-top:10px;font-size:13px;opacity:.6}
+#rotate{position:fixed;inset:0;z-index:9;background:#17484b;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;gap:14px}
+#rotate .ph{font-size:64px;animation:rot 1.8s ease-in-out infinite}
+@keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+#rotate button{margin-top:10px;background:none;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:12px;padding:8px 14px;font-size:14px;opacity:.8}
+@media (orientation:portrait){body:not(.portraitOk) #rotate{display:flex}}
+#loading{position:fixed;inset:0;z-index:10;background:#17484b;display:grid;place-items:center;font-weight:700;color:var(--amber);font-size:18px}
+</style>
+</head>
+<body>
+<div id="hud">
+  <div class="col"><div class="pill" id="coins">🪙 0</div><div class="pill zone" id="zone"></div></div>
+  <div id="btns">
+    <button class="btn" id="bShop" aria-label="Магазин">🛒</button>
+    <button class="btn" id="bDex" aria-label="Коллекция">📖</button>
+    <button class="btn" id="bSnd" aria-label="Звук">🔊</button>
+    <button class="btn" id="bFs" aria-label="Во весь экран">⛶</button>
+  </div>
+</div>
+<div id="hint"></div>
+<div id="boatUI"></div>
+<div id="charge"><i></i></div>
+<div id="bite">!</div>
+<div id="reel"><div class="track"><div class="zone"></div><img alt=""></div><div class="prog"><i></i></div></div>
+
+<div id="result"><div class="rc" id="rc"></div></div>
+
+<div class="overlay" id="shop"><div class="sheet">
+  <button class="close" data-close>✕</button>
+  <h2>Лавка рыбака</h2><div class="sub">Улучшай снасти — лови крупнее и реже теряй рыбу</div>
+  <div id="shopList"></div>
+</div></div>
+
+<div class="overlay" id="dex"><div class="sheet">
+  <button class="close" data-close>✕</button>
+  <h2>Коллекция</h2><div class="sub" id="dexSub"></div>
+  <div class="grid" id="dexGrid"></div>
+</div></div>
+
+<div id="rotate">
+  <div class="ph">📱</div>
+  <div style="font-size:20px;font-weight:800">Поверни телефон горизонтально</div>
+  <div style="opacity:.7">Игра сделана для горизонтального экрана</div>
+  <button id="bPortrait">Всё равно играть так</button>
+</div>
+<div id="loading">Загрузка гавани…</div>
+
+<script>/*THREE*/</script>
+<script>/*GAME*/</script>
+</body>
+</html>
