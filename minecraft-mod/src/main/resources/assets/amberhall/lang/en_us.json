@@ -12,6 +12,6 @@
   "item.minecraft.splash_potion.effect.rage": "Splash Potion of Rage",
   "item.minecraft.lingering_potion.effect.rage": "Lingering Potion of Rage",
   "item.minecraft.tipped_arrow.effect.rage": "Arrow of Rage",
-  "entity.amberhall.abyssal_shark": "Abyssal Shark",
-  "item.amberhall.abyssal_shark_spawn_egg": "Abyssal Shark Spawn Egg"
+  "entity.amberhall.leviathan": "Abyssal Leviathan",
+  "item.amberhall.leviathan_spawn_egg": "Abyssal Leviathan Spawn Egg"
 }

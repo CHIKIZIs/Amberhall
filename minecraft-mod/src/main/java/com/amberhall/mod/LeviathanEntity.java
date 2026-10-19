@@ -25,22 +25,23 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 /**
- * Глубинная акула: хищник глубин океана (модель ванильного дельфина, но вдвое крупнее и с тёмной шкурой).
- * Нападает на игроков, кусает тяжело и замедляет жертву. На суше задыхается, как рыба.
+ * Глубинный левиафан: огромный хищник тёмных глубин океана. Редкий и очень опасный: нападает на игроков в воде,
+ * кусает тяжело и надолго замедляет жертву, почти не отбрасывается. На суше задыхается, как рыба.
  */
-public class AbyssalSharkEntity extends HostileEntity {
-	public AbyssalSharkEntity(EntityType<? extends AbyssalSharkEntity> type, World world) {
+public class LeviathanEntity extends HostileEntity {
+	public LeviathanEntity(EntityType<? extends LeviathanEntity> type, World world) {
 		super(type, world);
 		this.moveControl = new AquaticMoveControl(this, 85, 10, 0.025f, 0.1f, true);
 	}
 
 	public static DefaultAttributeContainer.Builder createAttributes() {
 		return HostileEntity.createHostileAttributes()
-			.add(EntityAttributes.GENERIC_MAX_HEALTH, 36.0)
-			.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 1.2)
-			.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 7.0)
-			.add(EntityAttributes.GENERIC_ARMOR, 3.0)
-			.add(EntityAttributes.GENERIC_FOLLOW_RANGE, 28.0);
+			.add(EntityAttributes.GENERIC_MAX_HEALTH, 150.0)
+			.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 1.0)
+			.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 14.0)
+			.add(EntityAttributes.GENERIC_ARMOR, 8.0)
+			.add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, 0.8)
+			.add(EntityAttributes.GENERIC_FOLLOW_RANGE, 40.0);
 	}
 
 	@Override
@@ -50,9 +51,9 @@ public class AbyssalSharkEntity extends HostileEntity {
 
 	@Override
 	protected void initGoals() {
-		this.goalSelector.add(0, new MeleeAttackGoal(this, 1.4, true));
-		this.goalSelector.add(1, new SwimAroundGoal(this, 1.0, 30));
-		this.goalSelector.add(2, new LookAtEntityGoal(this, PlayerEntity.class, 10.0f));
+		this.goalSelector.add(0, new MeleeAttackGoal(this, 1.3, true));
+		this.goalSelector.add(1, new SwimAroundGoal(this, 0.9, 40));
+		this.goalSelector.add(2, new LookAtEntityGoal(this, PlayerEntity.class, 14.0f));
 		this.targetSelector.add(1, new RevengeGoal(this));
 		this.targetSelector.add(2, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
 	}
@@ -61,7 +62,7 @@ public class AbyssalSharkEntity extends HostileEntity {
 	public boolean tryAttack(Entity target) {
 		boolean hit = super.tryAttack(target);
 		if (hit && target instanceof LivingEntity living) {
-			living.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 80, 1), this);
+			living.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 140, 2), this);
 		}
 		return hit;
 	}
@@ -70,7 +71,7 @@ public class AbyssalSharkEntity extends HostileEntity {
 	public void baseTick() {
 		int air = this.getAir();
 		super.baseTick();
-		// вне воды акула задыхается
+		// вне воды задыхается
 		if (this.isAlive() && !this.isInsideWaterOrBubbleColumn()) {
 			this.setAir(air - 1);
 			if (this.getAir() == -20) {
@@ -98,16 +99,16 @@ public class AbyssalSharkEntity extends HostileEntity {
 
 	@Override
 	protected SoundEvent getAmbientSound() {
-		return this.isTouchingWater() ? SoundEvents.ENTITY_DOLPHIN_AMBIENT_WATER : SoundEvents.ENTITY_DOLPHIN_AMBIENT;
+		return SoundEvents.ENTITY_ELDER_GUARDIAN_AMBIENT;
 	}
 
 	@Override
 	protected SoundEvent getHurtSound(DamageSource source) {
-		return SoundEvents.ENTITY_DOLPHIN_HURT;
+		return SoundEvents.ENTITY_ELDER_GUARDIAN_HURT;
 	}
 
 	@Override
 	protected SoundEvent getDeathSound() {
-		return SoundEvents.ENTITY_DOLPHIN_DEATH;
+		return SoundEvents.ENTITY_ELDER_GUARDIAN_DEATH;
 	}
 }
