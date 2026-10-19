@@ -3,7 +3,7 @@
   "id": "amberhall",
   "version": "${version}",
   "name": "Amberhall",
-  "description": "Янтарь из глубин Эмберхолла: руда, самоцвет, блок, инструменты и янтарный жук.",
+  "description": "Янтарь из глубин Эмберхолла: руда, самоцвет, инструменты, янтарный жук и зелье бешенства.",
   "authors": [
     "Amberhall"
   ],
@@ -22,5 +22,6 @@
     "minecraft": "~1.21.1",
     "java": ">=21",
     "fabric-api": "*"
-  }
+  },
+  "accessWidener": "amberhall.accesswidener"
 }

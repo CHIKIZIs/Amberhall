@@ -6,5 +6,10 @@
   "item.amberhall.amber_sword": "Янтарный меч",
   "item.amberhall.amber_pickaxe": "Янтарная кирка",
   "entity.amberhall.amber_beetle": "Янтарный жук",
-  "item.amberhall.amber_beetle_spawn_egg": "Яйцо призыва: янтарный жук"
+  "item.amberhall.amber_beetle_spawn_egg": "Яйцо призыва: янтарный жук",
+  "effect.amberhall.rage": "Бешенство",
+  "item.minecraft.potion.effect.rage": "Зелье бешенства",
+  "item.minecraft.splash_potion.effect.rage": "Взрывное зелье бешенства",
+  "item.minecraft.lingering_potion.effect.rage": "Туманное зелье бешенства",
+  "item.minecraft.tipped_arrow.effect.rage": "Стрела бешенства"
 }

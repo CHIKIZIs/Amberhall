@@ -6,6 +6,8 @@ import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.ItemGroups;
+import net.minecraft.item.Items;
+import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
@@ -24,6 +26,7 @@ public class AmberhallMod implements ModInitializer {
 		ModBlocks.init();
 		ModEntities.init();
 		ModItems.init();
+		ModEffects.init();
 
 		// Дублируем предметы в обычные вкладки креатива, чтобы их было легко найти и в поиске.
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(e -> e.add(ModBlocks.AMBER_BLOCK));
@@ -32,6 +35,11 @@ public class AmberhallMod implements ModInitializer {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(e -> e.add(ModItems.AMBER_SWORD));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(e -> e.add(ModItems.AMBER_PICKAXE));
 
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FOOD_AND_DRINK).register(e -> {
+			e.add(PotionContentsComponent.createStack(Items.POTION, ModEffects.RAGE_POTION));
+			e.add(PotionContentsComponent.createStack(Items.SPLASH_POTION, ModEffects.RAGE_POTION));
+			e.add(PotionContentsComponent.createStack(Items.LINGERING_POTION, ModEffects.RAGE_POTION));
+		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> e.add(ModItems.AMBER_BEETLE_SPAWN_EGG));
 
 		// Янтарные жуки живут в пещерах Верхнего мира, группами по 2–3.

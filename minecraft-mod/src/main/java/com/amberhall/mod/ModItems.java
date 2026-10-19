@@ -4,7 +4,9 @@ import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.item.PickaxeItem;
+import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.item.SwordItem;
 import net.minecraft.registry.Registries;
@@ -44,6 +46,9 @@ public final class ModItems {
 				entries.add(AMBER_SWORD);
 				entries.add(AMBER_PICKAXE);
 				entries.add(AMBER_BEETLE_SPAWN_EGG);
+				entries.add(PotionContentsComponent.createStack(Items.POTION, ModEffects.RAGE_POTION));
+				entries.add(PotionContentsComponent.createStack(Items.SPLASH_POTION, ModEffects.RAGE_POTION));
+				entries.add(PotionContentsComponent.createStack(Items.LINGERING_POTION, ModEffects.RAGE_POTION));
 			})
 			.build());
 	}
