@@ -3,6 +3,8 @@ package com.amberhall.mod;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
@@ -20,6 +22,13 @@ public class AmberhallMod implements ModInitializer {
 	public void onInitialize() {
 		ModBlocks.init();
 		ModItems.init();
+
+		// Дублируем предметы в обычные вкладки креатива, чтобы их было легко найти и в поиске.
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(e -> e.add(ModBlocks.AMBER_BLOCK));
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.NATURAL).register(e -> e.add(ModBlocks.AMBER_ORE));
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(e -> e.add(ModItems.AMBER_GEM));
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(e -> e.add(ModItems.AMBER_SWORD));
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(e -> e.add(ModItems.AMBER_PICKAXE));
 
 		// Янтарная руда появляется в подземельях Верхнего мира (описание в data/amberhall/worldgen).
 		BiomeModifications.addFeature(
