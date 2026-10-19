@@ -9,6 +9,7 @@ import net.minecraft.item.ItemGroups;
 import net.minecraft.item.Items;
 import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.tag.BiomeTags;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.gen.GenerationStep;
@@ -40,10 +41,16 @@ public class AmberhallMod implements ModInitializer {
 			e.add(PotionContentsComponent.createStack(Items.SPLASH_POTION, ModEffects.RAGE_POTION));
 			e.add(PotionContentsComponent.createStack(Items.LINGERING_POTION, ModEffects.RAGE_POTION));
 		});
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> e.add(ModItems.AMBER_BEETLE_SPAWN_EGG));
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> {
+			e.add(ModItems.AMBER_BEETLE_SPAWN_EGG);
+			e.add(ModItems.DEEP_ANGLER_SPAWN_EGG);
+		});
 
 		// Янтарные жуки живут в пещерах Верхнего мира, группами по 2–3.
 		BiomeModifications.addSpawn(BiomeSelectors.foundInOverworld(), SpawnGroup.MONSTER, ModEntities.AMBER_BEETLE, 25, 2, 3);
+
+		// Глубинные удильщики: только глубокие океаны, по одному-два.
+		BiomeModifications.addSpawn(BiomeSelectors.tag(BiomeTags.IS_DEEP_OCEAN), SpawnGroup.WATER_CREATURE, ModEntities.DEEP_ANGLER, 6, 1, 2);
 
 		// Янтарная руда появляется в подземельях Верхнего мира (описание в data/amberhall/worldgen).
 		BiomeModifications.addFeature(

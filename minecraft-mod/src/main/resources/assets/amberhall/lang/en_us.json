@@ -11,5 +11,7 @@
   "item.minecraft.potion.effect.rage": "Potion of Rage",
   "item.minecraft.splash_potion.effect.rage": "Splash Potion of Rage",
   "item.minecraft.lingering_potion.effect.rage": "Lingering Potion of Rage",
-  "item.minecraft.tipped_arrow.effect.rage": "Arrow of Rage"
+  "item.minecraft.tipped_arrow.effect.rage": "Arrow of Rage",
+  "entity.amberhall.deep_angler": "Deep Angler",
+  "item.amberhall.deep_angler_spawn_egg": "Deep Angler Spawn Egg"
 }

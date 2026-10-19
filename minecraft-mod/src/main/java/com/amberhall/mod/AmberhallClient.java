@@ -9,6 +9,8 @@ public class AmberhallClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		EntityModelLayerRegistry.registerModelLayer(AmberBeetleModel.LAYER, AmberBeetleModel::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(AnglerModel.LAYER, AnglerModel::getTexturedModelData);
+		EntityRendererRegistry.register(ModEntities.DEEP_ANGLER, AnglerRenderer::new);
 		EntityRendererRegistry.register(ModEntities.AMBER_BEETLE, AmberBeetleRenderer::new);
 	}
 }
