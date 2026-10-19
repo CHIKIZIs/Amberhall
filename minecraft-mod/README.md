@@ -9,7 +9,7 @@
 
 ## Сборка
 
-Нужны JDK 21 и Gradle 8.10+ (или IntelliJ IDEA с поддержкой Gradle).
+Нужны JDK 21 и Gradle 8.12+ (или IntelliJ IDEA с поддержкой Gradle).
 
 ```
 gradle wrapper      # один раз, создаст gradlew
