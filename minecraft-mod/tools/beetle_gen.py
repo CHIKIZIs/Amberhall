@@ -357,7 +357,7 @@ def png_bytes(img):
             + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
 
 # ---------------------------------------------------------------- превью (трассировка лучей по кубоидам)
-def render(img, yaw_deg, pitch_deg, size=300, scale=15, anim=None):
+def render(img, yaw_deg, pitch_deg, size=300, scale=15, anim=None, center=(0, 17.0, 1.5)):
     from PIL import Image
     yaw, pitch = math.radians(yaw_deg), math.radians(pitch_deg)
     eye = np.array([math.sin(yaw) * math.cos(pitch), -math.sin(pitch), -math.cos(yaw) * math.cos(pitch)])
@@ -365,7 +365,7 @@ def render(img, yaw_deg, pitch_deg, size=300, scale=15, anim=None):
     up_w = np.array([0, -1.0, 0])
     right = np.cross(fwd, up_w); right /= np.linalg.norm(right)
     up = np.cross(right, fwd)
-    c = np.array([0, 17.0, 1.5])
+    c = np.array(center, dtype=float)
     xs, ys = np.meshgrid(np.arange(size), np.arange(size))
     sx = (xs - size / 2) / scale
     sy = (size / 2 - ys) / scale
