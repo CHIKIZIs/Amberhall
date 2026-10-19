@@ -41,14 +41,14 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:prismarine_shard",
+          "name": "minecraft:bone",
           "functions": [
             {
               "function": "minecraft:set_count",
               "count": {
                 "type": "minecraft:uniform",
                 "min": 0,
-                "max": 2
+                "max": 3
               }
             }
           ]
@@ -56,5 +56,5 @@
       ]
     }
   ],
-  "random_sequence": "amberhall:entities/deep_angler"
+  "random_sequence": "amberhall:entities/dunkleosteus"
 }

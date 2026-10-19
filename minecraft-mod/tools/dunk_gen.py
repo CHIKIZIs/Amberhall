@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Бронированная доисторическая рыба (дунклеостей): модель Java, текстура с прозрачными рваными плавниками,
-исходник Blockbench и превью. По референсу: оливковая броня со швами, красная пасть с оранжевым дном,
-бледные клинки-зубы, маленький красный глаз, раздвоённый хвост.
+"""Бронированная доисторическая рыба (дунклеостей) по референсу.
 
-Использует трассировщик/упаковщик из beetle_gen.py.
-Запуск из папки minecraft-mod:  python3 tools/dunk_gen.py [preview.png]
+Что взято с референса: золотисто-оливковая палитра (#665a2a и соседние тона), толстые тёмные швы поперёк туловища,
+кремовые пятна на боках и брюхе, красная пасть с оранжевым светящимся дном нижней челюсти, зубы-клинки с рваным краем
+(прозрачные вырезы в текстуре), узкий спинной плавник в полоску, серповидный хвост-пластина и ласты-веера с зубчатыми краями.
+
+Генерирует Java-модель, текстуру, файл Blockbench и превью (рядом с референсом, если он есть).
+Запуск из папки minecraft-mod:  python3 tools/dunk_gen.py [preview.png [reference.png]]
 """
 import json, math, os, random, sys
 import numpy as np
@@ -18,136 +20,145 @@ def part(name, parent, pivot, rot, origin, size, kind):
     P.append(dict(name=name, parent=parent, pivot=pivot, rot=rot, origin=origin, size=size, kind=kind))
 
 # ---------------------------------------------------------------- части (y вниз, перед — в -z)
-part("head",       "root", (0, 13.5, -5),  (0, 0, 0),        (-4.5, -4.5, -9), (9, 7, 9),   "head")
-part("lower_jaw",  "root", (0, 17, -5),    (0.2, 0, 0),      (-4, -1.5, -9),   (8, 3, 9),   "jaw")
-# верхние зубы-клинки спереди (две большие бледные пластины) и мелкие зубчики по боковым кромкам
-part("blade_l",    "head", (0, 0, 0),      (0, 0, 0),        (1.2, 1.5, -9.4), (2.2, 3.5, 0.8), "blade")
-part("blade_r",    "head", (0, 0, 0),      (0, 0, 0),        (-3.4, 1.5, -9.4), (2.2, 3.5, 0.8), "blade")
-for i, z in enumerate((-7, -5, -3)):
-    part(f"tooth_ul{i}", "head", (0, 0, 0), (0, 0, 0), (-4.4, 1.6, z), (0.7, 1.6 + (i % 2) * .6, 0.7), "tooth")
-    part(f"tooth_ur{i}", "head", (0, 0, 0), (0, 0, 0), (3.7, 1.6, z), (0.7, 1.6 + ((i + 1) % 2) * .6, 0.7), "tooth")
-for i, x in enumerate((-3, -1, 1, 2.6)):
-    part(f"tooth_lf{i}", "lower_jaw", (0, 0, 0), (0, 0, 0), (x, -3, -8.8), (0.7, 1.5 + (i % 2) * .5, 0.7), "tooth")
-for i, z in enumerate((-6.5, -4, -1.5)):
-    part(f"tooth_ll{i}", "lower_jaw", (0, 0, 0), (0, 0, 0), (-3.9, -3, z), (0.7, 1.5 + (i % 2) * .5, 0.7), "tooth")
-    part(f"tooth_lr{i}", "lower_jaw", (0, 0, 0), (0, 0, 0), (3.2, -3, z), (0.7, 1.5 + ((i + 1) % 2) * .5, 0.7), "tooth")
-part("eye_l",      "head", (0, 0, 0),      (0, 0, 0),        (4.5, -2.5, -7.5), (1, 2, 2),  "eye")
-part("eye_r",      "head", (0, 0, 0),      (0, 0, 0),        (-5.5, -2.5, -7.5), (1, 2, 2), "eye")
-part("body",       "root", (0, 14, -5),    (0, 0, 0),        (-4.5, -4.5, 0),  (9, 9, 11),  "body")
-part("dorsal",     "root", (0, 9.5, -2),   (-0.35, 0, 0),    (-0.5, -8, -2.5), (1, 8, 5),   "dorsal")
-part("body2",      "root", (0, 14.5, 6),   (0, 0, 0),        (-3.5, -3.5, 0),  (7, 7, 6),   "body")
-part("tail1",      "body2", (0, 0, 6),     (0, 0, 0),        (-2, -2, 0),      (4, 4, 6),   "tail")
-part("tail_up",    "tail1", (0, -1, 6),    (0.55, 0, 0),     (-0.5, -2.5, 0),  (1, 5, 11),  "lobe")
-part("tail_dn",    "tail1", (0, 1, 6),     (-0.55, 0, 0),    (-0.5, -2.5, 0),  (1, 5, 11),  "lobe")
-part("fin_l",      "root", (4.5, 18.5, -1), (0.35, 0, -0.5),  (0, 0, -2.5),    (1, 6, 6),   "pect")
-part("fin_r",      "root", (-4.5, 18.5, -1), (0.35, 0, 0.5),   (-1, 0, -2.5),   (1, 6, 6),   "pect")
-part("pelvic_l",   "body2", (2, 3.5, 0),   (0.3, 0, -0.35),  (0, 0, -1.5),     (1, 4, 3),   "pect")
-part("pelvic_r",   "body2", (-2, 3.5, 0),  (0.3, 0, 0.35),   (-1, 0, -1.5),    (1, 4, 3),   "pect")
+part("head",       "root", (0, 12.5, -5),  (0, 0, 0),        (-5.5, -4, -9),   (11, 7, 9),  "head")
+part("lower_jaw",  "root", (0, 17, -5),    (0.2, 0, 0),      (-5, -1.5, -9),   (10, 3, 9),  "jaw")
+# зубы: тонкие пластины с рваным (пилообразным) краем — форму зубов задаёт прозрачность текстуры
+part("tooth_uf",   "head", (0, 0, 0),      (0, 0, 0),        (-5, 2.2, -9.6),  (10, 3, 0.6), "blade_down")
+part("tooth_ul",   "head", (0, 0, 0),      (0, 0, 0),        (5.1, 2.4, -9),   (0.6, 2, 9), "saw_down")
+part("tooth_ur",   "head", (0, 0, 0),      (0, 0, 0),        (-5.7, 2.4, -9),  (0.6, 2, 9), "saw_down")
+part("tooth_lf",   "lower_jaw", (0, 0, 0), (0, 0, 0),        (-5, -3.7, -9.6), (10, 2, 0.6), "saw_up")
+part("tooth_ll",   "lower_jaw", (0, 0, 0), (0, 0, 0),        (4.5, -3.7, -9),  (0.6, 2, 9), "saw_up")
+part("tooth_lr",   "lower_jaw", (0, 0, 0), (0, 0, 0),        (-5.1, -3.7, -9), (0.6, 2, 9), "saw_up")
+part("eye_l",      "head", (0, 0, 0),      (0, 0, 0),        (5.5, -3.2, -7.5), (1, 2, 2), "eye")
+part("eye_r",      "head", (0, 0, 0),      (0, 0, 0),        (-6.5, -3.2, -7.5), (1, 2, 2), "eye")
+part("body",       "root", (0, 14, -5),    (0, 0, 0),        (-5.5, -5, 0),    (11, 10, 11), "body")
+part("dorsal",     "root", (0, 9, -1),     (-0.3, 0, 0),     (-0.5, -8, -2),   (1, 8, 5),  "dorsal")
+part("body2",      "root", (0, 14, 6),     (0, 0, 0),        (-4, -4, 0),      (8, 8, 6),  "body")
+part("tail1",      "body2", (0, 0, 6),     (0, 0, 0),        (-2.5, -2.5, 0),  (5, 5, 6),  "tail")
+part("tail_fin",   "tail1", (0, 0, 6),     (0, 0, 0),        (-0.5, -10, 0),   (1, 20, 12), "crescent")
+part("fin_l",      "root", (5.5, 17.5, 0), (0.75, 0, -0.55), (0, 0, -4),       (1, 9, 8),  "fan")
+part("fin_r",      "root", (-5.5, 17.5, 0), (0.75, 0, 0.55),  (-1, 0, -4),      (1, 9, 8),  "fan")
+part("pelvic_l",   "body2", (3, 3.5, 1),   (0.3, 0, -0.4),   (0, 0, -2),       (1, 6, 4),  "fan")
+part("pelvic_r",   "body2", (-3, 3.5, 1),  (0.3, 0, 0.4),    (-1, 0, -2),      (1, 6, 4),  "fan")
 g.BY.clear(); g.BY.update({p["name"]: p for p in P})
 g.UV = g.pack()
 UV = g.UV
 
-# ---------------------------------------------------------------- палитра (оливковая броня, как на референсе)
+# ---------------------------------------------------------------- палитра, снятая с референса
 def hx(s): return g.hx(s)
-OL = [hx(c) for c in ("26240a", "3a3810", "52501a", "686822", "828230", "9c9c44", "b8b860")]
-CREAM = [hx(c) for c in ("c4bd92", "e2dcb6", "f6f2d8")]
-RED = [hx(c) for c in ("501016", "7e1a1e", "a8281f", "cc3c2a")]
-ORG = [hx(c) for c in ("d4560e", "f0801a", "ffa92e", "ffd46a")]
+#          0 шов       1 тёмный    2 тень      3 основной  4 светлее   5 верх      6 блик      7 кремовый  8 бледный
+OL = [hx(c) for c in ("2c2210", "46391a", "5a4e1e", "665a2a", "7e7236", "948a44", "b0a860", "cdc88a", "e6e2b4")]
+RED = [hx(c) for c in ("4a1612", "6e2420", "8e3228", "b04838")]
+ORG = [hx(c) for c in ("c8503c", "e86e20", "f89a2c", "ffc05a")]
+EYE = [hx(c) for c in ("3a2410", "e8906a", "f6b08a")]
 
 def H(*a): return (hash(a) & 0xffffff) / float(0x1000000)
 
-def olive(name, face, a, b, rnd, bias=0):
-    """мягкая пятнистость: клетки 3×3 + шум пикселей, в основном средние тона"""
-    cell = H(name, face, (a + (b % 2)) // 3, b // 3)
-    i = 3 + (-1 if cell < .28 else (1 if cell > .78 else 0)) + bias
-    r = rnd.random()
-    if r < .12: i -= 1
-    elif r > .9: i += 1
-    return OL[max(1, min(5, i))]
+def mottle(name, face, a, b, rnd, bias=0):
+    """тёплый оливковый с пятнами 2×2 (как на референсе): тени, основной, посветлее"""
+    cell = H(name, face, (a + (b % 2)) // 2, b // 2)
+    i = 3 + (-1 if cell < .3 else (1 if cell > .72 else 0)) + bias
+    if rnd.random() < .1: i += rnd.choice((-1, 1))
+    return OL[max(1, min(6, i))]
 
-def armor(p, face, a, b, fw, fh, rnd):
-    """броневые пластины: тёмные швы поперёк, светлое брюхо, бледные пятна на боках"""
+def armor(p, face, a, b, fw, fh, rnd, seams=True):
+    """туловище: толстые неровные тёмные швы, кремовые пятна, светлое брюхо"""
     name = p["name"]
     if face == "down":
-        return olive(name, face, a, b, rnd, 2)
-    c = olive(name, face, a, b, rnd)
+        return mottle(name, face, a, b, rnd, 1)
     if face == "up":
-        if a == fw // 2: return OL[0] if rnd.random() < .9 else OL[1]            # продольный шов по спине
-        if b in (fh // 3, 2 * fh // 3) and rnd.random() < .85: return OL[0]    # поперечные швы
+        c = mottle(name, face, a, b, rnd, 2)
+        if a == fw // 2: return OL[1] if rnd.random() < .85 else c               # продольный шов по спине
+        if b == fh // 2 and rnd.random() < .7: return OL[2]                      # один поперечный шов
         return c
-    # боковые и торцевые грани
-    seam1, seam2 = max(1, int(fh * .22)), int(fh * .5)
-    if b in (seam1, seam2) and rnd.random() < .88: return OL[0] if b == seam1 else OL[1]
-    if b > fh * .62:                                                         # брюхо светлее
-        c = olive(name, face, a, b, rnd, 2)
-        if H(name, face, a // 2, b // 2) < .16: c = CREAM[1] if rnd.random() < .7 else CREAM[0]   # бледные пятна
-    if a == 0 or a == fw - 1:
-        c = OL[2] if c[0] > OL[2][0] else c
+    c = mottle(name, face, a, b, rnd, 0 if b < fh * .65 else 1)
+    if seams:
+        s1, s2 = int(fh * .3), int(fh * .55)
+        for sb, col in ((s1, OL[0]), (s2, OL[1])):
+            if b == sb and rnd.random() < .8: return col
+            if b == sb + 1 and rnd.random() < .35: return OL[2]                   # шов толщиной 2 пикселя местами
+    if b > fh * .55 and H(name, face, a // 2, b // 2, 7) < .2:                      # кремовые пятна на боках и брюхе
+        return OL[7] if rnd.random() < .7 else OL[6]
+    if a == 0 or a == fw - 1: c = OL[2] if rnd.random() < .6 else c
     if b == fh - 1: c = OL[2]
     return c
 
+def saw(a, fw, b, fh, lens, up=False):
+    """зубчатый край: колонка a оставляет lens[a % n] строк у кромки (вниз — от верха, вверх — от низа)"""
+    n = lens[a % len(lens)]
+    return (b >= fh - n) if up else (b < n)
+
 def color(p, face, a, b, fw, fh, rnd):
     k = p["kind"]
+    if k in ("crescent", "fan", "dorsal") and face not in ("east", "west"):
+        return None                                                          # у плоских пластин только боковые грани
     if k == "head":
-        if face == "down":                                      # нёбо: красное, тёмная кромка
-            c = RED[1] if H("pal", a // 2, b // 2) < .55 else RED[2]
-            if a in (0, fw - 1) or b == 0: c = RED[0]
-            return c
+        if face == "down":                                                  # нёбо: тёмно-красное, пятнистое
+            return RED[1 + (1 if H("pal", a // 2, b // 2) > .55 else 0)] if not (a in (0, fw - 1) or b == 0) else RED[0]
         c = armor(p, face, a, b, fw, fh, rnd)
-        if face == "north" and b >= fh - 2: c = RED[1]          # тёмный зев под передней губой
+        if face == "north" and b >= fh - 2: c = RED[1]                      # зев под передней губой
         return c
-    if k in ("body",):
+    if k == "body":
         return armor(p, face, a, b, fw, fh, rnd)
     if k == "tail":
-        return olive(p["name"], face, a, b, rnd, 0 if face != "down" else 1)
+        return mottle(p["name"], face, a, b, rnd, 0 if face != "down" else 1)
     if k == "jaw":
-        if face == "up":                                        # дно пасти: красная рамка и оранжевое светящееся поле
+        if face == "up":                                                    # дно пасти: розово-красная рамка и оранжевое поле
             edge = min(a, b, fw - 1 - a, fh - 1 - b)
-            if edge == 0: return RED[1] if (a + b) % 2 else RED[2]
-            if edge == 1: return ORG[0]
+            if edge == 0: return ORG[0] if (a + b) % 3 else RED[3]
+            if edge == 1: return RED[3] if rnd.random() < .6 else ORG[0]
             c = ORG[2] if edge >= 3 else ORG[1]
-            if a == fw // 2 or a == fw // 2 - 1 and fw % 2 == 0: c = ORG[0]       # шов посередине
-            if edge >= 3 and (a + b) % 3 == 0: c = ORG[3]
+            if a in (fw // 2 - 1, fw // 2): c = ORG[1]                       # шов посередине
+            if edge >= 3 and (a * 2 + b) % 5 == 0: c = ORG[3]
             return c
-        c = armor(p, face, a, b, fw, fh, rnd)
-        if face in ("north", "east", "west", "south") and b == 0: c = CREAM[0] if rnd.random() < .5 else OL[2]   # светлая кромка
+        c = armor(p, face, a, b, fw, fh, rnd, seams=(face != "down"))
+        if b == 0 and face in ("north", "east", "west", "south"): c = OL[7] if rnd.random() < .4 else OL[1]
         return c
-    if k == "blade":
-        c = CREAM[1]
-        if face in ("east", "west"): c = CREAM[2] if a < fw // 2 else CREAM[1]
-        if b == fh - 1: c = CREAM[0]
-        return c
-    if k == "tooth":
-        c = CREAM[1]
-        if b >= fh - 1: c = CREAM[0]
-        return c
+    if k in ("blade_down", "saw_down", "saw_up"):
+        # пластина-зубы: две большие пары клинков спереди, мелкие зубчики по бокам; всё остальное прозрачно
+        if face in ("up", "down"): return None
+        lens = {"blade_down": [1, 2, 3, 3, 2, 2, 3, 3, 2, 1], "saw_down": [2, 1, 2, 1], "saw_up": [2, 1, 2, 1]}[k]
+        if face in ("east", "west") and k == "blade_down": return None
+        if face in ("north", "south") and k in ("saw_down", "saw_up"): return None
+        if not saw(a, fw, b, fh, lens, up=(k == "saw_up")): return None
+        t = (b if k != "saw_up" else fh - 1 - b)
+        return OL[8] if t == 0 else (OL[7] if t == 1 else OL[6])
     if k == "eye":
         if face in ("east", "west") and fw >= 2 and fh >= 2:
-            if (a, b) == (0, 0) or (a, b) == (fw - 1, 0): return ORG[2]       # красно-оранжевый блик
-            return RED[3] if (a + b) % 2 == 0 else RED[2]
-        return OL[0]
+            if b == 0: return EYE[0]                                        # тёмная кромка сверху
+            return EYE[2] if (a, b) == (0, 1) else EYE[1]                   # розово-оранжевый глаз с бликом
+        return OL[1]
     if k == "dorsal":
         if face in ("east", "west"):
-            c = OL[1] if a % 2 == 0 else OL[4]                                # вертикальные полосы
-            if rnd.random() < .12: c = OL[3]
+            stripe = ((a * 2 + b // 3) // 2) % 2                             # диагональные тёмные полосы, как на референсе
+            c = OL[1] if stripe == 0 else OL[4]
+            if rnd.random() < .12: c = OL[2]
+            # рваный верх: срезаем вершину по диагонали
+            if b < (a * 2) // 3 - 1: return None
             return c
         return OL[2]
-    if k == "lobe":
-        # раздвоенный хвост: лопасть сужается к кончику, рваный край (прозрачность)
+    if k == "crescent":
+        # серповидный хвост: вертикальный «стебель» спереди и две зубчатые лопасти, уходящие назад вверх и вниз
         if face in ("east", "west"):
-            t = (fw - 1 - a) / max(1, fw - 1) if face == "west" else a / max(1, fw - 1)
-            keep = int(round(fh * (1 - 0.75 * t))) + (1 if (a % 3 == 0) else 0)
-            if b >= keep: return None
-            c = OL[1] if (a + b) % 3 == 0 else (OL[3] if rnd.random() < .7 else OL[4])
+            s = a if face == "west" else fw - 1 - a                         # s=0 — у основания, s=fw-1 — кончик
+            top_c = 6.5 - s * 0.5                                           # центр верхней лопасти поднимается к кончику
+            bot_c = fh - 1 - top_c
+            in_stem = s <= 3 and 2 <= b <= fh - 3
+            in_top = s >= 2 and abs(b - top_c) <= 3.0 - s * 0.13 + (0.6 if s % 2 == 0 else -0.2)
+            in_bot = s >= 2 and abs(b - bot_c) <= 3.0 - s * 0.13 + (0.6 if s % 2 == 1 else -0.2)
+            if not (in_stem or in_top or in_bot): return None
+            c = OL[1] if (a + b) % 4 == 0 else (OL[3] if rnd.random() < .65 else OL[4])
+            if in_stem and (a + b) % 5 == 0: c = OL[0]
             return c
         return OL[2]
-    if k == "pect":
+    if k == "fan":
+        # веер-плавник: зубчатый нижний край, тёмные жилки
         if face in ("east", "west"):
-            spikes = [8, 5, 7, 4, 8, 5, 6]
-            ln = spikes[a % len(spikes)] * fh / 8.0
-            if b >= int(round(ln)): return None
-            c = OL[1] if b % 3 == 0 else OL[3]
-            if a % 2 == 0 and b > 1: c = OL[4]
+            spikes = [1.0, .82, .96, .72, 1.0, .8]
+            ln = int(round(spikes[a % len(spikes)] * fh))
+            if b >= ln: return None
+            c = OL[1] if (a + b // 2) % 3 == 0 else OL[3]
+            if rnd.random() < .15: c = OL[4]
             return c
         return OL[2]
     return (255, 0, 255, 255)
@@ -200,7 +211,7 @@ public class DunkleosteusModel extends SinglePartEntityModel<DunkleosteusEntity>
 
 	private final ModelPart root;
 	private final ModelPart lowerJaw;
-	private final ModelPart body2, tail1, tailUp, tailDn;
+	private final ModelPart body2, tail1, tailFin;
 	private final ModelPart finL, finR, pelvicL, pelvicR;
 
 	public DunkleosteusModel(ModelPart root) {{
@@ -208,8 +219,7 @@ public class DunkleosteusModel extends SinglePartEntityModel<DunkleosteusEntity>
 		this.lowerJaw = root.getChild("lower_jaw");
 		this.body2 = root.getChild("body2");
 		this.tail1 = body2.getChild("tail1");
-		this.tailUp = tail1.getChild("tail_up");
-		this.tailDn = tail1.getChild("tail_dn");
+		this.tailFin = tail1.getChild("tail_fin");
 		this.finL = root.getChild("fin_l");
 		this.finR = root.getChild("fin_r");
 		this.pelvicL = body2.getChild("pelvic_l");
@@ -225,7 +235,7 @@ public class DunkleosteusModel extends SinglePartEntityModel<DunkleosteusEntity>
 
 	@Override
 	public void setAngles(DunkleosteusEntity entity, float limbAngle, float limbDistance, float animationProgress, float headYaw, float headPitch) {{
-		// пасть: в бою раскрывается широко и щёлкает, в покое приоткрыта
+		// пасть: в бою широко раскрывается и щёлкает, в покое приоткрыта
 		if (entity.isAttacking()) {{
 			lowerJaw.pitch = 0.75f + MathHelper.sin(animationProgress * 0.5f) * 0.3f;
 		}} else {{
@@ -238,15 +248,14 @@ public class DunkleosteusModel extends SinglePartEntityModel<DunkleosteusEntity>
 		float t = animationProgress * 0.15f * speed;
 		body2.yaw = MathHelper.sin(t) * amp * 0.6f;
 		tail1.yaw = MathHelper.sin(t - 0.9f) * amp;
-		tailUp.yaw = MathHelper.sin(t - 1.7f) * amp * 0.7f;
-		tailDn.yaw = tailUp.yaw;
+		tailFin.yaw = MathHelper.sin(t - 1.7f) * amp * 0.8f;
 
 		// грудные и брюшные плавники гребут
 		float flap = MathHelper.sin(animationProgress * 0.2f) * 0.25f;
-		finL.roll = -0.45f - flap;
-		finR.roll = 0.45f + flap;
-		pelvicL.roll = -0.35f - flap * 0.6f;
-		pelvicR.roll = 0.35f + flap * 0.6f;
+		finL.roll = -0.5f - flap;
+		finR.roll = 0.5f + flap;
+		pelvicL.roll = -0.4f - flap * 0.6f;
+		pelvicR.roll = 0.4f + flap * 0.6f;
 	}}
 
 	@Override
@@ -267,23 +276,33 @@ def main():
         "src/main/resources/assets/amberhall/textures/entity/dunkleosteus.png": png,
         "blockbench/dunkleosteus.bbmodel": json.dumps(bb, ensure_ascii=False, indent=1).encode(),
     }
-    for rel, data in files.items():
-        full = os.path.join(root, rel)
-        os.makedirs(os.path.dirname(full), exist_ok=True)
-        open(full, "wb").write(data)
-    print("written:", ", ".join(files))
-    if len(sys.argv) > 1:
+    if "--no-write" not in sys.argv:
+        for rel, data in files.items():
+            full = os.path.join(root, rel)
+            os.makedirs(os.path.dirname(full), exist_ok=True)
+            open(full, "wb").write(data)
+        print("written:", ", ".join(files))
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if args:
         from PIL import Image
         for p in P:
-            if p["name"] == "lower_jaw": p["rot"] = (0.75, 0, 0)
+            if p["name"] == "lower_jaw": p["rot"] = (0.8, 0, 0)
         c = (0, 14, 2)
-        views = [g.render(img, 35, -8, scale=9, center=c), g.render(img, 90, 4, scale=9, center=c),
-                 g.render(img, 0, 4, scale=9, center=c), g.render(img, 145, 24, scale=9, center=c)]
-        sheet = Image.new("RGB", (600, 600), (235, 235, 235))
+        # главный ракурс — как на референсе (слева-спереди-сверху)
+        main_view = g.render(img, 40, -22, size=420, scale=12, center=c)
+        views = [g.render(img, 90, 4, scale=8, center=c), g.render(img, 0, 4, scale=8, center=c),
+                 g.render(img, 145, 24, scale=8, center=c)]
+        W = 420 + 300 * 1
+        sheet = Image.new("RGB", (840, 720), (232, 232, 232))
+        sheet.paste(main_view, (0, 0))
+        if len(args) > 1 and os.path.exists(args[1]):
+            ref = Image.open(args[1]).convert("RGB")
+            ref.thumbnail((420, 420))
+            sheet.paste(ref, (420, 0))
         for i, v in enumerate(views):
-            sheet.paste(v, ((i % 2) * 300, (i // 2) * 300))
-        sheet.save(sys.argv[1])
-        Image.fromarray(img).resize((g.TEX_W * 6, g.TEX_H * 6), Image.NEAREST).save(sys.argv[1].replace(".png", "_tex.png"))
+            sheet.paste(v.resize((280, 280)), (i * 280, 440))
+        sheet.save(args[0])
+        Image.fromarray(img).resize((g.TEX_W * 6, g.TEX_H * 6), Image.NEAREST).save(args[0].replace(".png", "_tex.png"))
 
 if __name__ == "__main__":
     main()

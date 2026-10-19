@@ -12,6 +12,6 @@
   "item.minecraft.splash_potion.effect.rage": "Взрывное зелье бешенства",
   "item.minecraft.lingering_potion.effect.rage": "Туманное зелье бешенства",
   "item.minecraft.tipped_arrow.effect.rage": "Стрела бешенства",
-  "entity.amberhall.deep_angler": "Глубинный удильщик",
-  "item.amberhall.deep_angler_spawn_egg": "Яйцо призыва: глубинный удильщик"
+  "entity.amberhall.dunkleosteus": "Бронированная рыба",
+  "item.amberhall.dunkleosteus_spawn_egg": "Яйцо призыва: бронированная рыба"
 }

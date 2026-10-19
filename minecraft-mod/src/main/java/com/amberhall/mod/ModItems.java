@@ -29,8 +29,8 @@ public final class ModItems {
 	public static final Item AMBER_BEETLE_SPAWN_EGG = register("amber_beetle_spawn_egg",
 		new SpawnEggItem(ModEntities.AMBER_BEETLE, 0xE09A1A, 0x3B2A12, new Item.Settings()));
 
-	public static final Item DEEP_ANGLER_SPAWN_EGG = register("deep_angler_spawn_egg",
-		new SpawnEggItem(ModEntities.DEEP_ANGLER, 0x26586A, 0xF08A24, new Item.Settings()));
+	public static final Item DUNKLEOSTEUS_SPAWN_EGG = register("dunkleosteus_spawn_egg",
+		new SpawnEggItem(ModEntities.DUNKLEOSTEUS, 0x665A2A, 0xF89A2C, new Item.Settings()));
 
 	public static final RegistryKey<ItemGroup> GROUP = RegistryKey.of(RegistryKeys.ITEM_GROUP, AmberhallMod.id("amberhall"));
 
@@ -49,7 +49,7 @@ public final class ModItems {
 				entries.add(AMBER_SWORD);
 				entries.add(AMBER_PICKAXE);
 				entries.add(AMBER_BEETLE_SPAWN_EGG);
-				entries.add(DEEP_ANGLER_SPAWN_EGG);
+				entries.add(DUNKLEOSTEUS_SPAWN_EGG);
 				entries.add(PotionContentsComponent.createStack(Items.POTION, ModEffects.RAGE_POTION));
 				entries.add(PotionContentsComponent.createStack(Items.SPLASH_POTION, ModEffects.RAGE_POTION));
 				entries.add(PotionContentsComponent.createStack(Items.LINGERING_POTION, ModEffects.RAGE_POTION));

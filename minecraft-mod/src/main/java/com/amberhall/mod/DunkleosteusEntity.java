@@ -25,22 +25,22 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 /**
- * Глубинный удильщик: хищник тёмных глубин океана. Приманкой манит игрока, кусает больно
+ * Бронированная доисторическая рыба: хищник глубин океана. Бросается на игрока, кусает тяжело
  * и вместе с уроном замедляет жертву. На суше задыхается, как рыба.
  */
-public class AnglerEntity extends HostileEntity {
-	public AnglerEntity(EntityType<? extends AnglerEntity> type, World world) {
+public class DunkleosteusEntity extends HostileEntity {
+	public DunkleosteusEntity(EntityType<? extends DunkleosteusEntity> type, World world) {
 		super(type, world);
 		this.moveControl = new AquaticMoveControl(this, 85, 10, 0.025f, 0.1f, true);
 	}
 
 	public static DefaultAttributeContainer.Builder createAttributes() {
 		return HostileEntity.createHostileAttributes()
-			.add(EntityAttributes.GENERIC_MAX_HEALTH, 28.0)
+			.add(EntityAttributes.GENERIC_MAX_HEALTH, 40.0)
 			.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 1.0)
-			.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 6.0)
-			.add(EntityAttributes.GENERIC_ARMOR, 2.0)
-			.add(EntityAttributes.GENERIC_FOLLOW_RANGE, 24.0);
+			.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 8.0)
+			.add(EntityAttributes.GENERIC_ARMOR, 6.0)
+			.add(EntityAttributes.GENERIC_FOLLOW_RANGE, 28.0);
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public class AnglerEntity extends HostileEntity {
 	public void baseTick() {
 		int air = this.getAir();
 		super.baseTick();
-		// вне воды удильщик задыхается (как рыба)
+		// вне воды рыба задыхается
 		if (this.isAlive() && !this.isInsideWaterOrBubbleColumn()) {
 			this.setAir(air - 1);
 			if (this.getAir() == -20) {
