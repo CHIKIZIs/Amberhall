@@ -180,5 +180,31 @@ def brick():
         write(pth, json.dumps(d, ensure_ascii=False, indent=2) + "\n")
     print("кирпичи готовы:", made)
 
-if __name__ == "__main__":
+if __name__ == "__main__" and sys.argv[1] in ("wood", "brick"):
     {"wood": wood, "brick": brick}[sys.argv[1]]()
+
+
+# ================================================================== янтарный фонарь (по ванильному фонарю)
+def lantern():
+    ramp = [hx(c) for c in ("3a1c04", "6a3606", "a85a0a", "dc8a18", "f3b43a", "ffe08a", "fffadc")]
+    conv = lambda s: s.replace("minecraft:block/lantern", f"{M}:block/amber_lantern").replace("minecraft:item/lantern", f"{M}:item/amber_lantern").replace("minecraft:lantern", f"{M}:amber_lantern")
+    write(f"{ASSETS}/blockstates/amber_lantern.json", conv(read("assets/minecraft/blockstates/lantern.json").decode()))
+    for name in ("lantern", "lantern_hanging"):
+        write(f"{ASSETS}/models/block/amber_{name}.json", conv(read(f"assets/minecraft/models/block/{name}.json").decode()).replace(f"{M}:block/{name}", f"{M}:block/amber_{name}"))
+    # blockstate ссылается на amber_lantern и amber_lantern_hanging
+    bs = open(f"{ASSETS}/blockstates/amber_lantern.json", encoding="utf-8").read().replace(f"{M}:block/amber_lantern_hanging", f"{M}:block/amber_lantern_hanging")
+    write(f"{ASSETS}/blockstates/amber_lantern.json", bs)
+    write(f"{ASSETS}/models/item/amber_lantern.json", json.dumps({"parent": "minecraft:item/generated", "textures": {"layer0": f"{M}:item/amber_lantern"}}, indent=2) + "\n")
+    write(f"{DATA}/{M}/loot_table/blocks/amber_lantern.json", conv(read("data/minecraft/loot_table/blocks/lantern.json").decode()))
+    rc = conv(read("data/minecraft/recipe/lantern.json").decode()).replace("minecraft:torch", f"{M}:amber_gem")
+    write(f"{DATA}/{M}/recipe/amber_lantern.json", rc)
+    recolor(read("assets/minecraft/textures/block/lantern.png"), ramp, "block/amber_lantern")
+    recolor(read("assets/minecraft/textures/item/lantern.png"), ramp, "item/amber_lantern")
+    add_tag("tags/block/mineable/pickaxe.json", [f"{M}:amber_lantern"])
+    for lang, name in (("ru_ru", "Янтарный фонарь"), ("en_us", "Amber Lantern")):
+        pth = f"{ASSETS}/lang/{lang}.json"; d = json.load(open(pth, encoding="utf-8")); d[f"block.{M}.amber_lantern"] = name
+        write(pth, json.dumps(d, ensure_ascii=False, indent=2) + "\n")
+    print("фонарь готов")
+
+if __name__ == "__main__" and len(sys.argv) > 1 and sys.argv[1] == "lantern":
+    lantern()

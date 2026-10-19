@@ -8,6 +8,7 @@ import net.minecraft.block.ButtonBlock;
 import net.minecraft.block.DoorBlock;
 import net.minecraft.block.FenceBlock;
 import net.minecraft.block.FenceGateBlock;
+import net.minecraft.block.LanternBlock;
 import net.minecraft.block.PressurePlateBlock;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.StairsBlock;
@@ -59,6 +60,7 @@ public final class ModBlocks {
 	public static final Block GLOW_PRESSURE_PLATE = register("glow_pressure_plate", new PressurePlateBlock(BlockSetType.OAK, wood(Blocks.OAK_PRESSURE_PLATE)));
 
 	// ---- янтарные кирпичи ----
+	public static final Block AMBER_LANTERN = register("amber_lantern", new LanternBlock(AbstractBlock.Settings.copy(Blocks.LANTERN).luminance(state -> 15)));
 	public static final Block AMBER_BRICKS = register("amber_bricks", new Block(AbstractBlock.Settings.copy(Blocks.STONE_BRICKS).mapColor(MapColor.GOLD)));
 	public static final Block AMBER_BRICK_STAIRS = register("amber_brick_stairs", new StairsBlock(AMBER_BRICKS.getDefaultState(), AbstractBlock.Settings.copy(AMBER_BRICKS)));
 	public static final Block AMBER_BRICK_SLAB = register("amber_brick_slab", new SlabBlock(AbstractBlock.Settings.copy(AMBER_BRICKS)));

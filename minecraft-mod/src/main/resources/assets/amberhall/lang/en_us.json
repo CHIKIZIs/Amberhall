@@ -41,5 +41,8 @@
   "item.amberhall.amber_chestplate": "Amber Chestplate",
   "item.amberhall.amber_leggings": "Amber Leggings",
   "item.amberhall.amber_boots": "Amber Boots",
-  "item.amberhall.amber_apple": "Amber Apple"
+  "item.amberhall.amber_apple": "Amber Apple",
+  "entity.amberhall.glow_moth": "Glow Moth",
+  "item.amberhall.glow_moth_spawn_egg": "Glow Moth Spawn Egg",
+  "block.amberhall.amber_lantern": "Amber Lantern"
 }

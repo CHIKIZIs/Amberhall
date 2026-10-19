@@ -67,6 +67,9 @@ public final class ModItems {
 	public static final Item LEVIATHAN_SPAWN_EGG = register("leviathan_spawn_egg",
 		new SpawnEggItem(ModEntities.LEVIATHAN, 0x1A3A82, 0xFFA010, new Item.Settings()));
 
+	public static final Item GLOW_MOTH_SPAWN_EGG = register("glow_moth_spawn_egg",
+		new SpawnEggItem(ModEntities.GLOW_MOTH, 0x7C68C8, 0x3CE0D8, new Item.Settings()));
+
 	public static final RegistryKey<ItemGroup> GROUP = RegistryKey.of(RegistryKeys.ITEM_GROUP, AmberhallMod.id("amberhall"));
 
 	private static Item register(String name, Item item) {
@@ -100,6 +103,7 @@ public final class ModItems {
 				entries.add(ModBlocks.AMBER_BRICK_SLAB);
 				entries.add(ModBlocks.AMBER_BRICK_WALL);
 				entries.add(ModBlocks.SPORE_BULB);
+				entries.add(ModBlocks.AMBER_LANTERN);
 				entries.add(AMBER_SWORD);
 				entries.add(AMBER_PICKAXE);
 				entries.add(AMBER_AXE);
@@ -112,6 +116,7 @@ public final class ModItems {
 				entries.add(AMBER_APPLE);
 				entries.add(AMBER_BEETLE_SPAWN_EGG);
 				entries.add(LEVIATHAN_SPAWN_EGG);
+				entries.add(GLOW_MOTH_SPAWN_EGG);
 				entries.add(PotionContentsComponent.createStack(Items.POTION, ModEffects.RAGE_POTION));
 				entries.add(PotionContentsComponent.createStack(Items.SPLASH_POTION, ModEffects.RAGE_POTION));
 				entries.add(PotionContentsComponent.createStack(Items.LINGERING_POTION, ModEffects.RAGE_POTION));

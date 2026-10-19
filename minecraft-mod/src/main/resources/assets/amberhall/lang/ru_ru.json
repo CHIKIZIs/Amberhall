@@ -41,5 +41,8 @@
   "item.amberhall.amber_chestplate": "Янтарный нагрудник",
   "item.amberhall.amber_leggings": "Янтарные поножи",
   "item.amberhall.amber_boots": "Янтарные ботинки",
-  "item.amberhall.amber_apple": "Янтарное яблоко"
+  "item.amberhall.amber_apple": "Янтарное яблоко",
+  "entity.amberhall.glow_moth": "Светящийся мотылёк",
+  "item.amberhall.glow_moth_spawn_egg": "Яйцо призыва: светящийся мотылёк",
+  "block.amberhall.amber_lantern": "Янтарный фонарь"
 }

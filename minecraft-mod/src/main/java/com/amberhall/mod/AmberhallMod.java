@@ -89,6 +89,7 @@ public class AmberhallMod implements ModInitializer {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> {
 			e.add(ModItems.AMBER_BEETLE_SPAWN_EGG);
 			e.add(ModItems.LEVIATHAN_SPAWN_EGG);
+			e.add(ModItems.GLOW_MOTH_SPAWN_EGG);
 		});
 
 		// Янтарные жуки живут в пещерах Верхнего мира, группами по 2–3.
