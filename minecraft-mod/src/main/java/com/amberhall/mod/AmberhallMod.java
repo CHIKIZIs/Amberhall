@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -21,6 +22,7 @@ public class AmberhallMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ModBlocks.init();
+		ModEntities.init();
 		ModItems.init();
 
 		// Дублируем предметы в обычные вкладки креатива, чтобы их было легко найти и в поиске.
@@ -29,6 +31,11 @@ public class AmberhallMod implements ModInitializer {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(e -> e.add(ModItems.AMBER_GEM));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(e -> e.add(ModItems.AMBER_SWORD));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(e -> e.add(ModItems.AMBER_PICKAXE));
+
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> e.add(ModItems.AMBER_BEETLE_SPAWN_EGG));
+
+		// Янтарные жуки живут в пещерах Верхнего мира, группами по 2–3.
+		BiomeModifications.addSpawn(BiomeSelectors.foundInOverworld(), SpawnGroup.MONSTER, ModEntities.AMBER_BEETLE, 25, 2, 3);
 
 		// Янтарная руда появляется в подземельях Верхнего мира (описание в data/amberhall/worldgen).
 		BiomeModifications.addFeature(

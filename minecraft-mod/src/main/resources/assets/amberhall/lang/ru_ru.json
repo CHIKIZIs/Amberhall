@@ -4,5 +4,7 @@
   "block.amberhall.amber_block": "Янтарный блок",
   "item.amberhall.amber_gem": "Янтарь",
   "item.amberhall.amber_sword": "Янтарный меч",
-  "item.amberhall.amber_pickaxe": "Янтарная кирка"
+  "item.amberhall.amber_pickaxe": "Янтарная кирка",
+  "entity.amberhall.amber_beetle": "Янтарный жук",
+  "item.amberhall.amber_beetle_spawn_egg": "Яйцо призыва: янтарный жук"
 }

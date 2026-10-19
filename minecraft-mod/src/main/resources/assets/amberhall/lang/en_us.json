@@ -4,5 +4,7 @@
   "block.amberhall.amber_block": "Block of Amber",
   "item.amberhall.amber_gem": "Amber Gem",
   "item.amberhall.amber_sword": "Amber Sword",
-  "item.amberhall.amber_pickaxe": "Amber Pickaxe"
+  "item.amberhall.amber_pickaxe": "Amber Pickaxe",
+  "entity.amberhall.amber_beetle": "Amber Beetle",
+  "item.amberhall.amber_beetle_spawn_egg": "Amber Beetle Spawn Egg"
 }

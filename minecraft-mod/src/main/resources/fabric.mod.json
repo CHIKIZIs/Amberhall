@@ -3,7 +3,7 @@
   "id": "amberhall",
   "version": "${version}",
   "name": "Amberhall",
-  "description": "Янтарь из глубин Эмберхолла: руда, самоцвет, блок, меч и кирка.",
+  "description": "Янтарь из глубин Эмберхолла: руда, самоцвет, блок, инструменты и янтарный жук.",
   "authors": [
     "Amberhall"
   ],
@@ -12,6 +12,9 @@
   "entrypoints": {
     "main": [
       "com.amberhall.mod.AmberhallMod"
+    ],
+    "client": [
+      "com.amberhall.mod.AmberhallClient"
     ]
   },
   "depends": {

@@ -5,6 +5,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.PickaxeItem;
+import net.minecraft.item.SpawnEggItem;
 import net.minecraft.item.SwordItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -23,6 +24,9 @@ public final class ModItems {
 		new PickaxeItem(AmberToolMaterial.INSTANCE, new Item.Settings()
 			.attributeModifiers(PickaxeItem.createAttributeModifiers(AmberToolMaterial.INSTANCE, 1, -2.8f))));
 
+	public static final Item AMBER_BEETLE_SPAWN_EGG = register("amber_beetle_spawn_egg",
+		new SpawnEggItem(ModEntities.AMBER_BEETLE, 0xE09A1A, 0x3B2A12, new Item.Settings()));
+
 	public static final RegistryKey<ItemGroup> GROUP = RegistryKey.of(RegistryKeys.ITEM_GROUP, AmberhallMod.id("amberhall"));
 
 	private static Item register(String name, Item item) {
@@ -39,6 +43,7 @@ public final class ModItems {
 				entries.add(ModBlocks.AMBER_BLOCK);
 				entries.add(AMBER_SWORD);
 				entries.add(AMBER_PICKAXE);
+				entries.add(AMBER_BEETLE_SPAWN_EGG);
 			})
 			.build());
 	}
