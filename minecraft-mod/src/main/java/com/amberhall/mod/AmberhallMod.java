@@ -43,14 +43,14 @@ public class AmberhallMod implements ModInitializer {
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> {
 			e.add(ModItems.AMBER_BEETLE_SPAWN_EGG);
-			e.add(ModItems.DUNKLEOSTEUS_SPAWN_EGG);
+			e.add(ModItems.ABYSSAL_SHARK_SPAWN_EGG);
 		});
 
 		// Янтарные жуки живут в пещерах Верхнего мира, группами по 2–3.
 		BiomeModifications.addSpawn(BiomeSelectors.foundInOverworld(), SpawnGroup.MONSTER, ModEntities.AMBER_BEETLE, 25, 2, 3);
 
-		// Бронированные рыбы: только глубокие океаны, по одной-две.
-		BiomeModifications.addSpawn(BiomeSelectors.tag(BiomeTags.IS_DEEP_OCEAN), SpawnGroup.WATER_CREATURE, ModEntities.DUNKLEOSTEUS, 6, 1, 2);
+		// Глубинные акулы: только глубокие океаны, по одной-две.
+		BiomeModifications.addSpawn(BiomeSelectors.tag(BiomeTags.IS_DEEP_OCEAN), SpawnGroup.WATER_CREATURE, ModEntities.ABYSSAL_SHARK, 6, 1, 2);
 
 		// Янтарная руда появляется в подземельях Верхнего мира (описание в data/amberhall/worldgen).
 		BiomeModifications.addFeature(

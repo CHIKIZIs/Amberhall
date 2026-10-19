@@ -41,7 +41,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:bone",
+          "name": "minecraft:cod",
           "functions": [
             {
               "function": "minecraft:set_count",
@@ -56,5 +56,5 @@
       ]
     }
   ],
-  "random_sequence": "amberhall:entities/dunkleosteus"
+  "random_sequence": "amberhall:entities/abyssal_shark"
 }

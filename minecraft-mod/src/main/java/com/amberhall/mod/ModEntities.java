@@ -18,17 +18,17 @@ public final class ModEntities {
 			.maxTrackingRange(8)
 			.build("amber_beetle"));
 
-	public static final EntityType<DunkleosteusEntity> DUNKLEOSTEUS = Registry.register(Registries.ENTITY_TYPE,
-		AmberhallMod.id("dunkleosteus"),
-		EntityType.Builder.create(DunkleosteusEntity::new, SpawnGroup.WATER_CREATURE)
-			.dimensions(2.4f, 1.6f)
+	public static final EntityType<AbyssalSharkEntity> ABYSSAL_SHARK = Registry.register(Registries.ENTITY_TYPE,
+		AmberhallMod.id("abyssal_shark"),
+		EntityType.Builder.create(AbyssalSharkEntity::new, SpawnGroup.WATER_CREATURE)
+			.dimensions(2.0f, 1.3f)
 			.maxTrackingRange(12)
-			.build("dunkleosteus"));
+			.build("abyssal_shark"));
 
 	public static void init() {
-		FabricDefaultAttributeRegistry.register(DUNKLEOSTEUS, DunkleosteusEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(ABYSSAL_SHARK, AbyssalSharkEntity.createAttributes());
 		// живёт только на большой глубине океана (не выше 15 блоков под уровнем моря), в воде
-		SpawnRestriction.register(DUNKLEOSTEUS, SpawnLocationTypes.IN_WATER, Heightmap.Type.OCEAN_FLOOR,
+		SpawnRestriction.register(ABYSSAL_SHARK, SpawnLocationTypes.IN_WATER, Heightmap.Type.OCEAN_FLOOR,
 			(type, world, reason, pos, random) -> pos.getY() < world.getSeaLevel() - 15
 				&& world.getFluidState(pos).isIn(FluidTags.WATER));
 		FabricDefaultAttributeRegistry.register(AMBER_BEETLE, AmberBeetleEntity.createAttributes());

@@ -25,21 +25,21 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 /**
- * Бронированная доисторическая рыба: хищник глубин океана. Бросается на игрока, кусает тяжело
- * и вместе с уроном замедляет жертву. На суше задыхается, как рыба.
+ * Глубинная акула: хищник глубин океана (модель ванильного дельфина, но вдвое крупнее и с тёмной шкурой).
+ * Нападает на игроков, кусает тяжело и замедляет жертву. На суше задыхается, как рыба.
  */
-public class DunkleosteusEntity extends HostileEntity {
-	public DunkleosteusEntity(EntityType<? extends DunkleosteusEntity> type, World world) {
+public class AbyssalSharkEntity extends HostileEntity {
+	public AbyssalSharkEntity(EntityType<? extends AbyssalSharkEntity> type, World world) {
 		super(type, world);
 		this.moveControl = new AquaticMoveControl(this, 85, 10, 0.025f, 0.1f, true);
 	}
 
 	public static DefaultAttributeContainer.Builder createAttributes() {
 		return HostileEntity.createHostileAttributes()
-			.add(EntityAttributes.GENERIC_MAX_HEALTH, 40.0)
-			.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 1.0)
-			.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 8.0)
-			.add(EntityAttributes.GENERIC_ARMOR, 6.0)
+			.add(EntityAttributes.GENERIC_MAX_HEALTH, 36.0)
+			.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 1.2)
+			.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 7.0)
+			.add(EntityAttributes.GENERIC_ARMOR, 3.0)
 			.add(EntityAttributes.GENERIC_FOLLOW_RANGE, 28.0);
 	}
 
@@ -70,7 +70,7 @@ public class DunkleosteusEntity extends HostileEntity {
 	public void baseTick() {
 		int air = this.getAir();
 		super.baseTick();
-		// вне воды рыба задыхается
+		// вне воды акула задыхается
 		if (this.isAlive() && !this.isInsideWaterOrBubbleColumn()) {
 			this.setAir(air - 1);
 			if (this.getAir() == -20) {
@@ -98,16 +98,16 @@ public class DunkleosteusEntity extends HostileEntity {
 
 	@Override
 	protected SoundEvent getAmbientSound() {
-		return this.isTouchingWater() ? SoundEvents.ENTITY_GUARDIAN_AMBIENT : SoundEvents.ENTITY_GUARDIAN_AMBIENT_LAND;
+		return this.isTouchingWater() ? SoundEvents.ENTITY_DOLPHIN_AMBIENT_WATER : SoundEvents.ENTITY_DOLPHIN_AMBIENT;
 	}
 
 	@Override
 	protected SoundEvent getHurtSound(DamageSource source) {
-		return this.isTouchingWater() ? SoundEvents.ENTITY_GUARDIAN_HURT : SoundEvents.ENTITY_GUARDIAN_HURT_LAND;
+		return SoundEvents.ENTITY_DOLPHIN_HURT;
 	}
 
 	@Override
 	protected SoundEvent getDeathSound() {
-		return this.isTouchingWater() ? SoundEvents.ENTITY_GUARDIAN_DEATH : SoundEvents.ENTITY_GUARDIAN_DEATH_LAND;
+		return SoundEvents.ENTITY_DOLPHIN_DEATH;
 	}
 }
