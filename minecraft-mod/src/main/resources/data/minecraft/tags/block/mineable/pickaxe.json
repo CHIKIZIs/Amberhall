@@ -1,7 +1,11 @@
 {
   "replace": false,
   "values": [
-    "amberhall:amber_ore",
-    "amberhall:amber_block"
+    "amberhall:amber_block",
+    "amberhall:amber_brick_slab",
+    "amberhall:amber_brick_stairs",
+    "amberhall:amber_brick_wall",
+    "amberhall:amber_bricks",
+    "amberhall:amber_ore"
   ]
 }

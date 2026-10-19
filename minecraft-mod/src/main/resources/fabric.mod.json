@@ -15,6 +15,9 @@
     ],
     "client": [
       "com.amberhall.mod.AmberhallClient"
+    ],
+    "terrablender": [
+      "com.amberhall.mod.AmberhallTerraBlender"
     ]
   },
   "depends": {

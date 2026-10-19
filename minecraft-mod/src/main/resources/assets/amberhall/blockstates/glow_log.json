@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=y": {
+      "model": "amberhall:block/glow_log"
+    },
+    "axis=x": {
+      "model": "amberhall:block/glow_log",
+      "x": 90,
+      "y": 90
+    },
+    "axis=z": {
+      "model": "amberhall:block/glow_log",
+      "x": 90
+    }
+  }
+}

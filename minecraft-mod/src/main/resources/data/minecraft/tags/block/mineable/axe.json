@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "values": [
+    "amberhall:glow_button",
+    "amberhall:glow_door",
+    "amberhall:glow_fence",
+    "amberhall:glow_fence_gate",
+    "amberhall:glow_log",
+    "amberhall:glow_planks",
+    "amberhall:glow_pressure_plate",
+    "amberhall:glow_slab",
+    "amberhall:glow_stairs",
+    "amberhall:glow_trapdoor",
+    "amberhall:stripped_glow_log"
+  ]
+}

@@ -1,21 +1,21 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "pattern": [
-    "AAA",
-    " S ",
-    " S "
-  ],
+  "category": "equipment",
   "key": {
-    "A": {
-      "item": "amberhall:amber_gem"
-    },
-    "S": {
+    "#": {
       "item": "minecraft:stick"
+    },
+    "X": {
+      "item": "amberhall:amber_gem"
     }
   },
+  "pattern": [
+    "XXX",
+    " # ",
+    " # "
+  ],
   "result": {
-    "id": "amberhall:amber_pickaxe",
-    "count": 1
+    "count": 1,
+    "id": "amberhall:amber_pickaxe"
   }
 }
