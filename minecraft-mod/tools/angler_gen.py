@@ -19,10 +19,15 @@ def part(name, parent, pivot, rot, origin, size, kind):
 # Ваниль любит крупные простые блоки: тело, пасть с зубами, глаза-кубики, плавники-пластины.
 part("head",       "root", (0, 15, -1),    (0, 0, 0),        (-4, -4, -5),     (8, 8, 7),   "head")
 part("lower_jaw",  "root", (0, 18.5, 0),   (0.25, 0, 0),     (-3.5, -1, -7),   (7, 3, 7),   "jaw")
-for i, (x, h) in enumerate(((-3, 3), (-1, 2), (1, 3), (3, 2))):
-    part(f"tooth_u{i}", "head", (0, 0, 0), (0, 0, 0), (x, 0.5, -5.3), (1, h, 1), "tooth")
+# зубы: тонкие шипы в два ряда (шахматный порядок), разной длины
+for i, (x, h) in enumerate(((-3.5, 3), (-1.5, 2), (0.5, 3), (2.5, 2))):
+    part(f"tooth_ua{i}", "head", (0, 0, 0), (0, 0, 0), (x + 0.15, 0.4, -5.3), (0.7, h, 0.7), "tooth")
+for i, (x, h) in enumerate(((-2.5, 2), (-0.5, 3), (1.5, 2), (3.0, 3))):
+    part(f"tooth_ub{i}", "head", (0, 0, 0), (0, 0, 0), (x + 0.15, 0.4, -4.3), (0.7, h, 0.7), "tooth")
+for i, (x, h) in enumerate(((-3, 2), (-1, 3), (1, 2), (2.5, 3))):
+    part(f"tooth_la{i}", "lower_jaw", (0, 0, 0), (0, 0, 0), (x + 0.15, -1 - h, -6.6), (0.7, h, 0.7), "tooth")
 for i, (x, h) in enumerate(((-2, 3), (0, 2), (2, 3))):
-    part(f"tooth_l{i}", "lower_jaw", (0, 0, 0), (0, 0, 0), (x, -1 - h, -6.6), (1, h, 1), "tooth")
+    part(f"tooth_lb{i}", "lower_jaw", (0, 0, 0), (0, 0, 0), (x + 0.15, -1 - h, -5.6), (0.7, h, 0.7), "tooth")
 part("eye_l",      "head", (0, 0, 0),      (0, 0, 0),        (4, -3.5, -4.5),  (1, 3, 3),   "eye")
 part("eye_r",      "head", (0, 0, 0),      (0, 0, 0),        (-5, -3.5, -4.5), (1, 3, 3),   "eye")
 part("stalk1",     "root", (0, 11, -4),    (0.5, 0, 0),      (-0.5, -4, -0.5), (1, 4, 1),   "stalk")
@@ -42,7 +47,8 @@ UV = g.UV
 def hx(s): return g.hx(s)
 TOP = [hx(c) for c in ("27363f", "33474f", "40575f", "4f6a72")]       # спина и бока (шумные оттенки одной гаммы)
 BEL = [hx(c) for c in ("808b80", "9aa598", "b2bba9")]                 # брюхо
-RED = [hx(c) for c in ("2e1513", "4a201c", "62302a")]                 # внутри пасти — тёмная, не яркая
+RED = [hx(c) for c in ("5a101a", "8c1826", "b82434", "d23a48")]          # пасть: насыщенный красный с шумом
+TEETH = [hx(c) for c in ("a9a9a4", "e4e4dc", "ffffff")]                   # зубы: белые тонкие шипы
 BONE = [hx(c) for c in ("a39b7c", "cfc8a6", "e6e0c4")]                # зубы: пожелтевшая кость
 SPOT = [hx(c) for c in ("a85f22", "c47a2c", "e09a40")]                # фотофоры
 AMB = g.AMB
@@ -69,10 +75,16 @@ def color(p, face, a, b, fw, fh, rnd):
     k = p["kind"]
     if k == "head":
         c = body_like(p, face, a, b, fw, fh, rnd, 0.7)
-        if face == "north":                             # лицо: верхняя губа тёмная, ниже — тёмная пасть
-            c = pick(TOP, 1, rnd) if b < 4 else pick(RED, 1, rnd)
-            if b == 4: c = RED[0]
-        if face in ("east", "west") and b >= 5 and a >= fw - 2: c = RED[0]    # уголок пасти
+        if face == "down":                                  # нёбо: красное, зубы по передней и боковым кромкам
+            c = pick(RED, 2, rnd)
+            edge = min(a, b, fw - 1 - a)                    # b=0 — передний край (перед головы)
+            if edge == 0: c = TEETH[2] if (a + b) % 2 == 0 else TEETH[0]
+            elif edge == 1 and (a + b) % 3 == 0: c = TEETH[1]
+        if face == "north":                             # лицо: верхняя губа, ниже красная пасть с рядом верхних зубов
+            c = pick(TOP, 1, rnd) if b < 4 else pick(RED, 2, rnd)
+            if b == 3: c = pick(RED, 0, rnd)                                   # линия дёсен
+            if b >= 4 and fw > 2 and a in (0, fw - 1): c = pick(RED, 1, rnd)
+        if face in ("east", "west") and b >= 5 and (a >= fw - 2 if face == "east" else a <= 1): c = pick(RED, 1, rnd)    # уголок пасти
         return c
     if k == "body":
         c = body_like(p, face, a, b, fw, fh, rnd)
@@ -81,15 +93,20 @@ def color(p, face, a, b, fw, fh, rnd):
         return c
     if k == "tail":
         return body_like(p, face, a, b, fw, fh, rnd, 0.7)
-    if k == "jaw":
-        c = pick(BEL, 1, rnd)
-        if face == "up": c = pick(RED, 2, rnd)
-        if face in ("north", "east", "west", "south") and b == fh - 1: c = BEL[0]
-        return c
     if k == "tooth":
-        c = BONE[1]
-        if b >= fh - 1: c = BONE[0]
-        if a == 0 and face in ("north", "west"): c = BONE[2]
+        c = TEETH[1]
+        if b >= fh - 1: c = TEETH[0]                    # кончик чуть темнее
+        if a == 0 and face in ("north", "west"): c = TEETH[2]
+        return c
+    if k == "jaw":
+        c = pick(TOP, 1, rnd) if face != "down" else pick(BEL, 1, rnd)
+        if face in ("north", "east", "west", "south") and b >= fh - 1 and face != "north": c = pick(TOP, 0, rnd)
+        if face == "north" and b == 0: c = TEETH[1] if a % 2 == 0 else pick(RED, 2, rnd)         # зубы на передней кромке челюсти
+        if face == "up":
+            c = pick(RED, 2, rnd)
+            edge = min(a, b, fw - 1 - a)                    # расстояние до левого/правого/переднего края
+            if edge == 0: c = TEETH[2] if (b + a) % 2 == 0 else TEETH[0]
+            elif edge == 1 and (a + b) % 2 == 1: c = TEETH[1]
         return c
     if k == "eye":
         c = hx("bfae5c")
