@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AAA",
+    "AAA",
+    "AAA"
+  ],
+  "key": {
+    "A": {
+      "item": "amberhall:amber_gem"
+    }
+  },
+  "result": {
+    "id": "amberhall:amber_block",
+    "count": 1
+  }
+}

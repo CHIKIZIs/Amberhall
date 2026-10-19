@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "A",
+    "A",
+    "S"
+  ],
+  "key": {
+    "A": {
+      "item": "amberhall:amber_gem"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "id": "amberhall:amber_sword",
+    "count": 1
+  }
+}

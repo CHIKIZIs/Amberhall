@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "amberhall",
+  "version": "${version}",
+  "name": "Amberhall",
+  "description": "Янтарь из глубин Эмберхолла: руда, самоцвет, блок, меч и кирка.",
+  "authors": [
+    "Amberhall"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.amberhall.mod.AmberhallMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
