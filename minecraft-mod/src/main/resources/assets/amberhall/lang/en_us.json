@@ -15,21 +15,5 @@
   "block.amberhall.cherry_chest": "Cherry Chest",
   "block.amberhall.bamboo_chest": "Bamboo Chest",
   "block.amberhall.crimson_chest": "Crimson Chest",
-  "block.amberhall.warped_chest": "Warped Chest",
-  "entity.amberhall.desert_creeper": "Desert Creeper",
-  "item.amberhall.desert_creeper_spawn_egg": "Desert Creeper Spawn Egg",
-  "entity.amberhall.swamp_creeper": "Swamp Creeper",
-  "item.amberhall.swamp_creeper_spawn_egg": "Swamp Creeper Spawn Egg",
-  "entity.amberhall.jungle_creeper": "Jungle Creeper",
-  "item.amberhall.jungle_creeper_spawn_egg": "Jungle Creeper Spawn Egg",
-  "entity.amberhall.mushroom_creeper": "Mushroom Creeper",
-  "item.amberhall.mushroom_creeper_spawn_egg": "Mushroom Creeper Spawn Egg",
-  "entity.amberhall.badlands_creeper": "Badlands Creeper",
-  "item.amberhall.badlands_creeper_spawn_egg": "Badlands Creeper Spawn Egg",
-  "entity.amberhall.cave_creeper": "Cave Creeper",
-  "item.amberhall.cave_creeper_spawn_egg": "Cave Creeper Spawn Egg",
-  "entity.amberhall.meadow_creeper": "Meadow Creeper",
-  "item.amberhall.meadow_creeper_spawn_egg": "Meadow Creeper Spawn Egg",
-  "entity.amberhall.darkforest_creeper": "Dark Forest Creeper",
-  "item.amberhall.darkforest_creeper_spawn_egg": "Dark Forest Creeper Spawn Egg"
+  "block.amberhall.warped_chest": "Warped Chest"
 }

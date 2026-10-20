@@ -28,8 +28,6 @@ public class AmberhallMod implements ModInitializer {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> {
 			e.add(ModItems.STALKER_SPAWN_EGG);
 			e.add(ModItems.FROST_CREEPER_SPAWN_EGG);
-			e.add(ModItems.DESERT_CREEPER_SPAWN_EGG);
-			ModItems.VARIANT_EGGS.values().forEach(e::add);
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(e -> e.addAfter(Items.CHEST, ModChests.ITEMS.toArray(new Item[0])));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(e -> e.add(ModItems.ICE_SHARD));
@@ -42,18 +40,5 @@ public class AmberhallMod implements ModInitializer {
 		BiomeModifications.create(id("frost_creeper_replaces_creeper")).add(ModificationPhase.REMOVALS, snowy,
 			ctx -> ctx.getSpawnSettings().removeSpawnsOfEntityType(EntityType.CREEPER));
 		BiomeModifications.addSpawn(snowy, SpawnGroup.MONSTER, ModEntities.FROST_CREEPER, 100, 4, 4);
-		// пустынный крипер: в пустыне заменяет обычного
-		var desert = BiomeSelectors.includeByKey(BiomeKeys.DESERT);
-		BiomeModifications.create(id("desert_creeper_replaces_creeper")).add(ModificationPhase.REMOVALS, desert,
-			ctx -> ctx.getSpawnSettings().removeSpawnsOfEntityType(EntityType.CREEPER));
-		BiomeModifications.addSpawn(desert, SpawnGroup.MONSTER, ModEntities.DESERT_CREEPER, 100, 4, 4);
-	
-		// биомные криперы: в своих биомах заменяют обычного
-		for (VariantType v : VariantType.values()) {
-			var selector = BiomeSelectors.includeByKey(v.biomes);
-			BiomeModifications.create(id(v.entityName() + "_replaces_creeper")).add(ModificationPhase.REMOVALS, selector,
-				ctx -> ctx.getSpawnSettings().removeSpawnsOfEntityType(EntityType.CREEPER));
-			BiomeModifications.addSpawn(selector, SpawnGroup.MONSTER, ModEntities.VARIANTS.get(v), 100, 4, 4);
-		}
 	}
 }
