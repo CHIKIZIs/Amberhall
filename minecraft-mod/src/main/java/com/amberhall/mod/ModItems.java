@@ -1,5 +1,8 @@
 package com.amberhall.mod;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 import net.minecraft.item.Item;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.registry.Registries;
@@ -13,6 +16,14 @@ public final class ModItems {
 	public static final Item DESERT_CREEPER_SPAWN_EGG = register("desert_creeper_spawn_egg",
 		new SpawnEggItem(ModEntities.DESERT_CREEPER, 0xe8cf8e, 0xf0a0a8, new Item.Settings()));
 	public static final Item ICE_SHARD = register("ice_shard", new IceShardItem(new Item.Settings()));
+
+	public static final Map<VariantType, Item> VARIANT_EGGS = new EnumMap<>(VariantType.class);
+	static {
+		for (VariantType v : VariantType.values()) {
+			VARIANT_EGGS.put(v, register(v.entityName() + "_spawn_egg",
+				new SpawnEggItem(ModEntities.VARIANTS.get(v), v.eggPrimary, v.eggSecondary, new Item.Settings())));
+		}
+	}
 
 	private static Item register(String name, Item item) {
 		return Registry.register(Registries.ITEM, AmberhallMod.id(name), item);

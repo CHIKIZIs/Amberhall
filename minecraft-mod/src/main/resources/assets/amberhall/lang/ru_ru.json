@@ -17,5 +17,19 @@
   "block.amberhall.crimson_chest": "Багровый сундук",
   "block.amberhall.warped_chest": "Искажённый сундук",
   "entity.amberhall.desert_creeper": "Пустынный крипер",
-  "item.amberhall.desert_creeper_spawn_egg": "Яйцо призыва пустынного крипера"
+  "item.amberhall.desert_creeper_spawn_egg": "Яйцо призыва пустынного крипера",
+  "entity.amberhall.swamp_creeper": "Болотный крипер",
+  "item.amberhall.swamp_creeper_spawn_egg": "Яйцо призыва: болотный крипер",
+  "entity.amberhall.jungle_creeper": "Джунглевый крипер",
+  "item.amberhall.jungle_creeper_spawn_egg": "Яйцо призыва: джунглевый крипер",
+  "entity.amberhall.mushroom_creeper": "Грибной крипер",
+  "item.amberhall.mushroom_creeper_spawn_egg": "Яйцо призыва: грибной крипер",
+  "entity.amberhall.badlands_creeper": "Крипер бесплодных земель",
+  "item.amberhall.badlands_creeper_spawn_egg": "Яйцо призыва: крипер бесплодных земель",
+  "entity.amberhall.cave_creeper": "Пещерный крипер",
+  "item.amberhall.cave_creeper_spawn_egg": "Яйцо призыва: пещерный крипер",
+  "entity.amberhall.meadow_creeper": "Луговой крипер",
+  "item.amberhall.meadow_creeper_spawn_egg": "Яйцо призыва: луговой крипер",
+  "entity.amberhall.darkforest_creeper": "Крипер тёмного леса",
+  "item.amberhall.darkforest_creeper_spawn_egg": "Яйцо призыва: крипер тёмного леса"
 }

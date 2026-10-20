@@ -20,6 +20,10 @@ public class AmberhallClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.DESERT_CREEPER, DesertCreeperRenderer::new);
 		EntityRendererRegistry.register(ModEntities.ICE_SHARD, FlyingItemEntityRenderer::new);
 	
+		for (VariantType v : VariantType.values()) {
+			EntityModelLayerRegistry.registerModelLayer(VariantCreeperModel.layer(v), () -> CreeperVariantModels.get(v.id));
+			EntityRendererRegistry.register(ModEntities.VARIANTS.get(v), ctx -> new VariantCreeperRenderer(ctx, v));
+		}
 		// сундуки: ванильный рендерер, текстуру подменяет миксин
 		BlockEntityRendererFactories.register(ModChests.BLOCK_ENTITY, ChestBlockEntityRenderer::new);
 		for (WoodChestBlock block : ModChests.BLOCKS) {
