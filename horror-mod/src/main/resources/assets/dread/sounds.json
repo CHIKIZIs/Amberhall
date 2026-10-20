@@ -1,0 +1,70 @@
+{
+  "scream": {
+    "sounds": [
+      "dread:scream"
+    ],
+    "subtitle": "subtitles.dread.scream"
+  },
+  "sting": {
+    "sounds": [
+      "dread:sting"
+    ],
+    "subtitle": "subtitles.dread.sting"
+  },
+  "whisper": {
+    "sounds": [
+      "dread:whisper_1",
+      "dread:whisper_2",
+      "dread:whisper_3"
+    ],
+    "subtitle": "subtitles.dread.whisper"
+  },
+  "footsteps": {
+    "sounds": [
+      "dread:footsteps"
+    ],
+    "subtitle": "subtitles.dread.footsteps"
+  },
+  "knock": {
+    "sounds": [
+      "dread:knock"
+    ],
+    "subtitle": "subtitles.dread.knock"
+  },
+  "breath": {
+    "sounds": [
+      "dread:breath"
+    ],
+    "subtitle": "subtitles.dread.breath"
+  },
+  "heartbeat": {
+    "sounds": [
+      "dread:heartbeat"
+    ],
+    "subtitle": "subtitles.dread.heartbeat"
+  },
+  "drone": {
+    "sounds": [
+      "dread:drone"
+    ],
+    "subtitle": "subtitles.dread.drone"
+  },
+  "static": {
+    "sounds": [
+      "dread:static"
+    ],
+    "subtitle": "subtitles.dread.static"
+  },
+  "creak": {
+    "sounds": [
+      "dread:creak"
+    ],
+    "subtitle": "subtitles.dread.creak"
+  },
+  "swell": {
+    "sounds": [
+      "dread:swell"
+    ],
+    "subtitle": "subtitles.dread.swell"
+  }
+}

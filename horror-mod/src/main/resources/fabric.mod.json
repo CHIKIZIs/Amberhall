@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "dread",
+  "version": "${version}",
+  "name": "Dread",
+  "description": "Хоррор-мод: Наблюдатель, скримеры, жуткие звуки и ощущение, что вы здесь не одни.",
+  "authors": ["Dread"],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.dread.DreadMod"],
+    "client": ["com.dread.DreadClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
