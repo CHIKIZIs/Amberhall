@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:bowl"
+    },
+    {
+      "item": "amberhall:spore_bulb"
+    },
+    {
+      "item": "amberhall:glow_fern"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "amberhall:glow_stew"
+  }
+}

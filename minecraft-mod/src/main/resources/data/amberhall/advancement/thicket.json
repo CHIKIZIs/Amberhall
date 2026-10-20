@@ -1,0 +1,38 @@
+{
+  "display": {
+    "icon": {
+      "id": "amberhall:glow_log"
+    },
+    "title": {
+      "translate": "adv.amberhall.thicket.title"
+    },
+    "description": {
+      "translate": "adv.amberhall.thicket.desc"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "c": {
+      "trigger": "minecraft:location",
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "biomes": "amberhall:glowing_thicket"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "c"
+    ]
+  ],
+  "parent": "amberhall:root"
+}

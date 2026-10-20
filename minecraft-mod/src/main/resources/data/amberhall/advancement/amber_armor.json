@@ -1,0 +1,35 @@
+{
+  "display": {
+    "icon": {
+      "id": "amberhall:amber_chestplate"
+    },
+    "title": {
+      "translate": "adv.amberhall.armor.title"
+    },
+    "description": {
+      "translate": "adv.amberhall.armor.desc"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "c": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "amberhall:amber_chestplate"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "c"
+    ]
+  ],
+  "parent": "amberhall:root"
+}

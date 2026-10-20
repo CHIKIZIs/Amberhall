@@ -44,5 +44,14 @@
   "item.amberhall.amber_apple": "Amber Apple",
   "entity.amberhall.glow_moth": "Glow Moth",
   "item.amberhall.glow_moth_spawn_egg": "Glow Moth Spawn Egg",
-  "block.amberhall.amber_lantern": "Amber Lantern"
+  "block.amberhall.amber_lantern": "Amber Lantern",
+  "adv.amberhall.root.title": "Age of Amber",
+  "adv.amberhall.root.desc": "Obtain amber",
+  "adv.amberhall.armor.title": "Forest Gold",
+  "adv.amberhall.armor.desc": "Craft an amber chestplate",
+  "adv.amberhall.stew.title": "Warm Glow",
+  "adv.amberhall.stew.desc": "Cook glow stew",
+  "adv.amberhall.thicket.title": "Glowing Thicket",
+  "adv.amberhall.thicket.desc": "Find the rare glowing forest",
+  "item.amberhall.glow_stew": "Glow Stew"
 }

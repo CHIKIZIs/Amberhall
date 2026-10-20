@@ -54,6 +54,11 @@ public final class ModItems {
 		new ArmorItem(ModArmorMaterials.AMBER, ArmorItem.Type.BOOTS, new Item.Settings().maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(26))));
 
 	/** Янтарное яблоко: поглощение и регенерация, как у золотого, но дольше держится щит. */
+	public static final Item GLOW_STEW = register("glow_stew",
+		new GlowStewItem(new Item.Settings().maxCount(1).recipeRemainder(Items.BOWL).food(new FoodComponent.Builder()
+			.nutrition(6).saturationModifier(0.6f)
+			.statusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, 600, 0), 1.0f)
+			.build())));
 	public static final Item AMBER_APPLE = register("amber_apple",
 		new Item(new Item.Settings().rarity(Rarity.RARE).food(new FoodComponent.Builder()
 			.nutrition(4).saturationModifier(1.2f).alwaysEdible()
@@ -114,6 +119,7 @@ public final class ModItems {
 				entries.add(AMBER_LEGGINGS);
 				entries.add(AMBER_BOOTS);
 				entries.add(AMBER_APPLE);
+				entries.add(GLOW_STEW);
 				entries.add(AMBER_BEETLE_SPAWN_EGG);
 				entries.add(LEVIATHAN_SPAWN_EGG);
 				entries.add(GLOW_MOTH_SPAWN_EGG);

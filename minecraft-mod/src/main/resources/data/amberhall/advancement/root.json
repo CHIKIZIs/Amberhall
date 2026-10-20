@@ -1,0 +1,35 @@
+{
+  "display": {
+    "icon": {
+      "id": "amberhall:amber_gem"
+    },
+    "title": {
+      "translate": "adv.amberhall.root.title"
+    },
+    "description": {
+      "translate": "adv.amberhall.root.desc"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false,
+    "background": "minecraft:textures/block/stone.png"
+  },
+  "criteria": {
+    "c": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "amberhall:amber_gem"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "c"
+    ]
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "display": {
+    "icon": {
+      "id": "amberhall:glow_stew"
+    },
+    "title": {
+      "translate": "adv.amberhall.stew.title"
+    },
+    "description": {
+      "translate": "adv.amberhall.stew.desc"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "c": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "amberhall:glow_stew"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "c"
+    ]
+  ],
+  "parent": "amberhall:root"
+}

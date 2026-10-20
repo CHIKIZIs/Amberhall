@@ -44,5 +44,14 @@
   "item.amberhall.amber_apple": "Янтарное яблоко",
   "entity.amberhall.glow_moth": "Светящийся мотылёк",
   "item.amberhall.glow_moth_spawn_egg": "Яйцо призыва: светящийся мотылёк",
-  "block.amberhall.amber_lantern": "Янтарный фонарь"
+  "block.amberhall.amber_lantern": "Янтарный фонарь",
+  "adv.amberhall.root.title": "Янтарный век",
+  "adv.amberhall.root.desc": "Добудьте янтарь",
+  "adv.amberhall.armor.title": "Золото леса",
+  "adv.amberhall.armor.desc": "Наденьте янтарный нагрудник",
+  "adv.amberhall.stew.title": "Тёплый свет",
+  "adv.amberhall.stew.desc": "Сварите светящееся рагу",
+  "adv.amberhall.thicket.title": "Светящаяся чаща",
+  "adv.amberhall.thicket.desc": "Найдите редкий светящийся лес",
+  "item.amberhall.glow_stew": "Светящееся рагу"
 }
