@@ -7,7 +7,9 @@ import net.fabricmc.fabric.api.biome.v1.ModificationPhase;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
+import net.minecraft.item.Items;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.BiomeKeys;
 
@@ -22,10 +24,12 @@ public class AmberhallMod implements ModInitializer {
 	public void onInitialize() {
 		ModEntities.init();
 		ModItems.init();
+		ModChests.init();
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> {
 			e.add(ModItems.STALKER_SPAWN_EGG);
 			e.add(ModItems.FROST_CREEPER_SPAWN_EGG);
 		});
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(e -> e.addAfter(Items.CHEST, ModChests.ITEMS.toArray(new Item[0])));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(e -> e.add(ModItems.ICE_SHARD));
 		// сталкер: наравне с зомби и скелетами — весь Верхний мир, ночью и в тёмных пещерах
 		BiomeModifications.addSpawn(BiomeSelectors.foundInOverworld(), SpawnGroup.MONSTER, ModEntities.STALKER, 60, 1, 2);

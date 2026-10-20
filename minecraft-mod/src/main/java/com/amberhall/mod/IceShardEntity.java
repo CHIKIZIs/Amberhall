@@ -18,6 +18,8 @@ import net.minecraft.world.World;
 
 /** Ледяной осколок: летит от взорвавшегося ледяного крипера, ранит и замораживает цель. */
 public class IceShardEntity extends ThrownItemEntity {
+	private static final float DAMAGE = 5.0f;
+
 	public IceShardEntity(EntityType<? extends IceShardEntity> type, World world) {
 		super(type, world);
 	}
@@ -47,7 +49,9 @@ public class IceShardEntity extends ThrownItemEntity {
 			return;
 		}
 		DamageSource source = this.getDamageSources().thrown(this, this.getOwner());
-		if (target.damage(source, 3.0f) && target instanceof LivingEntity living) {
+		// острые осколки пробивают кадры неуязвимости: каждый попавший осколок ранит отдельно
+		target.timeUntilRegen = 0;
+		if (target.damage(source, DAMAGE) && target instanceof LivingEntity living) {
 			living.setFrozenTicks(Math.min(living.getMinFreezeDamageTicks() + 60, living.getFrozenTicks() + 120));
 			living.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 80, 1), this);
 		}

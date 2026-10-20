@@ -4,5 +4,16 @@
   "entity.amberhall.ice_shard": "Ледяной осколок",
   "item.amberhall.stalker_spawn_egg": "Яйцо призыва сталкера",
   "item.amberhall.frost_creeper_spawn_egg": "Яйцо призыва ледяного крипера",
-  "item.amberhall.ice_shard": "Ледяной осколок"
+  "item.amberhall.ice_shard": "Ледяной осколок",
+  "block.amberhall.oak_chest": "Дубовый сундук",
+  "block.amberhall.spruce_chest": "Еловый сундук",
+  "block.amberhall.birch_chest": "Берёзовый сундук",
+  "block.amberhall.jungle_chest": "Тропический сундук",
+  "block.amberhall.acacia_chest": "Акациевый сундук",
+  "block.amberhall.dark_oak_chest": "Тёмный дубовый сундук",
+  "block.amberhall.mangrove_chest": "Мангровый сундук",
+  "block.amberhall.cherry_chest": "Вишнёвый сундук",
+  "block.amberhall.bamboo_chest": "Бамбуковый сундук",
+  "block.amberhall.crimson_chest": "Багровый сундук",
+  "block.amberhall.warped_chest": "Искажённый сундук"
 }

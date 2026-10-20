@@ -1,11 +1,14 @@
 package com.amberhall.mod;
 
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.fluid.Fluids;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -38,6 +41,19 @@ public class FrostCreeperEntity extends CreeperEntity {
 		world.spawnParticles(ParticleTypes.ITEM_SNOWBALL, this.getX(), this.getBodyY(0.5), this.getZ(), 30, 0.3, 0.4, 0.3, 0.2);
 		world.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.HOSTILE, 2.0f, 0.7f);
 		world.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK, SoundCategory.HOSTILE, 2.0f, 0.6f);
+		freezeWater(world);
 		this.discard();
+	}
+
+	/** вода вокруг взрыва схватывается льдом (обычный тающий «морозный лёд»), блоки при этом не ломаются */
+	private void freezeWater(ServerWorld world) {
+		BlockPos center = this.getBlockPos();
+		for (BlockPos pos : BlockPos.iterate(center.add(-3, -2, -3), center.add(3, 1, 3))) {
+			if (pos.getSquaredDistance(center) <= 12 && world.getFluidState(pos).isEqualAndStill(Fluids.WATER)
+				&& world.getBlockState(pos).isOf(Blocks.WATER) && world.getBlockState(pos.up()).isAir()) {
+				world.setBlockState(pos, Blocks.FROSTED_ICE.getDefaultState());
+				world.scheduleBlockTick(pos, Blocks.FROSTED_ICE, 60 + this.random.nextInt(40));
+			}
+		}
 	}
 }

@@ -4,5 +4,16 @@
   "entity.amberhall.ice_shard": "Ice Shard",
   "item.amberhall.stalker_spawn_egg": "Stalker Spawn Egg",
   "item.amberhall.frost_creeper_spawn_egg": "Frost Creeper Spawn Egg",
-  "item.amberhall.ice_shard": "Ice Shard"
+  "item.amberhall.ice_shard": "Ice Shard",
+  "block.amberhall.oak_chest": "Oak Chest",
+  "block.amberhall.spruce_chest": "Spruce Chest",
+  "block.amberhall.birch_chest": "Birch Chest",
+  "block.amberhall.jungle_chest": "Jungle Chest",
+  "block.amberhall.acacia_chest": "Acacia Chest",
+  "block.amberhall.dark_oak_chest": "Dark Oak Chest",
+  "block.amberhall.mangrove_chest": "Mangrove Chest",
+  "block.amberhall.cherry_chest": "Cherry Chest",
+  "block.amberhall.bamboo_chest": "Bamboo Chest",
+  "block.amberhall.crimson_chest": "Crimson Chest",
+  "block.amberhall.warped_chest": "Warped Chest"
 }
