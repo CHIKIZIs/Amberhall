@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/cube_bottom_top",
-  "textures": {
-    "top": "amberhall:block/luminous_moss_top",
-    "side": "amberhall:block/luminous_moss_side",
-    "bottom": "minecraft:block/dirt"
-  }
-}

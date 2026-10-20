@@ -1,7 +1,0 @@
-{
-  "parent": "minecraft:block/cube_column",
-  "textures": {
-    "end": "amberhall:block/glow_log_top",
-    "side": "amberhall:block/glow_log"
-  }
-}

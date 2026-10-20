@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/slab",
-  "textures": {
-    "bottom": "amberhall:block/glow_planks",
-    "side": "amberhall:block/glow_planks",
-    "top": "amberhall:block/glow_planks"
-  }
-}
