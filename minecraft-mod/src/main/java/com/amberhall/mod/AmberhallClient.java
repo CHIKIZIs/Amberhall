@@ -17,6 +17,7 @@ public class AmberhallClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.STALKER, StalkerRenderer::new);
 		EntityRendererRegistry.register(ModEntities.FROST_CREEPER, ctx -> new ModCreeperRenderer<>(ctx, "frost_creeper", 1.0f));
 		EntityRendererRegistry.register(ModEntities.ICE_SHARD, FlyingItemEntityRenderer::new);
+		EntityRendererRegistry.register(net.minecraft.entity.EntityType.BAT, ColoredBatRenderer::new);
 	
 		// сундуки: ванильный рендерер, текстуру подменяет миксин
 		BlockEntityRendererFactories.register(ModChests.BLOCK_ENTITY, ChestBlockEntityRenderer::new);

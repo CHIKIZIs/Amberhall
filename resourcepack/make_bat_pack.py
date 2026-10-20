@@ -44,7 +44,7 @@ rnd = f"{root}/assets/minecraft/optifine/random/entity"
 os.makedirs(rnd); os.makedirs(f"{root}/assets/minecraft/textures/entity")
 for i, im in enumerate(imgs, 1):
     im.save(f"{rnd}/bat.png" if i == 1 else f"{rnd}/bat{i}.png")
-imgs[3].save(f"{root}/assets/minecraft/textures/entity/bat.png")                # запасной цвет без ETF/OptiFine: багровая
+imgs[0].save(f"{root}/assets/minecraft/textures/entity/bat.png")                # запасной вариант без ETF — обычная мышь
 
 n = {name: i + 1 for i, (name, *_) in enumerate(V)}
 W = {name: w for (name, _, _, _, w) in V}
@@ -53,22 +53,15 @@ def rule(i, names, biomes, weights=None):
     s += f"weights.{i}=" + " ".join(str((weights or [W[x] for x in names])[k]) for k in range(len(names))) + "\n"
     if biomes: s += f"biomes.{i}=" + " ".join(biomes) + "\n"
     return s
-props = "# Расцветки летучих мышей по биомам; последнее правило — любые остальные места\n"
-props += rule(1, ["frost", "albino", "classic"], ["snowy_plains", "snowy_taiga", "ice_spikes", "grove", "snowy_slopes", "frozen_peaks", "jagged_peaks", "frozen_river", "snowy_beach", "frozen_ocean", "deep_frozen_ocean"], [8, 5, 3])
-props += rule(2, ["amber", "crimson", "classic"], ["desert", "badlands", "eroded_badlands", "wooded_badlands", "savanna", "savanna_plateau", "windswept_savanna"], [8, 4, 3])
-props += rule(3, ["forest", "classic"], ["swamp", "mangrove_swamp", "jungle", "sparse_jungle", "bamboo_jungle"], [8, 3])
-props += rule(4, ["cherry", "violet", "classic"], ["cherry_grove", "flower_forest", "meadow"], [8, 4, 3])
-props += rule(5, ["ocean", "classic"], ["ocean", "deep_ocean", "cold_ocean", "lukewarm_ocean", "warm_ocean", "beach", "river"], [8, 3])
-props += rule(6, ["shadow", "violet", "classic"], ["deep_dark", "dripstone_caves", "lush_caves"], [8, 3, 3])
-props += rule(7, [name for (name, *_) in V], None)
+props = "# Случайная расцветка, биом не важен\n" + rule(1, [name for (name, *_) in V], None)
 open(f"{rnd}/bat.properties", "w", encoding="utf-8").write(props)
 open(f"{root}/pack.mcmeta", "w", encoding="utf-8").write('{\n  "pack": {\n    "pack_format": 34,\n    "description": "§6Bat Colors§r — разные расцветки летучих мышей\\n§7Нужен мод Entity Texture Features (или OptiFine)"\n  }\n}\n')
 open(f"{root}/README.txt", "w", encoding="utf-8").write(
 "Bat Colors — ресурспак для Minecraft 1.21.1\n\n"
 "Добавляет 10 расцветок летучей мыши: классическая, теневая, альбинос, багровая, океанская, лесная, янтарная, фиолетовая, вишнёвая, ледяная.\n"
-"Цвет зависит от биома (в снегах — ледяные и белые, в пустыне — янтарные и т.д.) и случаен внутри биома.\n\n"
+"Цвет у каждой мыши случайный, от биома не зависит.\n\n"
 "Для случайных расцветок нужен мод Entity Texture Features (ETF) для Fabric 1.21.1 или OptiFine.\n"
-"Без них Minecraft не умеет выбирать текстуру моба случайно: тогда все мыши будут одного цвета (багровые).\n")
+"Без них Minecraft не умеет выбирать текстуру моба случайно: тогда все мыши будут обычными.\n")
 # иконка пака 64x64: четыре мыши (кусок текстуры «мордочка+крылья» 8x8 каждой)
 icon = Image.new("RGBA", (64, 64), (30, 34, 48, 255))
 for k, im in enumerate(imgs[1:5]):
