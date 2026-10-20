@@ -6,8 +6,15 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 
 public final class ModItems {
-	public static final Item STALKER_SPAWN_EGG = Registry.register(Registries.ITEM, AmberhallMod.id("stalker_spawn_egg"),
+	public static final Item STALKER_SPAWN_EGG = register("stalker_spawn_egg",
 		new SpawnEggItem(ModEntities.STALKER, 0x4a4a51, 0xffb02e, new Item.Settings()));
+	public static final Item FROST_CREEPER_SPAWN_EGG = register("frost_creeper_spawn_egg",
+		new SpawnEggItem(ModEntities.FROST_CREEPER, 0xa9dcf2, 0x3f78b4, new Item.Settings()));
+	public static final Item ICE_SHARD = register("ice_shard", new Item(new Item.Settings()));
+
+	private static Item register(String name, Item item) {
+		return Registry.register(Registries.ITEM, AmberhallMod.id(name), item);
+	}
 
 	public static void init() {
 	}

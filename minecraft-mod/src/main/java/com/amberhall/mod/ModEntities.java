@@ -5,6 +5,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.entity.SpawnLocationTypes;
 import net.minecraft.entity.SpawnRestriction;
+import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -18,10 +19,28 @@ public final class ModEntities {
 			.maxTrackingRange(8)
 			.build("stalker"));
 
+	public static final EntityType<FrostCreeperEntity> FROST_CREEPER = Registry.register(Registries.ENTITY_TYPE,
+		AmberhallMod.id("frost_creeper"),
+		EntityType.Builder.create(FrostCreeperEntity::new, SpawnGroup.MONSTER)
+			.dimensions(0.6f, 1.7f)
+			.maxTrackingRange(8)
+			.build("frost_creeper"));
+
+	public static final EntityType<IceShardEntity> ICE_SHARD = Registry.register(Registries.ENTITY_TYPE,
+		AmberhallMod.id("ice_shard"),
+		EntityType.Builder.<IceShardEntity>create(IceShardEntity::new, SpawnGroup.MISC)
+			.dimensions(0.25f, 0.25f)
+			.maxTrackingRange(4)
+			.trackingTickInterval(10)
+			.build("ice_shard"));
+
 	public static void init() {
 		FabricDefaultAttributeRegistry.register(STALKER, StalkerEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(FROST_CREEPER, CreeperEntity.createCreeperAttributes());
 		// как зомби и скелеты: в темноте на твёрдой земле
 		SpawnRestriction.register(STALKER, SpawnLocationTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+			HostileEntity::canSpawnInDark);
+		SpawnRestriction.register(FROST_CREEPER, SpawnLocationTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
 			HostileEntity::canSpawnInDark);
 	}
 }

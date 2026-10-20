@@ -1,4 +1,8 @@
 {
   "entity.amberhall.stalker": "Сталкер",
-  "item.amberhall.stalker_spawn_egg": "Яйцо призыва сталкера"
+  "entity.amberhall.frost_creeper": "Ледяной крипер",
+  "entity.amberhall.ice_shard": "Ледяной осколок",
+  "item.amberhall.stalker_spawn_egg": "Яйцо призыва сталкера",
+  "item.amberhall.frost_creeper_spawn_egg": "Яйцо призыва ледяного крипера",
+  "item.amberhall.ice_shard": "Ледяной осколок"
 }

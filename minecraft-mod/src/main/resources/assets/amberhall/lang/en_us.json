@@ -1,4 +1,8 @@
 {
   "entity.amberhall.stalker": "Stalker",
-  "item.amberhall.stalker_spawn_egg": "Stalker Spawn Egg"
+  "entity.amberhall.frost_creeper": "Frost Creeper",
+  "entity.amberhall.ice_shard": "Ice Shard",
+  "item.amberhall.stalker_spawn_egg": "Stalker Spawn Egg",
+  "item.amberhall.frost_creeper_spawn_egg": "Frost Creeper Spawn Egg",
+  "item.amberhall.ice_shard": "Ice Shard"
 }
