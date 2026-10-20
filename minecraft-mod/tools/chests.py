@@ -93,7 +93,11 @@ ALL = ("lid_top", "lid_front", "lid_back", "lid_right", "lid_left", "base_front"
 def deco_oak(f, W): pass                                                                    # классика
 
 def deco_spruce(f, W):                                                                      # иней на крышке
-    sprinkle(f, ("lid_top",), 0.10, [SNOW[1], SNOW[2], SNOW[0]], "fr")
+    F = f["lid_top"]                                    # снежные пятна крупными кляксами, а не россыпью
+    for j in range(1, F.h - 1):
+        for i in range(1, F.w - 1):
+            if F.r(i // 3, j // 3, "sn") > 0.55 and F.r(i, j, "d") > 0.12:
+                F.px(i, j, SNOW[2] if F.r(i, j, "t") > 0.35 else SNOW[1])
     for n in ("lid_front", "lid_back", "lid_right", "lid_left"):
         F = f[n]
         for i in range(1, F.w - 1):
@@ -114,7 +118,6 @@ def deco_jungle(f, W):                                                          
         for i in range(1, F.w - 1):
             edge = min(i - 1, j - 1, F.w - 2 - i, F.h - 2 - j)
             if F.r(i, j, "m") > 0.62 + edge * 0.1: F.px(i, j, G[int(F.r(i, j, "t") * 3)])
-    sprinkle(f, ("base_front", "base_back", "base_right", "base_left"), 0.025, G, "mo")
 
 def deco_acacia(f, W):                                                                      # охровая полоска по краю крышки
     OC = hx("e8b030"); BR = hx("9a3418")
@@ -132,12 +135,11 @@ def deco_mangrove(f, W):                                                        
     for n in ALL:
         F = f[n]
         for i in range(1, F.w - 1):
-            if F.r(i, "rt") > 0.82:
-                for j in range(1, min(F.h - 1, 3 + int(F.r(i, "rl") * 3))): F.px(i, j, DK)
+            if F.r(i, "rt") > 0.9:
+                for j in range(1, min(F.h - 1, 3 + int(F.r(i, "rl") * 2))): F.px(i, j, DK)
 
 def deco_cherry(f, W):                                                                      # несколько лепестков
     sprinkle(f, ("lid_top",), 0.07, [hx("ffe0ec"), hx("f6a0c4"), hx("ffffff")], "p", two=True)
-    sprinkle(f, ("lid_front", "base_front", "lid_right", "lid_left"), 0.03, [hx("f6a0c4"), hx("ffe0ec")], "p")
 
 def deco_bamboo(f, W):                                                                      # верёвочная обвязка
     ROPE = [hx("8a6a34"), hx("c9a860"), hx("e3cc88")]
@@ -146,11 +148,14 @@ def deco_bamboo(f, W):                                                          
         j = F.h // 2
         for i in range(1, F.w - 1): F.px(i, j, ROPE[1 if i % 2 else 2]); F.px(i, j + 1, ROPE[0]) if F.inner(i, j + 1) else None
 
-def deco_crimson(f, W):                                                                     # красные «наросты»
-    sprinkle(f, ALL, 0.03, [hx("8e1424"), hx("bc2234"), hx("5a0810")], "w", two=True)
+def trim(f, c1, c2):                                                                         # тонкая полоса по низу крышки, как кольцо на стволе
+    for n in ("lid_front", "lid_back", "lid_right", "lid_left"):
+        F = f[n]
+        for i in range(1, F.w - 1): F.px(i, F.h - 2, c1 if i % 2 else c2)
 
-def deco_warped(f, W):                                                                      # бирюзовые «наросты»
-    sprinkle(f, ALL, 0.03, [hx("159484"), hx("22bfa8"), hx("0b5a52")], "w", two=True)
+def deco_crimson(f, W): trim(f, hx("c8283c"), hx("8e1424"))                                  # багровая полоса
+
+def deco_warped(f, W): trim(f, hx("30d8c0"), hx("159484"))                                   # бирюзовая полоса
 
 DECO = {"oak": deco_oak, "spruce": deco_spruce, "birch": deco_birch, "jungle": deco_jungle, "acacia": deco_acacia, "dark_oak": deco_dark_oak,
         "mangrove": deco_mangrove, "cherry": deco_cherry, "bamboo": deco_bamboo, "crimson": deco_crimson, "warped": deco_warped}
@@ -170,12 +175,54 @@ def tint_latch(im, ramp):
                 t = (lum(c) - 60) / 170; t = max(0, min(1, t)) * (len(ramp) - 1)
                 i = min(len(ramp) - 2, int(t)); px[x, y] = lerp(ramp[i], ramp[i + 1], t - i) + (c[3],)
 
+def all_rects(W):
+    D = 14; out = []
+    for v0, h in ((0, 5), (19, 10)):
+        for (x, y, w, hh) in ((D, v0, W, D), (D + W, v0, W, D), (0, v0 + D, D, h), (D, v0 + D, W, h), (D + W, v0 + D, D, h), (2 * D + W, v0 + D, W, h)):
+            out.append((x, y, w, hh))
+    return out
+
+def enrich(tex, planks, W, wood, strength=0.65):
+    """добавляет настоящее зерно досок: внутренняя часть каждой грани смешивается с плиткой текстуры досок этого дерева;
+    внешняя обводка и первое кольцо остаются ванильными (тёмные, с фаской)"""
+    px = tex.load(); pk = planks.load()
+    for k, (x, y, w, h) in enumerate(all_rects(W)):
+        ox, oy = int(H(wood, k, "ox") * 16), int(H(wood, k, "oy") * 16)
+        for j in range(h):
+            for i in range(w):
+                c = px[x + i, y + j]
+                if c[3] == 0 or max(c[:3]) - min(c[:3]) < 22: continue
+                ring = min(i, j, w - 1 - i, h - 1 - j)
+                if ring == 0: continue                           # обводка
+                m = strength * (0.55 if ring == 1 else 1.0)
+                q = pk[(i + ox) % 16, (j + oy) % 16]
+                px[x + i, y + j] = tuple(round(c[t] + (q[t] - c[t]) * m) for t in range(3)) + (c[3],)
+
+def mock(wood, W=14):
+    """«как видит игрок»: перёд (крышка над основанием, с учётом перевёрнутой текстуры), верх и бок"""
+    im = Image.open(f"{A}/textures/entity/chest/{wood}.png").convert("RGBA")
+    D = 14
+    front_lid = im.crop((2 * D + W, D, 2 * D + 2 * W, D + 5)).transpose(Image.FLIP_TOP_BOTTOM)
+    front_base = im.crop((2 * D + W, 19 + D, 2 * D + 2 * W, 19 + D + 10)).transpose(Image.FLIP_TOP_BOTTOM)
+    top = im.crop((D + W, 0, D + 2 * W, D))
+    side_lid = im.crop((0, D, D, D + 5)).transpose(Image.FLIP_TOP_BOTTOM)
+    side_base = im.crop((0, 19 + D, D, 19 + D + 10)).transpose(Image.FLIP_TOP_BOTTOM)
+    out = Image.new("RGBA", (W + 4 + D + 4 + W, 15 + 3 + D), (58, 62, 74, 255))
+    out.alpha_composite(front_lid, (0, 0)); out.alpha_composite(front_base, (0, 5))
+    out.alpha_composite(side_lid, (W + 4, 0)); out.alpha_composite(side_base, (W + 4, 5))
+    out.alpha_composite(top, (W + 4 + D + 4, 0))
+    # застёжка на перёд: из области (0,0) защёлки, 2x4 лицевая часть (1..3, 1..5)
+    latch = im.crop((3, 1, 5, 5)).transpose(Image.FLIP_TOP_BOTTOM)
+    out.alpha_composite(latch, (W // 2 - 1, 3))
+    return out
+
 lang = {"ru_ru": {}, "en_us": {}}
 for wood, (ru, en) in WOODS.items():
     planks = img(f"assets/minecraft/textures/block/{wood}_planks.png")
     ramp = ramp_from_planks(planks)
     for suffix, src in (("", "normal"), ("_left", "normal_left"), ("_right", "normal_right")):
         tex = recolor(img(f"assets/minecraft/textures/entity/chest/{src}.png"), ramp)
+        enrich(tex, planks, 14 if suffix == "" else 15, wood)
         DECO[wood](faces_of(tex, wood, 14 if suffix == "" else 15), 14 if suffix == "" else 15)
         if wood in LATCH: tint_latch(tex, LATCH[wood])
         buf = io.BytesIO(); tex.save(buf, "PNG")
@@ -194,4 +241,11 @@ write(f"{D}/minecraft/tags/block/mineable/axe.json", json.dumps({"values": [f"{M
 for l, names in lang.items():
     p = f"{A}/lang/{l}.json"; d = json.load(open(p, encoding="utf-8")); d.update(names)
     write(p, json.dumps(d, ensure_ascii=False, indent=2) + "\n")
+if os.environ.get("MOCK"):
+    ws = list(WOODS); cw = 14 + 4 + 14 + 4 + 14; cell = (cw * 6, 32 * 6)
+    sheet = Image.new("RGBA", (cell[0] * 3 + 20, cell[1] * 4 + 30), (40, 44, 56, 255))
+    for k, w in enumerate(ws):
+        m = mock(w).resize((cw * 6, 32 * 6), Image.NEAREST)
+        sheet.alpha_composite(m, ((k % 3) * (cell[0] + 10), (k // 3) * (cell[1] + 10)))
+    sheet.convert("RGB").save(os.environ["MOCK"])
 print("ok", len(WOODS))
