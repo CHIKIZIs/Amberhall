@@ -47,150 +47,123 @@ part("rag_b", "torso", (0, -0.5, 2.2), (-0.3, 0, 0), (-3, 0, -0.5), (6, 7, 1), "
 g.BY.clear(); g.BY.update({p["name"]: p for p in P})
 g.UV = g.pack(); UV = g.UV
 
-# ---------------------------------------------------------------- палитра (ванильная скупость: 4–5 тонов, малый контраст)
+# ---------------------------------------------------------------- палитра
+# Ориентир — ванильные зомби/скелет/варден: большие спокойные поля одного тона (3–4 близких оттенка),
+# редкий одиночный шум, чёткие плоские детали, лицо из нескольких пикселей, светящиеся акценты.
 hx = g.hx
-SKIN = [hx(c) for c in ("2e2f36", "3a3b43", "464850", "52555e", "60646d")]; SW = [2, 4, 5, 3, 1]
-BONE = [hx(c) for c in ("85806a", "a49e86", "c0b9a0", "d8d2ba")];           BW = [2, 4, 4, 1]
-CLOTH = [hx(c) for c in ("29202f", "352a3e", "423650")];                      CW = [3, 4, 2]
-MAW = [hx(c) for c in ("2a1014", "3c1a1e", "55262a")]
-CORE = [hx(c) for c in ("4a2606", "7a4208", "a8620c")]
+SK = [hx(c) for c in ("383c46", "444955", "525864", "616975")]          # кожа: тёмный холодный серо-синий
+BN = [hx(c) for c in ("6d6958", "8d8977", "aaa692", "c4c0aa")]          # кость: контур, тень, основа, блик
+CL = [hx(c) for c in ("231c2c", "2e2539", "3a2f47")]                    # лохмотья
+MAW = [hx(c) for c in ("1c0c10", "34171b")]
+CORE = [hx(c) for c in ("3a1f06", "6a3a08", "9a5a0c")]
 AMB = [hx(c) for c in ("ff9a1e", "ffc040", "ffe58a")]
-DARK = hx("17171c")
+DARK = hx("121216")
 
 def H(*a):
     return int.from_bytes(hashlib.md5(repr(a).encode()).digest()[:4], "big") / 4294967296.0
 
-def pick(pal, wts, r):
-    t = r * sum(wts)
-    for c, w in zip(pal, wts):
-        t -= w
-        if t <= 0: return c
-    return pal[-1]
+def skin(nm, face, a, b, fw, fh, base=1):
+    """спокойная кожа: базовый тон + блочные пятна 2×2 + редкие одиночные пиксели; сверху светлее, снизу темнее"""
+    t = base
+    if H(nm, face, a // 2, b // 2, "blk") > .72: t += 1
+    elif H(nm, face, a // 2, b // 2, "blk") < .22: t -= 1
+    if H(nm, face, a, b, "px") > .93: t += 1
+    elif H(nm, face, a, b, "px") < .05: t -= 1
+    if face == "up": t += 1
+    if face == "down": t -= 1
+    if b >= fh - 1 and face not in ("up", "down"): t -= 1
+    return SK[max(0, min(3, t))]
 
-def skin(r, shift=0):
-    i = SKIN.index(pick(SKIN, SW, r)) + shift
-    return SKIN[max(0, min(4, i))]
-
-def bone(r, shift=0):
-    i = BONE.index(pick(BONE, BW, r)) + shift
-    return BONE[max(0, min(3, i))]
+def bone(nm, face, a, b, fw, fh, base=2):
+    """плоская кость: основа, светлая кромка сверху-слева, тёмная снизу-справа, почти без шума"""
+    t = base
+    if H(nm, face, a, b, "px") > .95: t += 1
+    if b == 0 and face not in ("down",): t += 1
+    if b == fh - 1 and face not in ("up",): t -= 1
+    if a == fw - 1: t -= 1
+    return BN[max(0, min(3, t))]
 
 def color(p, face, a, b, fw, fh):
     """цвет пикселя (a,b) грани; возвращает (rgb, glow_rgb|None, alpha)"""
     k = p["kind"]; nm = p["name"]
-    r = H(nm, face, a, b)
-    edge = (b == 0) - (b == fh - 1)
+    S = lambda base=1: skin(nm, face, a, b, fw, fh, base)
+    B = lambda base=2: bone(nm, face, a, b, fw, fh, base)
     if k == "head":
-        c = skin(r, 1 if face == "up" else 0)
+        c = S(1)
         if face == "north":
-            c = skin(r)
-            if b == 1: c = skin(r, -1)                              # тень под бровью
-            if (a, b) in ((1, 2), (5, 2), (2, 3), (4, 3)):          # узкие «злые» глаза, наклон к носу
-                return (AMB[1], AMB[1] if (a, b) in ((2, 3), (4, 3)) else AMB[0], 255)
-            if (a, b) in ((0, 2), (6, 2), (2, 2), (4, 2), (1, 3), (5, 3), (3, 3), (3, 2)): c = DARK   # глазницы и ноздри
-            if b == fh - 1:                                         # верхние зубы
-                c = bone(r, 1) if a % 2 == 0 else DARK
-        if face in ("east", "west") and b == 3 and a in (2, 3): c = skin(r, -1)
+            if b == 1: c = SK[0]                                                      # тень под бровью
+            if (a, b) in ((1, 2), (5, 2), (2, 3), (4, 3)):                           # узкие злые глаза
+                return (AMB[1], AMB[0] if (a, b) in ((1, 2), (5, 2)) else AMB[1], 255)
+            if b == fh - 1:
+                c = DARK                                                              # линия пасти
+                if a in (2, 4): c = BN[3]                                             # два клыка
         return (c, None, 255)
     if k == "jaw":
-        if face == "up":
-            c = MAW[(a + b) % 2 if r > .3 else 2]
-            if 1 <= a <= fw - 2 and b == 1: c = MAW[2]               # язык
-            return (c, None, 255)
-        c = skin(r, -1)
-        if face == "north" and b == 0: c = bone(r, 1) if a % 2 == 1 else DARK  # нижние зубы
-        if face == "north" and b == 1: c = skin(r, -2)
+        if face == "up": return (MAW[0] if (a, b) != (fw // 2, 1) else MAW[1], None, 255)
+        c = S(0)
+        if face == "north" and b == 0 and a in (1, fw - 2): c = BN[3]                 # нижние клыки
         return (c, None, 255)
     if k == "brow":
-        c = bone(r, -1 if (face == "north" and b == 1) else 0)
-        if face == "north" and a in (0, fw - 1): c = skin(r, -1)
-        return (c, None, 255)
+        return (B(1) if not (face == "north" and b == 1) else BN[0], None, 255)
     if k == "horn":
-        c = bone(r, -1 + (b * 3) // max(1, fh))
-        if b % 2 == 1 and face not in ("up", "down"): c = bone(r, -1)  # кольца
-        return (c, None, 255)
+        return (BN[1 + min(2, (b * 3) // max(1, fh))] if b % 3 != 2 else BN[0], None, 255)
     if k == "horn_tip":
-        c = bone(r, min(1 + (b * 2) // max(1, fh), 3) - 1 + 1)
-        return (c, None, 255)
+        return (BN[2 + (1 if b > fh // 2 else 0)], None, 255)
     if k == "ear":
-        c = skin(r, -1 if face != "north" else 0)
-        if face in ("north", "south") and 0 < a < fw - 1: c = skin(r, -2)
-        return (c, None, 255)
+        return (S(0), None, 255)
     if k == "neck":
-        return (skin(r, -1), None, 255)
+        return (S(0), None, 255)
     if k == "chest":
-        c = skin(r)
+        c = S(1)
         if face == "north":
-            # грудная полость: тёмное нутро и янтарное «ядро» между рёбрами
-            if 2 <= a <= fw - 3 and 1 <= b <= fh - 2:
-                c = CORE[0] if r < .5 else DARK
-                if 3 <= a <= fw - 4 and 2 <= b <= fh - 3:
-                    return (CORE[1 + (r > .6)], AMB[0] if r < .5 else AMB[1], 255)
-            elif b in (0, fh - 1): c = skin(r, -1)
-        if face == "south":
-            if a in (fw // 2 - 1, fw // 2): c = skin(r, -2)               # позвоночная борозда
-            if b % 2 == 1 and 1 <= a <= fw - 2: c = skin(r, -1)
-        if face == "up" and (a in (0, fw - 1)): c = skin(r, -1)
+            if 1 <= a <= fw - 2 and 1 <= b <= fh - 2: c = SK[0]                       # грудная полость
+            if (a, b) in ((3, 3), (4, 3), (3, 4), (4, 4)):                            # янтарное ядро 2×2
+                return (CORE[2 if (a, b) == (3, 3) else 1], AMB[0] if (a, b) in ((3, 4), (4, 4)) else AMB[1], 255)
+        if face == "south" and a in (fw // 2 - 1, fw // 2): c = SK[0]                 # позвоночная борозда
         return (c, None, 255)
     if k == "waist":
-        c = skin(r, -1)
-        if face == "north" and b == 0: c = bone(r, -1)                  # ремень-кость
-        if face == "north" and b == 0 and a % 3 == 1: c = bone(r, 1)
+        c = S(0)
+        if face == "north" and b == 0: c = BN[0]                                      # костяной ремень
         return (c, None, 255)
     if k == "rib":
-        c = bone(r, 1 if edge > 0 else 0)
-        if face == "north": c = bone(r, 1)
-        if face in ("east", "west") and b == 0: c = bone(r, -1)
-        return (c, None, 255)
+        return (B(2), None, 255)
     if k == "spine":
-        c = bone(r, -1 + (b * 3) // max(1, fh))
-        if b == fh - 1: c = bone(r, 2) if face not in ("up", "down") else c
-        return (c, None, 255)
+        return (BN[1 + min(2, (b * 3) // max(1, fh))], None, 255)
     if k == "pad":
-        c = bone(r, -1)
-        if face == "up": c = bone(r, 0 if r < .8 else 1)
-        if a in (0, fw - 1) or b in (0, fh - 1): c = bone(r, -2) if face not in ("up",) else bone(r, -1)
-        if face == "up" and (a, b) in ((1, 1), (fw - 2, fh - 2), (1, fh - 2), (fw - 2, 1)): c = bone(0.99, 2)
+        c = B(1)
+        if a in (0, fw - 1) or b in (0, fh - 1): c = BN[0] if face != "up" else BN[1]
         return (c, None, 255)
     if k == "arm":
-        c = skin(r, 0 if face != "south" else -1)
-        if b >= fh - 2: c = skin(r, -1)
+        c = S(1)
+        # редкие янтарные «трещины» на плечах: светятся
+        if face in ("north", "south") and (a, b) in ((1, 2), (1, 3)) and p["name"].endswith("l"): return (CORE[1], AMB[0], 255)
+        if face in ("north", "south") and (a, b) in ((1, 2), (1, 3)) and p["name"].endswith("r"): return (CORE[1], AMB[0], 255)
         return (c, None, 255)
     if k == "forearm":
-        c = skin(r, -1)
-        if b >= 3 and face != "down" and face != "up": c = bone(r, -1 if b != 3 else 0)   # костяной браслет
+        c = S(0)
+        if b == 0: c = BN[0]                                                           # костяная повязка у локтя
         return (c, None, 255)
     if k == "hand":
-        c = bone(r, -1)
-        if face == "up": c = skin(r, -1)
-        return (c, None, 255)
+        return (S(0), None, 255)
     if k == "claw":
         t = b / max(1, fh - 1)
-        c = bone(r, 0 if t < .4 else 1 if t < .8 else 2) if face not in ("down",) else bone(r, 2)
-        if t < .2: c = bone(r, -1)
-        return (c, None, 255)
+        return (BN[1] if t < .34 else BN[2] if t < .75 else BN[3], None, 255)
     if k == "thigh":
-        c = skin(r, 0 if face in ("north", "up") else -1)
-        if face == "north" and b == 0: c = skin(r, -1)
-        return (c, None, 255)
+        return (S(1), None, 255)
     if k == "shin":
-        c = skin(r, -1)
-        if face == "north" and 1 <= b <= fh - 2: c = bone(r, -1)         # костяной наголенник
-        return (c, None, 255)
+        return (S(0), None, 255)
     if k == "foot":
-        c = skin(r, -2)
-        if face == "north": c = bone(r, 0) if b == 0 else skin(r, -2)    # когти на носке
-        if face == "north" and a % 2 == 0 and b == 0: c = bone(r, 2)
+        c = S(0)
+        if face == "north" and b == 0: c = BN[2]                                       # когти на носке
         return (c, None, 255)
     if k == "cloth":
-        c = pick(CLOTH, CW, r)
         if face in ("north", "south"):
-            # рваный низ: чем ниже, тем больше дыр
-            hole = (b >= fh - 3 and H(nm, a, "h") < (b - (fh - 4)) * 0.28) or (b == fh - 1 and a % 2 == 0)
-            if hole: return (c, None, 0)
-            if a in (0, fw - 1) and H(nm, b, "s") < .4: c = CLOTH[0]
-            if b % 3 == 0: c = CLOTH[0] if r < .5 else c
-        return (c, None, 255)
+            hole = (b >= fh - 2 and H(nm, a, "h") < .45) or (b == fh - 3 and H(nm, a, "h2") < .15)
+            if hole: return (CL[0], None, 0)
+            c = CL[1 + (a % 2 == 0 and b < fh - 3)]                                    # вертикальные складки
+            if b == 0: c = CL[0]
+            return (c, None, 255)
+        return (CL[1], None, 255)
     return ((255, 0, 255), None, 255)
 
 def paint():
