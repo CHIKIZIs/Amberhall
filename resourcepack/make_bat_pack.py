@@ -53,13 +53,15 @@ def rule(i, names, biomes, weights=None):
     s += f"weights.{i}=" + " ".join(str((weights or [W[x] for x in names])[k]) for k in range(len(names))) + "\n"
     if biomes: s += f"biomes.{i}=" + " ".join(biomes) + "\n"
     return s
-props = "# Случайная расцветка, биом не важен\n" + rule(1, [name for (name, *_) in V], None)
+props = "# В ледяных биомах — только морозная; везде остальное — случайная (кроме морозной)\n"
+props += rule(1, ["frost"], ["snowy_plains", "snowy_taiga", "ice_spikes", "grove", "snowy_slopes", "frozen_peaks", "jagged_peaks", "frozen_river", "snowy_beach", "frozen_ocean", "deep_frozen_ocean"])
+props += rule(2, [name for (name, *_) in V if name != "frost"], None)
 open(f"{rnd}/bat.properties", "w", encoding="utf-8").write(props)
 open(f"{root}/pack.mcmeta", "w", encoding="utf-8").write('{\n  "pack": {\n    "pack_format": 34,\n    "description": "§6Bat Colors§r — разные расцветки летучих мышей\\n§7Нужен мод Entity Texture Features (или OptiFine)"\n  }\n}\n')
 open(f"{root}/README.txt", "w", encoding="utf-8").write(
 "Bat Colors — ресурспак для Minecraft 1.21.1\n\n"
 "Добавляет 10 расцветок летучей мыши: классическая, теневая, альбинос, багровая, океанская, лесная, янтарная, фиолетовая, вишнёвая, ледяная.\n"
-"Цвет у каждой мыши случайный, от биома не зависит.\n\n"
+"Цвет у каждой мыши случайный, от биома не зависит. Исключение: в ледяных биомах мыши всегда морозные (и только там).\n\n"
 "Для случайных расцветок нужен мод Entity Texture Features (ETF) для Fabric 1.21.1 или OptiFine.\n"
 "Без них Minecraft не умеет выбирать текстуру моба случайно: тогда все мыши будут обычными.\n")
 # иконка пака 64x64: четыре мыши (кусок текстуры «мордочка+крылья» 8x8 каждой)
