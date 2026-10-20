@@ -20,6 +20,12 @@ public final class CreeperVariantModels {
 			case "cave" -> cave();
 			case "meadow" -> meadow();
 			case "darkforest" -> darkforest();
+			case "bamboo" -> bamboo();
+			case "hills" -> hills();
+			case "savannah" -> savannah();
+			case "dripstone" -> dripstone();
+			case "spruce" -> spruce();
+			case "beach" -> beach();
 			default -> throw new IllegalArgumentException(variant);
 		};
 	}
@@ -186,6 +192,138 @@ public final class CreeperVariantModels {
 		ModelPartData shroomBCapD = shroomBD.addChild("shroom_b_cap", ModelPartBuilder.create().uv(104, 18).cuboid(-2F, -1F, -2F, 4F, 1F, 4F), ModelTransform.pivot(0F, -3F, 0F));
 		ModelPartData shroomCD = headD.addChild("shroom_c", ModelPartBuilder.create().uv(20, 26).cuboid(-0.5F, -2F, -0.5F, 1F, 2F, 1F), ModelTransform.of(0F, -9F, -3F, -0.2F, 0F, 0F));
 		ModelPartData shroomCCapD = shroomCD.addChild("shroom_c_cap", ModelPartBuilder.create().uv(0, 26).cuboid(-1.5F, -1F, -1.5F, 3F, 1F, 3F), ModelTransform.pivot(0F, -2F, 0F));
+		return TexturedModelData.of(data, 128, 128);
+	}
+
+	private static TexturedModelData bamboo() {
+		ModelData data = new ModelData();
+		ModelPartData r = data.getRoot();
+		ModelPartData bodyD = r.addChild("body", ModelPartBuilder.create().uv(0, 0).cuboid(-4F, -12F, -2.5F, 8F, 12F, 5F), ModelTransform.of(0F, 17F, 1F, 0.55F, 0F, 0F));
+		ModelPartData headD = bodyD.addChild("head", ModelPartBuilder.create().uv(26, 0).cuboid(-4F, -8F, -4F, 8F, 8F, 8F), ModelTransform.of(0F, -11F, 0F, -0.4125F, 0F, 0F));
+		ModelPartData legFlD = r.addChild("leg_fl", ModelPartBuilder.create().uv(74, 0).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(2.6F, 17F, -2.5F, -0.3F, 0F, 0.12F));
+		ModelPartData legFlFootD = legFlD.addChild("leg_fl_foot", ModelPartBuilder.create().uv(16, 17).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, 0.27F, 0F, 0F));
+		ModelPartData legFrD = r.addChild("leg_fr", ModelPartBuilder.create().uv(90, 0).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(-2.6F, 17F, -2.5F, -0.3F, 0F, -0.12F));
+		ModelPartData legFrFootD = legFrD.addChild("leg_fr_foot", ModelPartBuilder.create().uv(38, 17).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, 0.27F, 0F, 0F));
+		ModelPartData legBlD = r.addChild("leg_bl", ModelPartBuilder.create().uv(106, 0).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(2.6F, 17F, 4.5F, 0.3F, 0F, 0.1F));
+		ModelPartData legBlFootD = legBlD.addChild("leg_bl_foot", ModelPartBuilder.create().uv(60, 17).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, -0.27F, 0F, 0F));
+		ModelPartData legBrD = r.addChild("leg_br", ModelPartBuilder.create().uv(0, 17).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(-2.6F, 17F, 4.5F, 0.3F, 0F, -0.1F));
+		ModelPartData legBrFootD = legBrD.addChild("leg_br_foot", ModelPartBuilder.create().uv(82, 17).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, -0.27F, 0F, 0F));
+		ModelPartData stalkAD = bodyD.addChild("stalk_a", ModelPartBuilder.create().uv(58, 0).cuboid(-1F, -11F, -1F, 2F, 11F, 2F), ModelTransform.of(-2.5F, -9F, 3F, 0.25F, 0F, -0.1F));
+		ModelPartData stalkBD = bodyD.addChild("stalk_b", ModelPartBuilder.create().uv(66, 0).cuboid(-1F, -9F, -1F, 2F, 9F, 2F), ModelTransform.of(2F, -8F, 3.5F, 0.35F, 0F, 0.12F));
+		ModelPartData stalkCD = headD.addChild("stalk_c", ModelPartBuilder.create().uv(104, 17).cuboid(-1F, -6F, -1F, 2F, 6F, 2F), ModelTransform.pivot(0F, -8F, 1F));
+		ModelPartData shootLD = headD.addChild("shoot_l", ModelPartBuilder.create().uv(112, 17).cuboid(0F, -1F, -2F, 4F, 1F, 4F), ModelTransform.of(2F, -8F, -1F, 0F, 0F, 0.7F));
+		ModelPartData shootRD = headD.addChild("shoot_r", ModelPartBuilder.create().uv(0, 26).cuboid(-4F, -1F, -2F, 4F, 1F, 4F), ModelTransform.of(-2F, -8F, -1F, 0F, 0F, -0.7F));
+		return TexturedModelData.of(data, 128, 128);
+	}
+
+	private static TexturedModelData hills() {
+		ModelData data = new ModelData();
+		ModelPartData r = data.getRoot();
+		ModelPartData bodyD = r.addChild("body", ModelPartBuilder.create().uv(0, 0).cuboid(-5F, -12F, -2.5F, 10F, 12F, 5F), ModelTransform.of(0F, 17F, 1F, 0.4F, 0F, 0F));
+		ModelPartData headD = bodyD.addChild("head", ModelPartBuilder.create().uv(30, 0).cuboid(-4.5F, -8F, -4F, 9F, 8F, 8F), ModelTransform.of(0F, -11F, 0F, -0.3F, 0F, 0F));
+		ModelPartData legFlD = r.addChild("leg_fl", ModelPartBuilder.create().uv(108, 0).cuboid(-2.5F, 0F, -2.5F, 5F, 5F, 5F), ModelTransform.of(3.1F, 17F, -2.5F, -0.3F, 0F, 0.12F));
+		ModelPartData legFlFootD = legFlD.addChild("leg_fl_foot", ModelPartBuilder.create().uv(88, 17).cuboid(-3F, 0F, -3.5F, 6F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, 0.27F, 0F, 0F));
+		ModelPartData legFrD = r.addChild("leg_fr", ModelPartBuilder.create().uv(0, 17).cuboid(-2.5F, 0F, -2.5F, 5F, 5F, 5F), ModelTransform.of(-3.1F, 17F, -2.5F, -0.3F, 0F, -0.12F));
+		ModelPartData legFrFootD = legFrD.addChild("leg_fr_foot", ModelPartBuilder.create().uv(0, 27).cuboid(-3F, 0F, -3.5F, 6F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, 0.27F, 0F, 0F));
+		ModelPartData legBlD = r.addChild("leg_bl", ModelPartBuilder.create().uv(20, 17).cuboid(-2.5F, 0F, -2.5F, 5F, 5F, 5F), ModelTransform.of(3.1F, 17F, 4.5F, 0.3F, 0F, 0.1F));
+		ModelPartData legBlFootD = legBlD.addChild("leg_bl_foot", ModelPartBuilder.create().uv(24, 27).cuboid(-3F, 0F, -3.5F, 6F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, -0.27F, 0F, 0F));
+		ModelPartData legBrD = r.addChild("leg_br", ModelPartBuilder.create().uv(40, 17).cuboid(-2.5F, 0F, -2.5F, 5F, 5F, 5F), ModelTransform.of(-3.1F, 17F, 4.5F, 0.3F, 0F, -0.1F));
+		ModelPartData legBrFootD = legBrD.addChild("leg_br_foot", ModelPartBuilder.create().uv(48, 27).cuboid(-3F, 0F, -3.5F, 6F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, -0.27F, 0F, 0F));
+		ModelPartData boulderLD = bodyD.addChild("boulder_l", ModelPartBuilder.create().uv(64, 0).cuboid(-1F, -3F, -3F, 5F, 5F, 6F), ModelTransform.of(6F, -10F, 0F, 0F, 0F, 0.2F));
+		ModelPartData boulderRD = bodyD.addChild("boulder_r", ModelPartBuilder.create().uv(86, 0).cuboid(-4F, -3F, -3F, 5F, 5F, 6F), ModelTransform.of(-6F, -10F, 0F, 0F, 0F, -0.2F));
+		ModelPartData snowD = headD.addChild("snow", ModelPartBuilder.create().uv(60, 17).cuboid(-4F, -2F, -3F, 8F, 2F, 6F), ModelTransform.pivot(0F, -8F, 0F));
+		return TexturedModelData.of(data, 128, 128);
+	}
+
+	private static TexturedModelData savannah() {
+		ModelData data = new ModelData();
+		ModelPartData r = data.getRoot();
+		ModelPartData bodyD = r.addChild("body", ModelPartBuilder.create().uv(32, 0).cuboid(-4F, -12F, -2F, 8F, 12F, 4F), ModelTransform.of(0F, 17F, 1F, 0.5F, 0F, 0F));
+		ModelPartData headD = bodyD.addChild("head", ModelPartBuilder.create().uv(0, 0).cuboid(-4F, -8F, -4F, 8F, 8F, 8F), ModelTransform.of(0F, -11F, 0F, -0.375F, 0F, 0F));
+		ModelPartData legFlD = r.addChild("leg_fl", ModelPartBuilder.create().uv(56, 0).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(2.6F, 17F, -2.5F, -0.3F, 0F, 0.12F));
+		ModelPartData legFlFootD = legFlD.addChild("leg_fl_foot", ModelPartBuilder.create().uv(0, 16).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, 0.27F, 0F, 0F));
+		ModelPartData legFrD = r.addChild("leg_fr", ModelPartBuilder.create().uv(72, 0).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(-2.6F, 17F, -2.5F, -0.3F, 0F, -0.12F));
+		ModelPartData legFrFootD = legFrD.addChild("leg_fr_foot", ModelPartBuilder.create().uv(22, 16).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, 0.27F, 0F, 0F));
+		ModelPartData legBlD = r.addChild("leg_bl", ModelPartBuilder.create().uv(88, 0).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(2.6F, 17F, 4.5F, 0.3F, 0F, 0.1F));
+		ModelPartData legBlFootD = legBlD.addChild("leg_bl_foot", ModelPartBuilder.create().uv(44, 16).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, -0.27F, 0F, 0F));
+		ModelPartData legBrD = r.addChild("leg_br", ModelPartBuilder.create().uv(104, 0).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(-2.6F, 17F, 4.5F, 0.3F, 0F, -0.1F));
+		ModelPartData legBrFootD = legBrD.addChild("leg_br_foot", ModelPartBuilder.create().uv(66, 16).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, -0.27F, 0F, 0F));
+		ModelPartData hay0D = headD.addChild("hay_0", ModelPartBuilder.create().uv(8, 24).cuboid(-0.5F, -3F, -0.5F, 1F, 3F, 1F), ModelTransform.of(1.35192F, -4F, 2.65966F, 0.238244F, 4.87302F, -0.175663F));
+		ModelPartData hay1D = headD.addChild("hay_1", ModelPartBuilder.create().uv(96, 16).cuboid(-0.5F, -5F, -0.5F, 1F, 5F, 1F), ModelTransform.of(-4.92961F, -4F, -3.77464F, -0.0216517F, 1.54848F, 0.0306326F));
+		ModelPartData hay2D = headD.addChild("hay_2", ModelPartBuilder.create().uv(112, 16).cuboid(-0.5F, -4F, -0.5F, 1F, 4F, 1F), ModelTransform.of(0.813353F, -4F, -5.35574F, -0.0642943F, 1.14344F, 0.257221F));
+		ModelPartData hay3D = headD.addChild("hay_3", ModelPartBuilder.create().uv(12, 24).cuboid(-0.5F, -3F, -0.5F, 1F, 3F, 1F), ModelTransform.of(-1.21619F, -4F, 2.88118F, -0.252863F, 3.8776F, -0.261311F));
+		ModelPartData hay4D = headD.addChild("hay_4", ModelPartBuilder.create().uv(116, 16).cuboid(-0.5F, -4F, -0.5F, 1F, 4F, 1F), ModelTransform.of(-5.48048F, -4F, 4.08545F, 0.191516F, 6.0296F, -0.2339F));
+		ModelPartData hay5D = headD.addChild("hay_5", ModelPartBuilder.create().uv(120, 16).cuboid(-0.5F, -4F, -0.5F, 1F, 4F, 1F), ModelTransform.of(-3.66867F, -4F, -2.04983F, 0.0274564F, 4.25678F, -0.206654F));
+		ModelPartData hay6D = headD.addChild("hay_6", ModelPartBuilder.create().uv(88, 16).cuboid(-0.5F, -6F, -0.5F, 1F, 6F, 1F), ModelTransform.of(4.85074F, -4F, 2.09706F, -0.140848F, 2.26827F, -0.233831F));
+		ModelPartData hay7D = headD.addChild("hay_7", ModelPartBuilder.create().uv(100, 16).cuboid(-0.5F, -5F, -0.5F, 1F, 5F, 1F), ModelTransform.of(-3.89728F, -4F, -4.78346F, 0.22218F, 3.68097F, 0.0671853F));
+		ModelPartData hay8D = headD.addChild("hay_8", ModelPartBuilder.create().uv(104, 16).cuboid(-0.5F, -5F, -0.5F, 1F, 5F, 1F), ModelTransform.of(2.28444F, -4F, -4.77375F, 0.222963F, 3.01908F, -0.128945F));
+		ModelPartData hay9D = headD.addChild("hay_9", ModelPartBuilder.create().uv(16, 24).cuboid(-0.5F, -3F, -0.5F, 1F, 3F, 1F), ModelTransform.of(-0.206598F, -4F, 2.25136F, -0.170673F, 5.89699F, 0.314454F));
+		ModelPartData hay10D = headD.addChild("hay_10", ModelPartBuilder.create().uv(92, 16).cuboid(-0.5F, -6F, -0.5F, 1F, 6F, 1F), ModelTransform.of(-1.56592F, -4F, -1.05277F, -0.0936709F, 3.6331F, -0.343645F));
+		ModelPartData hay11D = headD.addChild("hay_11", ModelPartBuilder.create().uv(124, 16).cuboid(-0.5F, -4F, -0.5F, 1F, 4F, 1F), ModelTransform.of(-4.986F, -4F, -3.50989F, -0.266686F, 1.54543F, 0.223645F));
+		ModelPartData hay12D = headD.addChild("hay_12", ModelPartBuilder.create().uv(108, 16).cuboid(-0.5F, -5F, -0.5F, 1F, 5F, 1F), ModelTransform.of(-0.415741F, -4F, 0.137456F, 0.192922F, 0.678572F, 0.173879F));
+		ModelPartData hay13D = headD.addChild("hay_13", ModelPartBuilder.create().uv(20, 24).cuboid(-0.5F, -3F, -0.5F, 1F, 3F, 1F), ModelTransform.of(3.26949F, -4F, 3.95664F, -0.0469163F, 6.14398F, -0.204062F));
+		ModelPartData hay14D = headD.addChild("hay_14", ModelPartBuilder.create().uv(0, 24).cuboid(-0.5F, -4F, -0.5F, 1F, 4F, 1F), ModelTransform.of(0.141681F, -4F, -1.51112F, -0.112028F, 5.80396F, 0.0316008F));
+		ModelPartData hay15D = headD.addChild("hay_15", ModelPartBuilder.create().uv(4, 24).cuboid(-0.5F, -4F, -0.5F, 1F, 4F, 1F), ModelTransform.of(-2.06305F, -4F, -2.0152F, 0.209142F, 3.93634F, 0.154795F));
+		ModelPartData tailD = bodyD.addChild("tail", ModelPartBuilder.create().uv(120, 0).cuboid(-1F, -7F, -1F, 2F, 7F, 2F), ModelTransform.of(0F, -1F, 2F, 0.9F, 0F, 0F));
+		return TexturedModelData.of(data, 128, 128);
+	}
+
+	private static TexturedModelData dripstone() {
+		ModelData data = new ModelData();
+		ModelPartData r = data.getRoot();
+		ModelPartData bodyD = r.addChild("body", ModelPartBuilder.create().uv(0, 0).cuboid(-4.5F, -12F, -2.5F, 9F, 12F, 5F), ModelTransform.of(0F, 17F, 1F, 0.45F, 0F, 0F));
+		ModelPartData headD = bodyD.addChild("head", ModelPartBuilder.create().uv(28, 0).cuboid(-4.5F, -8F, -4F, 9F, 8F, 8F), ModelTransform.of(0F, -11F, 0F, -0.3375F, 0F, 0F));
+		ModelPartData legFlD = r.addChild("leg_fl", ModelPartBuilder.create().uv(62, 0).cuboid(-2.5F, 0F, -2.5F, 5F, 5F, 5F), ModelTransform.of(2.6F, 17F, -2.5F, -0.3F, 0F, 0.12F));
+		ModelPartData legFlFootD = legFlD.addChild("leg_fl_foot", ModelPartBuilder.create().uv(20, 17).cuboid(-3F, 0F, -3.5F, 6F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, 0.27F, 0F, 0F));
+		ModelPartData legFrD = r.addChild("leg_fr", ModelPartBuilder.create().uv(82, 0).cuboid(-2.5F, 0F, -2.5F, 5F, 5F, 5F), ModelTransform.of(-2.6F, 17F, -2.5F, -0.3F, 0F, -0.12F));
+		ModelPartData legFrFootD = legFrD.addChild("leg_fr_foot", ModelPartBuilder.create().uv(44, 17).cuboid(-3F, 0F, -3.5F, 6F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, 0.27F, 0F, 0F));
+		ModelPartData legBlD = r.addChild("leg_bl", ModelPartBuilder.create().uv(102, 0).cuboid(-2.5F, 0F, -2.5F, 5F, 5F, 5F), ModelTransform.of(2.6F, 17F, 4.5F, 0.3F, 0F, 0.1F));
+		ModelPartData legBlFootD = legBlD.addChild("leg_bl_foot", ModelPartBuilder.create().uv(68, 17).cuboid(-3F, 0F, -3.5F, 6F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, -0.27F, 0F, 0F));
+		ModelPartData legBrD = r.addChild("leg_br", ModelPartBuilder.create().uv(0, 17).cuboid(-2.5F, 0F, -2.5F, 5F, 5F, 5F), ModelTransform.of(-2.6F, 17F, 4.5F, 0.3F, 0F, -0.1F));
+		ModelPartData legBrFootD = legBrD.addChild("leg_br_foot", ModelPartBuilder.create().uv(92, 17).cuboid(-3F, 0F, -3.5F, 6F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, -0.27F, 0F, 0F));
+		ModelPartData drAD = headD.addChild("dr_a", ModelPartBuilder.create().uv(116, 17).cuboid(-1F, -6F, -1F, 2F, 6F, 2F), ModelTransform.of(-3F, -8F, 0F, 0.1F, 0F, -0.35F));
+		ModelPartData drBD = headD.addChild("dr_b", ModelPartBuilder.create().uv(0, 27).cuboid(-1F, -5F, -1F, 2F, 5F, 2F), ModelTransform.of(3F, -8F, -1F, -0.15F, 0F, 0.4F));
+		ModelPartData drCD = headD.addChild("dr_c", ModelPartBuilder.create().uv(16, 27).cuboid(-1F, -4F, -1F, 2F, 4F, 2F), ModelTransform.of(0F, -8F, 2F, 0.25F, 0F, 0F));
+		ModelPartData drDD = bodyD.addChild("dr_d", ModelPartBuilder.create().uv(8, 27).cuboid(-1F, -5F, -1F, 2F, 5F, 2F), ModelTransform.of(-2F, -10F, 2.5F, 0.5F, 0F, -0.2F));
+		ModelPartData drED = bodyD.addChild("dr_e", ModelPartBuilder.create().uv(24, 27).cuboid(-1F, -4F, -1F, 2F, 4F, 2F), ModelTransform.of(2F, -8F, 3F, 0.6F, 0F, 0.2F));
+		return TexturedModelData.of(data, 128, 128);
+	}
+
+	private static TexturedModelData spruce() {
+		ModelData data = new ModelData();
+		ModelPartData r = data.getRoot();
+		ModelPartData bodyD = r.addChild("body", ModelPartBuilder.create().uv(32, 0).cuboid(-4F, -12F, -2F, 8F, 12F, 4F), ModelTransform.of(0F, 17F, 1F, 0.5F, 0F, 0F));
+		ModelPartData headD = bodyD.addChild("head", ModelPartBuilder.create().uv(0, 0).cuboid(-4F, -8F, -4F, 8F, 8F, 8F), ModelTransform.of(0F, -11F, 0F, -0.375F, 0F, 0F));
+		ModelPartData legFlD = r.addChild("leg_fl", ModelPartBuilder.create().uv(32, 16).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(2.6F, 17F, -2.5F, -0.3F, 0F, 0.12F));
+		ModelPartData legFlFootD = legFlD.addChild("leg_fl_foot", ModelPartBuilder.create().uv(96, 16).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, 0.27F, 0F, 0F));
+		ModelPartData legFrD = r.addChild("leg_fr", ModelPartBuilder.create().uv(48, 16).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(-2.6F, 17F, -2.5F, -0.3F, 0F, -0.12F));
+		ModelPartData legFrFootD = legFrD.addChild("leg_fr_foot", ModelPartBuilder.create().uv(0, 26).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, 0.27F, 0F, 0F));
+		ModelPartData legBlD = r.addChild("leg_bl", ModelPartBuilder.create().uv(64, 16).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(2.6F, 17F, 4.5F, 0.3F, 0F, 0.1F));
+		ModelPartData legBlFootD = legBlD.addChild("leg_bl_foot", ModelPartBuilder.create().uv(22, 26).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, -0.27F, 0F, 0F));
+		ModelPartData legBrD = r.addChild("leg_br", ModelPartBuilder.create().uv(80, 16).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(-2.6F, 17F, 4.5F, 0.3F, 0F, -0.1F));
+		ModelPartData legBrFootD = legBrD.addChild("leg_br_foot", ModelPartBuilder.create().uv(44, 26).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, -0.27F, 0F, 0F));
+		ModelPartData tierAD = headD.addChild("tier_a", ModelPartBuilder.create().uv(56, 0).cuboid(-6F, -2F, -6F, 12F, 2F, 12F), ModelTransform.pivot(0F, -8F, 0F));
+		ModelPartData tierBD = headD.addChild("tier_b", ModelPartBuilder.create().uv(0, 16).cuboid(-4F, -2F, -4F, 8F, 2F, 8F), ModelTransform.pivot(0F, -10F, 0F));
+		ModelPartData tierCD = headD.addChild("tier_c", ModelPartBuilder.create().uv(66, 26).cuboid(-2F, -3F, -2F, 4F, 3F, 4F), ModelTransform.pivot(0F, -12F, 0F));
+		return TexturedModelData.of(data, 128, 128);
+	}
+
+	private static TexturedModelData beach() {
+		ModelData data = new ModelData();
+		ModelPartData r = data.getRoot();
+		ModelPartData bodyD = r.addChild("body", ModelPartBuilder.create().uv(32, 0).cuboid(-4F, -12F, -2F, 8F, 12F, 4F), ModelTransform.of(0F, 17F, 1F, 0.5F, 0F, 0F));
+		ModelPartData headD = bodyD.addChild("head", ModelPartBuilder.create().uv(0, 0).cuboid(-4F, -8F, -4F, 8F, 8F, 8F), ModelTransform.of(0F, -11F, 0F, -0.375F, 0F, 0F));
+		ModelPartData legFlD = r.addChild("leg_fl", ModelPartBuilder.create().uv(86, 0).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(2.6F, 17F, -2.5F, -0.3F, 0F, 0.12F));
+		ModelPartData legFlFootD = legFlD.addChild("leg_fl_foot", ModelPartBuilder.create().uv(32, 16).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, 0.27F, 0F, 0F));
+		ModelPartData legFrD = r.addChild("leg_fr", ModelPartBuilder.create().uv(102, 0).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(-2.6F, 17F, -2.5F, -0.3F, 0F, -0.12F));
+		ModelPartData legFrFootD = legFrD.addChild("leg_fr_foot", ModelPartBuilder.create().uv(54, 16).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, 0.27F, 0F, 0F));
+		ModelPartData legBlD = r.addChild("leg_bl", ModelPartBuilder.create().uv(0, 16).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(2.6F, 17F, 4.5F, 0.3F, 0F, 0.1F));
+		ModelPartData legBlFootD = legBlD.addChild("leg_bl_foot", ModelPartBuilder.create().uv(76, 16).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, -0.27F, 0F, 0F));
+		ModelPartData legBrD = r.addChild("leg_br", ModelPartBuilder.create().uv(16, 16).cuboid(-2F, 0F, -2F, 4F, 5F, 4F), ModelTransform.of(-2.6F, 17F, 4.5F, 0.3F, 0F, -0.1F));
+		ModelPartData legBrFootD = legBrD.addChild("leg_br_foot", ModelPartBuilder.create().uv(98, 16).cuboid(-2.5F, 0F, -3.5F, 5F, 2F, 6F), ModelTransform.of(0F, 5F, 0F, -0.27F, 0F, 0F));
+		ModelPartData shellD = headD.addChild("shell", ModelPartBuilder.create().uv(56, 0).cuboid(-4F, -1F, -4F, 8F, 2F, 7F), ModelTransform.of(0F, -8F, 1F, -0.5F, 0F, 0F));
+		ModelPartData shellBD = headD.addChild("shell_b", ModelPartBuilder.create().uv(0, 25).cuboid(-3F, -1F, -3F, 6F, 2F, 5F), ModelTransform.of(0F, -9F, 1F, -0.5F, 0F, 0F));
+		ModelPartData starD = bodyD.addChild("star", ModelPartBuilder.create().uv(22, 25).cuboid(-3F, -3F, 0F, 6F, 6F, 1F), ModelTransform.of(0F, -7F, 2.5F, 0.3F, 0F, 0F));
 		return TexturedModelData.of(data, 128, 128);
 	}
 }

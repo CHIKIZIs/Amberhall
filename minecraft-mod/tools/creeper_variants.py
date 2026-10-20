@@ -103,6 +103,45 @@ V["darkforest"] = dict(parts=stance(lean=0.6, head=(9, 9, 9), body=(8, 11, 5)) +
     ("shroom_c_cap", "shroom_c", (0, -2, 0), (0, 0, 0), (-1.5, -1, -1.5), (3, 1, 3), "shroom_r"),
 ])
 
+# 8. Бамбуковый: бамбуковые стебли на спине и «побеги» на голове, жёлто-зелёные узлы
+V["bamboo"] = dict(parts=stance(lean=0.55, head=(8, 8, 8), body=(8, 12, 5)) + [
+    ("stalk_a", "body", (-2.5, -9, 3), (0.25, 0, -0.1), (-1, -11, -1), (2, 11, 2), "stalk"),
+    ("stalk_b", "body", (2, -8, 3.5), (0.35, 0, 0.12), (-1, -9, -1), (2, 9, 2), "stalk"),
+    ("stalk_c", "head", (0, -8, 1), (0, 0, 0), (-1, -6, -1), (2, 6, 2), "stalk"),
+    ("shoot_l", "head", (2, -8, -1), (0, 0, 0.7), (0, -1, -2), (4, 1, 4), "leaf"),
+    ("shoot_r", "head", (-2, -8, -1), (0, 0, -0.7), (-4, -1, -2), (4, 1, 4), "leaf"),
+])
+# 9. Холмов: скальный, на плечах валуны, снежная шапка
+V["hills"] = dict(parts=stance(lean=0.4, head=(9, 8, 8), body=(10, 12, 5), leg=(5, 5, 5), foot=(6, 2, 6)) + [
+    ("boulder_l", "body", (6, -10, 0), (0, 0, 0.2), (-1, -3, -3), (5, 5, 6), "rock"),
+    ("boulder_r", "body", (-6, -10, 0), (0, 0, -0.2), (-4, -3, -3), (5, 5, 6), "rock"),
+    ("snow", "head", (0, -8, 0), (0, 0, 0), (-4, -2, -3), (8, 2, 6), "snow"),
+])
+# 10. Саванны: золотистый, грива из сухой травы
+V["savannah"] = dict(parts=stance(lean=0.5, head=(8, 8, 8), body=(8, 12, 4)) + blades("head", -4, 16, 5.5, random.Random(5), "hay", 3, 6) + [
+    ("tail", "body", (0, -1, 2), (0.9, 0, 0), (-1, -7, -1), (2, 7, 2), "tailpart"),
+])
+# 11. Капельниковый: бурый, острые сталактиты на голове и спине
+V["dripstone"] = dict(parts=stance(lean=0.45, head=(9, 8, 8), body=(9, 12, 5), leg=(5, 5, 5), foot=(6, 2, 6)) + [
+    ("dr_a", "head", (-3, -8, 0), (0.1, 0, -0.35), (-1, -6, -1), (2, 6, 2), "drip"),
+    ("dr_b", "head", (3, -8, -1), (-0.15, 0, 0.4), (-1, -5, -1), (2, 5, 2), "drip"),
+    ("dr_c", "head", (0, -8, 2), (0.25, 0, 0), (-1, -4, -1), (2, 4, 2), "drip"),
+    ("dr_d", "body", (-2, -10, 2.5), (0.5, 0, -0.2), (-1, -5, -1), (2, 5, 2), "drip"),
+    ("dr_e", "body", (2, -8, 3), (0.6, 0, 0.2), (-1, -4, -1), (2, 4, 2), "drip"),
+])
+# 12. Еловый: макушка-ёлочка из ярусов с хвоёй и снегом
+V["spruce"] = dict(parts=stance(lean=0.5, head=(8, 8, 8), body=(8, 12, 4)) + [
+    ("tier_a", "head", (0, -8, 0), (0, 0, 0), (-6, -2, -6), (12, 2, 12), "needle"),
+    ("tier_b", "head", (0, -10, 0), (0, 0, 0), (-4, -2, -4), (8, 2, 8), "needle"),
+    ("tier_c", "head", (0, -12, 0), (0, 0, 0), (-2, -3, -2), (4, 3, 4), "needle"),
+])
+# 13. Пляжный: песчаный, раковина-гребешок на голове, морская звезда на спине
+V["beach"] = dict(parts=stance(lean=0.5, head=(8, 8, 8), body=(8, 12, 4)) + [
+    ("shell", "head", (0, -8, 1), (-0.5, 0, 0), (-4, -1, -4), (8, 2, 7), "shell"),
+    ("shell_b", "head", (0, -9, 1), (-0.5, 0, 0), (-3, -1, -3), (6, 2, 5), "shell"),
+    ("star", "body", (0, -7, 2.5), (0.3, 0, 0), (-3, -3, 0), (6, 6, 1), "star"),
+])
+
 # ---------------------------------------------------------------- палитры и раскраска
 def P5(*c): return [hx(x) for x in c]
 BL = {
@@ -116,6 +155,14 @@ BL = {
                 red=P5("c82828", "e85050"), yel=P5("e8b020", "ffe058"), blu=P5("3a58d0", "6a88f0"), wht=P5("f0f0e8", "ffffff")),
  "darkforest": dict(bark=P5("1e140c", "2e2016", "40301e", "564230", "6c563e"), flesh=P5("5a3438", "764848", "925e5c", "b07a76", "c99694"), red=P5("9a1c32", "c83450"), brn=P5("7a4a26", "a06a38"), wht=hx("f0e8dc"), cream=hx("d2c6a4"), moss=P5("3a5a28", "4e7a34")),
 }
+BL.update({
+ "bamboo": dict(skin=P5("4e7a1c", "6a9a26", "8ab834", "a8d048", "c4e468"), node=P5("2e4a12", "3c5e18"), leaf=P5("3c7a1c", "58a028", "78c03a"), tan=P5("b8a050", "d4c070")),
+ "hills": dict(skin=P5("4a4a50", "5e5e66", "767680", "909098", "aeaeb6"), rock=P5("55555c", "6a6a72", "82828a", "9c9ca4"), snow=P5("c8d8e4", "e4f0f8", "ffffff"), moss=P5("4a6a3a", "5e8448")),
+ "savannah": dict(skin=P5("8a5a22", "a8742e", "c88e3c", "e0a84c", "f0c468"), hay=P5("a8802c", "c8a038", "e0bc50", "f0d46c"), mark=hx("5a3814")),
+ "dripstone": dict(skin=P5("4e3e30", "665240", "826a52", "9c846a", "b89e82"), drip=P5("6a5642", "8c7456", "ac9270", "c8b08c")),
+ "spruce": dict(skin=P5("1a3a24", "264e32", "34643e", "46804e", "5c9a62"), needle=P5("12301a", "1c4426", "2a5c34", "3a7444"), snow=P5("c4d8e8", "e6f2fa", "ffffff"), wood=P5("3a2818", "50381e")),
+ "beach": dict(skin=P5("b09050", "c8a860", "dcc078", "ecd496", "f6e4b0"), shell=P5("c0587a", "d8789a", "ee9ab8", "ffc0d4"), star=P5("c8481c", "e06a2c", "f08a44"), wet=P5("8a7040", "a08850")),
+})
 DARKF = hx("121212")
 
 def strata(pal, nm, face, a, b, fw, fh, period=3, jitter=0.28, top_hi=True, shift=0):
@@ -232,6 +279,62 @@ def paint_px(var, p, face, a, b, fw, fh):
         if k.startswith("shroom_"):
             pal = c["red"] if k in ("shroom_r",) else c["brn"]
             return c["wht"] if face == "up" and (a + b) % 3 == 0 and k == "shroom_r" else pal[1 if face == "up" else 0]
+    if var in ("bamboo", "hills", "savannah", "dripstone", "spruce", "beach"):
+        return paint_new(var, p, face, a, b, fw, fh)
+    return hx("ff00ff")
+
+def paint_new(var, p, face, a, b, fw, fh):
+    k = p["kind"]; nm = p["name"]; c = BL[var]
+    if k == "head":
+        e = eyes(a, b, face, c["skin"][4])
+        if e is not None: return e
+        if var == "savannah" and face == "north" and b in (6, 7) and 3 <= a <= 4: return c["mark"]
+        return strata(c["skin"], nm, face, a, b, fw, fh, period=3)
+    if k in ("body", "leg", "foot"):
+        if var == "bamboo":                                                       # узловатые кольца ствола
+            col = strata(c["skin"], nm, face, a, b, fw, fh, period=4, shift=(-1 if k == "foot" else 0))
+            if b % 5 == 4 and face not in ("up", "down"): col = c["node"][a % 2]
+            return col
+        if var == "hills":
+            col = strata(c["skin"], nm, face, a, b, fw, fh, period=3, jitter=.34, shift=-1 if k == "foot" else 0)
+            if H(nm, face, a // 2, b // 2, "m") > .85 and b > fh * 0.55: col = c["moss"][int(H(a, b) * 2)]
+            return col
+        if var == "savannah":
+            col = strata(c["skin"], nm, face, a, b, fw, fh, period=3, shift=-1 if k == "foot" else 0)
+            if face in ("north", "south") and k == "body" and a % 3 == 1 and b % 4 < 2: col = c["mark"]      # тёмные полосы-«тигриные»
+            return col
+        if var == "dripstone": return strata(c["skin"], nm, face, a, b, fw, fh, period=3, jitter=.3, shift=-1 if k == "foot" else 0)
+        if var == "spruce":
+            col = strata(c["skin"], nm, face, a, b, fw, fh, period=3, shift=-1 if k == "foot" else 0)
+            if H(nm, face, a, b, "sn") > .9 and b < fh * 0.5: col = c["snow"][1]
+            return col
+        if var == "beach":
+            if k == "foot" or (k == "leg" and b > fh * 0.6): return strata(c["wet"], nm, face, a, b, fw, fh, period=2)
+            return strata(c["skin"], nm, face, a, b, fw, fh, period=3)
+    if var == "bamboo":
+        if k == "stalk":
+            col = strata(c["skin"], nm, face, a, b, fw, fh, period=5)
+            if b % 5 == 4 and face not in ("up", "down"): col = c["node"][a % 2]
+            return col
+        if k == "leaf": return strata(c["leaf"], nm, face, a, b, fw, fh, period=2)
+    if var == "hills":
+        if k == "rock": return strata(c["rock"], nm, face, a, b, fw, fh, period=3, jitter=.34)
+        if k == "snow": return c["snow"][min(2, 1 + (b // 2)) if face != "up" else 2]
+    if var == "savannah":
+        if k == "hay": return c["hay"][min(3, 1 + b * 3 // max(1, fh))] if face != "up" else c["hay"][3]
+        if k == "tailpart": return strata(c["skin"], nm, face, a, b, fw, fh, period=2) if b < fh - 2 else c["mark"]
+    if var == "dripstone" and k == "drip":
+        t = b / max(1, fh - 1)
+        return c["drip"][min(3, int(t * 4))] if face != "up" else c["drip"][3]
+    if var == "spruce" and k == "needle":
+        if face == "up": return c["snow"][2 if (a + b) % 3 else 1]
+        return strata(c["needle"], nm, face, a, b, fw, fh, period=2)
+    if var == "beach":
+        if k == "shell":
+            col = c["shell"][min(3, 1 + (a // 2) % 3)] if face == "up" else c["shell"][0 if (a + b) % 2 else 1]
+            if face == "up" and a % 2 == 1: col = c["shell"][0]                       # радиальные рёбра раковины
+            return col
+        if k == "star": return c["star"][min(2, (a + b) % 3)]
     return hx("ff00ff")
 
 def grad(pal, nm, face, a, b, fh, base):
@@ -309,8 +412,8 @@ def main():
         for var in V:
             load(var)
             cells.append(g.render(previews[var], 35, 14, 300, 7.5, center=(0, 12, 0)))
-        sheet = Image.new("RGB", (300 * 4, 300 * 2))
-        for i, c in enumerate(cells): sheet.paste(c, ((i % 4) * 300, (i // 4) * 300))
+        sheet = Image.new("RGB", (300 * 5, 300 * 3))
+        for i, c in enumerate(cells): sheet.paste(c, ((i % 5) * 300, (i // 5) * 300))
         sheet.save(sys.argv[1])
 
 if __name__ == "__main__":
