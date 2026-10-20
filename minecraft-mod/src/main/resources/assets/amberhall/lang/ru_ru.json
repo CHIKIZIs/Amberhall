@@ -15,5 +15,7 @@
   "block.amberhall.cherry_chest": "Вишнёвый сундук",
   "block.amberhall.bamboo_chest": "Бамбуковый сундук",
   "block.amberhall.crimson_chest": "Багровый сундук",
-  "block.amberhall.warped_chest": "Искажённый сундук"
+  "block.amberhall.warped_chest": "Искажённый сундук",
+  "entity.amberhall.desert_creeper": "Пустынный крипер",
+  "item.amberhall.desert_creeper_spawn_egg": "Яйцо призыва пустынного крипера"
 }

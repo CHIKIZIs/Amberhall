@@ -15,7 +15,9 @@ public class AmberhallClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		EntityModelLayerRegistry.registerModelLayer(StalkerModel.LAYER, StalkerModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.STALKER, StalkerRenderer::new);
-		EntityRendererRegistry.register(ModEntities.FROST_CREEPER, FrostCreeperRenderer::new);
+		EntityRendererRegistry.register(ModEntities.FROST_CREEPER, ctx -> new ModCreeperRenderer<>(ctx, "frost_creeper", 1.0f));
+		EntityModelLayerRegistry.registerModelLayer(DesertCreeperModel.LAYER, DesertCreeperModel::getTexturedModelData);
+		EntityRendererRegistry.register(ModEntities.DESERT_CREEPER, DesertCreeperRenderer::new);
 		EntityRendererRegistry.register(ModEntities.ICE_SHARD, FlyingItemEntityRenderer::new);
 	
 		// сундуки: ванильный рендерер, текстуру подменяет миксин

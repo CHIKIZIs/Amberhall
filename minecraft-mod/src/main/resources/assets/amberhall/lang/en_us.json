@@ -15,5 +15,7 @@
   "block.amberhall.cherry_chest": "Cherry Chest",
   "block.amberhall.bamboo_chest": "Bamboo Chest",
   "block.amberhall.crimson_chest": "Crimson Chest",
-  "block.amberhall.warped_chest": "Warped Chest"
+  "block.amberhall.warped_chest": "Warped Chest",
+  "entity.amberhall.desert_creeper": "Desert Creeper",
+  "item.amberhall.desert_creeper_spawn_egg": "Desert Creeper Spawn Egg"
 }

@@ -28,6 +28,7 @@ public class AmberhallMod implements ModInitializer {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(e -> {
 			e.add(ModItems.STALKER_SPAWN_EGG);
 			e.add(ModItems.FROST_CREEPER_SPAWN_EGG);
+			e.add(ModItems.DESERT_CREEPER_SPAWN_EGG);
 		});
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(e -> e.addAfter(Items.CHEST, ModChests.ITEMS.toArray(new Item[0])));
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(e -> e.add(ModItems.ICE_SHARD));
@@ -40,5 +41,10 @@ public class AmberhallMod implements ModInitializer {
 		BiomeModifications.create(id("frost_creeper_replaces_creeper")).add(ModificationPhase.REMOVALS, snowy,
 			ctx -> ctx.getSpawnSettings().removeSpawnsOfEntityType(EntityType.CREEPER));
 		BiomeModifications.addSpawn(snowy, SpawnGroup.MONSTER, ModEntities.FROST_CREEPER, 100, 4, 4);
+		// пустынный крипер: в пустыне заменяет обычного
+		var desert = BiomeSelectors.includeByKey(BiomeKeys.DESERT);
+		BiomeModifications.create(id("desert_creeper_replaces_creeper")).add(ModificationPhase.REMOVALS, desert,
+			ctx -> ctx.getSpawnSettings().removeSpawnsOfEntityType(EntityType.CREEPER));
+		BiomeModifications.addSpawn(desert, SpawnGroup.MONSTER, ModEntities.DESERT_CREEPER, 100, 4, 4);
 	}
 }
