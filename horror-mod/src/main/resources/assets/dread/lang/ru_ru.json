@@ -10,5 +10,15 @@
   "subtitles.dread.static": "Помехи",
   "subtitles.dread.creak": "Скрип",
   "subtitles.dread.swell": "Что-то приближается",
-  "entity.dread.watcher": "Наблюдатель"
+  "entity.dread.watcher": "Наблюдатель",
+  "entity.dread.crawler": "Ползун",
+  "entity.dread.smile": "Улыбающийся",
+  "item.dread.watcher_spawn_egg": "Яйцо призыва: Наблюдатель",
+  "item.dread.crawler_spawn_egg": "Яйцо призыва: Ползун",
+  "item.dread.smile_spawn_egg": "Яйцо призыва: Улыбающийся",
+  "subtitles.dread.voice": "Голос говорит",
+  "subtitles.dread.chant": "Далёкое пение",
+  "subtitles.dread.growl": "Рычание",
+  "subtitles.dread.eerie": "Жуткий звук",
+  "subtitles.dread.slam": "Хлопок двери"
 }

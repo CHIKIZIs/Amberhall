@@ -15,6 +15,7 @@ public class DreadMod implements ModInitializer {
 	public void onInitialize() {
 		DreadSounds.init();
 		ModEntities.init();
+		ModItems.init();
 		DreadDirector.init();
 		DreadCommands.init();
 		PayloadTypeRegistry.playS2C().register(JumpscarePayload.ID, JumpscarePayload.CODEC);

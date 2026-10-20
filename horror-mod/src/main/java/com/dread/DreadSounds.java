@@ -16,6 +16,11 @@ public final class DreadSounds {
 	public static final SoundEvent STATIC = reg("static");
 	public static final SoundEvent CREAK = reg("creak");
 	public static final SoundEvent SWELL = reg("swell");
+	public static final SoundEvent VOICE = reg("voice");
+	public static final SoundEvent CHANT = reg("chant");
+	public static final SoundEvent GROWL = reg("growl");
+	public static final SoundEvent EERIE = reg("eerie");
+	public static final SoundEvent SLAM = reg("slam");
 
 	private static SoundEvent reg(String name) {
 		var id = DreadMod.id(name);

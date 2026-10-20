@@ -10,5 +10,15 @@
   "subtitles.dread.static": "Static",
   "subtitles.dread.creak": "Creaking",
   "subtitles.dread.swell": "Something approaches",
-  "entity.dread.watcher": "Watcher"
+  "entity.dread.watcher": "Watcher",
+  "entity.dread.crawler": "Crawler",
+  "entity.dread.smile": "Smile",
+  "item.dread.watcher_spawn_egg": "Watcher Spawn Egg",
+  "item.dread.crawler_spawn_egg": "Crawler Spawn Egg",
+  "item.dread.smile_spawn_egg": "Smile Spawn Egg",
+  "subtitles.dread.voice": "A voice speaks",
+  "subtitles.dread.chant": "Distant chanting",
+  "subtitles.dread.growl": "Growling",
+  "subtitles.dread.eerie": "Eerie noise",
+  "subtitles.dread.slam": "Door slams"
 }

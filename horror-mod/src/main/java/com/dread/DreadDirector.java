@@ -8,6 +8,10 @@ import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.DoorBlock;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -74,27 +78,27 @@ public final class DreadDirector {
 		Vec3d flat = new Vec3d(look.x, 0, look.z).normalize();
 		Vec3d p = player.getPos();
 		int roll = world.random.nextInt(100);
-		if (roll < 20) {
-			at(world, p.subtract(flat.multiply(3.5)), DreadSounds.FOOTSTEPS, 1.0f);                         // шаги за спиной
+		if (roll < 12) {
+			at(world, p.subtract(flat.multiply(3.5)), world.random.nextBoolean() ? DreadSounds.FOOTSTEPS : DreadSounds.FOOTSTEPS, 1.0f);                  // шаги за спиной
+		} else if (roll < 22) {
+			at(world, p.add(0, 1.6, 0).add(flat.rotateY((float) Math.PI / 2).multiply(0.8)), DreadSounds.WHISPER, 1.3f);                                    // шёпот у уха
+		} else if (roll < 29) {
+			at(world, p.subtract(flat.multiply(1.2)).add(0, 1.5, 0), DreadSounds.BREATH, 1.3f);                                                              // дыхание в затылок
 		} else if (roll < 36) {
-			at(world, p.add(0, 1.6, 0).add(flat.rotateY((float) Math.PI / 2).multiply(0.8)), DreadSounds.WHISPER, 1.3f);   // шёпот над ухом
-		} else if (roll < 46) {
-			at(world, p.subtract(flat.multiply(1.2)).add(0, 1.5, 0), DreadSounds.BREATH, 1.3f);              // дыхание
-		} else if (roll < 56) {
-			at(world, p.add(flat.rotateY((float) (Math.PI * (world.random.nextBoolean() ? 0.5 : -0.5))).multiply(5)), DreadSounds.KNOCK, 1.3f);   // стук
-		} else if (roll < 66) {
+			at(world, p.add(flat.rotateY((float) (Math.PI * (world.random.nextBoolean() ? 0.5 : -0.5))).multiply(5)), DreadSounds.KNOCK, 1.3f);            // стук
+		} else if (roll < 43) {
 			BlockPos door = nearest(world, player, 10, true);
 			Vec3d at = door != null ? door.toCenterPos() : p.subtract(flat.multiply(6));
 			at(world, at, DreadSounds.CREAK, 1.3f);
 			if (door != null && world.getBlockState(door).getBlock() instanceof DoorBlock d) {
-				d.setOpen(player, world, world.getBlockState(door), door, !world.getBlockState(door).get(DoorBlock.OPEN));  // дверь сама открылась/закрылась
+				d.setOpen(player, world, world.getBlockState(door), door, !world.getBlockState(door).get(DoorBlock.OPEN));
 			}
-		} else if (roll < 74) {
+		} else if (roll < 48) {
 			player.playSoundToPlayer(DreadSounds.DRONE, SoundCategory.AMBIENT, 1.0f, 1.0f);
-		} else if (roll < 80) {
-			player.playSoundToPlayer(DreadSounds.STATIC, SoundCategory.AMBIENT, 0.8f, 1.0f);
-		} else if (roll < 88) {
-			BlockPos torch = nearest(world, player, 8, false);                                              // гаснет факел
+		} else if (roll < 53) {
+			player.playSoundToPlayer(DreadSounds.EERIE, SoundCategory.AMBIENT, 1.0f, 0.9f);
+		} else if (roll < 58) {
+			BlockPos torch = nearest(world, player, 8, false);                                                                                          // гаснет факел
 			if (torch != null) {
 				world.setBlockState(torch, Blocks.AIR.getDefaultState());
 				world.playSound(null, torch, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1.0f, 0.8f);
@@ -102,10 +106,90 @@ public final class DreadDirector {
 			} else {
 				at(world, p.subtract(flat.multiply(3)), DreadSounds.FOOTSTEPS, 1.0f);
 			}
+		} else if (roll < 63) {
+			player.playSoundToPlayer(DreadSounds.STING, SoundCategory.HOSTILE, 0.7f, 0.7f);                                                              // ложная тревога
+		} else if (roll < 69) {
+			at(world, p.subtract(flat.multiply(2.2)).add(0, 1.6, 0), DreadSounds.VOICE, 1.5f);                                                          // «Я вижу тебя» за спиной
+		} else if (roll < 74) {
+			player.playSoundToPlayer(DreadSounds.CHANT, SoundCategory.AMBIENT, 0.9f, 1.0f);                                                              // хор вдали
+		} else if (roll < 79) {
+			BlockPos door = nearest(world, player, 14, true);
+			if (door != null && world.getBlockState(door).getBlock() instanceof DoorBlock d) {
+				if (world.getBlockState(door).get(DoorBlock.OPEN)) d.setOpen(player, world, world.getBlockState(door), door, false);
+				at(world, door.toCenterPos(), DreadSounds.SLAM, 1.8f);                                                                                   // дверь захлопнулась
+			} else {
+				at(world, p.add(flat.multiply(7)), DreadSounds.SLAM, 1.8f);
+			}
+		} else if (roll < 84) {
+			fakeChat(player);
+		} else if (roll < 88) {
+			lightsOut(world, player);
 		} else if (roll < 93) {
-			player.playSoundToPlayer(DreadSounds.STING, SoundCategory.HOSTILE, 0.7f, 0.7f);                 // ложная тревога: удар без картинки
+			summon(world, player, "smile");
+		} else if (roll < 96) {
+			summon(world, player, "crawler");
 		} else {
 			spawnWatcherBeforeEyes(world, player);
+		}
+	}
+
+	private static final String[] CHAT = {"Не оборачивайся.", "Я смотрю на тебя.", "Ты не один.", "Почему ты не спишь?", "Оно уже идёт за тобой.", "Ты слышишь шаги?", "Посмотри назад.", "Здесь кто-то есть."};
+
+	private static void fakeChat(ServerPlayerEntity player) {
+		String line = player.getRandom().nextInt(3) == 0 ? player.getName().getString() + "... " + CHAT[player.getRandom().nextInt(CHAT.length)] : CHAT[player.getRandom().nextInt(CHAT.length)];
+		player.sendMessage(Text.literal("<???> " + line).formatted(Formatting.DARK_RED, Formatting.ITALIC), false);
+		player.playSoundToPlayer(DreadSounds.WHISPER, SoundCategory.AMBIENT, 0.8f, 0.7f);
+	}
+
+	/** гаснут все факелы вокруг, давит тьма и слышен скрип */
+	private static void lightsOut(ServerWorld world, ServerPlayerEntity player) {
+		int n = 0;
+		for (BlockPos pos : BlockPos.iterate(player.getBlockPos().add(-12, -4, -12), player.getBlockPos().add(12, 4, 12))) {
+			var b = world.getBlockState(pos).getBlock();
+			if (b == Blocks.TORCH || b == Blocks.WALL_TORCH || b == Blocks.LANTERN || b == Blocks.SOUL_TORCH || b == Blocks.SOUL_WALL_TORCH) {
+				world.setBlockState(pos, Blocks.AIR.getDefaultState());
+				n++;
+			}
+		}
+		player.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, 200, 0, false, false, false));
+		player.playSoundToPlayer(n > 0 ? DreadSounds.CREAK : DreadSounds.EERIE, SoundCategory.AMBIENT, 1.0f, 0.7f);
+		world.playSound(null, player.getBlockPos(), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1.5f, 0.6f);
+	}
+
+	/** призвать монстра рядом с игроком: watcher | crawler | smile */
+	public static boolean summon(ServerWorld world, ServerPlayerEntity player, String type) {
+		Vec3d look = player.getRotationVec(1.0f);
+		Vec3d flat = new Vec3d(look.x, 0, look.z).normalize();
+		switch (type) {
+			case "watcher" -> {
+				spawnWatcherBeforeEyes(world, player);
+				return true;
+			}
+			case "crawler" -> {
+				Vec3d at = player.getPos().add(flat.rotateY((float) ((world.random.nextDouble() - 0.5) * 2.2)).multiply(14 + world.random.nextInt(6)));
+				BlockPos stand = WatcherEntity.findStand(world, BlockPos.ofFloored(at));
+				if (stand == null) stand = player.getBlockPos();
+				CrawlerEntity c = ModEntities.CRAWLER.create(world);
+				if (c == null) return false;
+				c.refreshPositionAndAngles(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5, world.random.nextFloat() * 360, 0);
+				world.spawnEntity(c);
+				c.setTarget(player);
+				player.playSoundToPlayer(DreadSounds.GROWL, SoundCategory.HOSTILE, 1.2f, 0.7f);
+				return true;
+			}
+			case "smile" -> {
+				Vec3d at = player.getEyePos().add(flat.rotateY((float) ((world.random.nextDouble() - 0.5) * 2.4)).multiply(10 + world.random.nextInt(4)));
+				SmileEntity sm = ModEntities.SMILE.create(world);
+				if (sm == null) return false;
+				sm.refreshPositionAndAngles(at.x, at.y - 0.4, at.z, 0, 0);
+				sm.setTarget(player);
+				world.spawnEntity(sm);
+				player.playSoundToPlayer(DreadSounds.BREATH, SoundCategory.HOSTILE, 0.8f, 0.6f);
+				return true;
+			}
+			default -> {
+				return false;
+			}
 		}
 	}
 

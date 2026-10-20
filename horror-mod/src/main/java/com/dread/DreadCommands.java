@@ -2,12 +2,14 @@ package com.dread;
 
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.command.CommandSource;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-/** Команды для проверки (нужны права оператора): /dread scare [1-3], watcher, event, enabled <bool>, interval <секунды>. */
+/** Команды для проверки (нужны права оператора): /dread scare [1-3], summon <watcher|crawler|smile>, watcher, event, enabled <bool>, interval <секунды>. */
 public final class DreadCommands {
 	private DreadCommands() {
 	}
@@ -22,6 +24,14 @@ public final class DreadCommands {
 				DreadDirector.spawnWatcherBeforeEyes(c.getSource().getWorld(), c.getSource().getPlayerOrThrow());
 				return 1;
 			}))
+			.then(CommandManager.literal("summon").then(CommandManager.argument("monster", StringArgumentType.word())
+				.suggests((c, b) -> CommandSource.suggestMatching(new String[] {"watcher", "crawler", "smile"}, b))
+				.executes(c -> {
+					String type = StringArgumentType.getString(c, "monster");
+					boolean ok = DreadDirector.summon(c.getSource().getWorld(), c.getSource().getPlayerOrThrow(), type);
+					if (!ok) c.getSource().sendError(Text.literal("Неизвестный монстр: " + type + " (watcher, crawler, smile)"));
+					return ok ? 1 : 0;
+				})))
 			.then(CommandManager.literal("event").executes(c -> {
 				DreadDirector.event(c.getSource().getWorld(), c.getSource().getPlayerOrThrow());
 				return 1;
