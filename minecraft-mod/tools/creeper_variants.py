@@ -191,8 +191,33 @@ def eyes(a, b, face, hi, dark=DARKF):
             return hi if (a == ex and b == 2) else dark
     return None
 
+# ---------------------------------------------------------------- ручная пиксельная отрисовка (сетки символов)
+HP = {"jungle": {"d": hx("14500c"), "D": hx("1e6410"), "g": hx("2c8618"), "G": hx("3ea426"), "l": hx("5cc03a"), "L": hx("84d856"), "m": hx("b4ee80"),
+                 "k": hx("0a2208"), "w": hx("e4ffc0"), "y": hx("a8d83c")}}
+HAND = {"jungle": {"head": {
+    # лицо 10x6: нависшие «листовые» брови, косые узкие глаза с бликом, маленький рот
+    "north": ["gGGGlllGGg",
+              "GlLmLGlLmlG"[:10],
+              "gGkkkGGkkk"[:10][::1],
+              "GGGkwkGwkG"[:10],
+              "GGlGGGGGGl"[:10],
+              "dgGGGddGGg"[:10]],
+    "up":    ["gGlLlGlLlg", "GlmLlGLmlG", "lLlGGlGGLl", "GlGglLGglG", "gGlLlGlLlg", "GlmLlGLmlG", "lLlGGlGGLl", "gGGllGlGGg"],
+    "south": ["dgGGGGGGgd"] * 3 + ["dDgGGGGgDd"] * 3,
+    "east":  ["gGGGGGGg", "GlLlllLG", "gGGGGGGg", "gGGlGGGg", "DgGGGGgD", "ddDDDDdd"],
+    "west":  ["gGGGGGGg", "GlLlllLG", "gGGGGGGg", "gGGlGGGg", "DgGGGGgD", "ddDDDDdd"],
+    "down":  ["dDDDDDDDDd"] * 8,
+}}}
+
+def hand_px(var, kind, face, a, b):
+    g = HAND.get(var, {}).get(kind, {}).get(face)
+    if not g or b >= len(g) or a >= len(g[b]): return None
+    return HP[var].get(g[b])
+
 def paint_px(var, p, face, a, b, fw, fh):
     k = p["kind"]; nm = p["name"]; c = BL[var]
+    hp = hand_px(var, k, face, a, b)
+    if hp is not None: return hp
     if var == "swamp":
         if k == "head":
             e = None
