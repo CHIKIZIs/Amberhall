@@ -1,5 +1,5 @@
 // Офлайн-режим: кэшируем само приложение, шрифты подтягиваем по мере загрузки.
-const CACHE = 'zachet21-v5';
+const CACHE = 'zachet21-v6';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));

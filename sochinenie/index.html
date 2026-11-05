@@ -7,12 +7,12 @@
 <meta name="theme-color" content="#0e1120" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Зачёт">
+<meta name="apple-mobile-web-app-title" content="Зачёт: ЕГЭ">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>Зачёт за 15 дней</title>
+<title>Зачёт: ЕГЭ</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,6 +32,7 @@
   --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --f-hand:"Caveat","Segoe Print","Comic Sans MS",cursive;
   --r:16px; --r-s:12px; --nav-h:56px;
+  --c-rus:#2f45c8; --c-mathp:#c8322a; --c-mathb:#c45a1c; --c-phys:#1b6f8c; --c-chem:#1d8048; --c-inf:#5b3fc4; --c-bio:#3d7f1c; --c-hist:#8f5600; --c-soc:#a3325f; --c-geo:#0d746f; --c-lit:#8a3fa6; --c-eng:#b0283f; --c-deu:#4a4a5e; --c-fra:#2a5bd7; --c-spa:#b4400e; --c-chi:#b01c1c; --lg-b:#a5622f; --lg-s:#6f7a8c; --lg-g:#b58300; --lg-p:#16857a; --lg-d:#3d63e0; --on-c:#ffffff;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0e1120; --surface:#171b2c; --surface-2:#1f2438; --fg:#e9ebf5; --muted:#9ba2c0; --line:#283050;
@@ -39,14 +40,14 @@
   --red:#ff6f63; --red-2:#3a1e23; --ok:#5ad08f; --ok-2:#15301f; --warn:#f2b24c; --warn-2:#33270f;
   --s1:#93a5ff; --s2:#d68fec; --s3:#5ccaac;
   --hero:#1c256c; --hero-line:rgba(255,255,255,.06);
-  --shadow:0 0 0 1px var(--line); --navbg:rgba(23,27,44,.9); --scrim:rgba(0,0,0,.55); color-scheme:dark}}
+  --shadow:0 0 0 1px var(--line); --navbg:rgba(23,27,44,.9); --scrim:rgba(0,0,0,.55); --c-rus:#93a5ff; --c-mathp:#ff7a6e; --c-mathb:#ff9a66; --c-phys:#5cc3e6; --c-chem:#5ad08f; --c-inf:#a993ff; --c-bio:#8ed05c; --c-hist:#f2b24c; --c-soc:#f08ab5; --c-geo:#4fd1c9; --c-lit:#d68fec; --c-eng:#ff7d92; --c-deu:#b9b9cc; --c-fra:#88a8ff; --c-spa:#fb923c; --c-chi:#f87171; --lg-b:#d9955f; --lg-s:#b4bdcc; --lg-g:#f2c94c; --lg-p:#4fd1c0; --lg-d:#8fb0ff; --on-c:#0e1120; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0e1120; --surface:#171b2c; --surface-2:#1f2438; --fg:#e9ebf5; --muted:#9ba2c0; --line:#283050;
   --ink:#93a5ff; --ink-2:#232a4b; --on-ink:#0e1120;
   --red:#ff6f63; --red-2:#3a1e23; --ok:#5ad08f; --ok-2:#15301f; --warn:#f2b24c; --warn-2:#33270f;
   --s1:#93a5ff; --s2:#d68fec; --s3:#5ccaac;
   --hero:#1c256c; --hero-line:rgba(255,255,255,.06);
-  --shadow:0 0 0 1px var(--line); --navbg:rgba(23,27,44,.9); --scrim:rgba(0,0,0,.55); color-scheme:dark}
+  --shadow:0 0 0 1px var(--line); --navbg:rgba(23,27,44,.9); --scrim:rgba(0,0,0,.55); --c-rus:#93a5ff; --c-mathp:#ff7a6e; --c-mathb:#ff9a66; --c-phys:#5cc3e6; --c-chem:#5ad08f; --c-inf:#a993ff; --c-bio:#8ed05c; --c-hist:#f2b24c; --c-soc:#f08ab5; --c-geo:#4fd1c9; --c-lit:#d68fec; --c-eng:#ff7d92; --c-deu:#b9b9cc; --c-fra:#88a8ff; --c-spa:#fb923c; --c-chi:#f87171; --lg-b:#d9955f; --lg-s:#b4bdcc; --lg-g:#f2c94c; --lg-p:#4fd1c0; --lg-d:#8fb0ff; --on-c:#0e1120; color-scheme:dark}
 
 *{box-sizing:border-box}
 html,body{min-height:100%}
@@ -331,7 +332,7 @@ body.typing nav.tabs{display:none}
 /* нижняя панель */
 nav.tabs{position:fixed;z-index:20;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));
   max-width:480px;margin:0 auto;height:var(--nav-h);border-radius:18px;background:var(--navbg);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
-  box-shadow:0 0 0 1px var(--line),0 10px 30px rgba(20,30,80,.14);display:grid;grid-template-columns:repeat(5,1fr);padding:0 4px}
+  box-shadow:0 0 0 1px var(--line),0 10px 30px rgba(20,30,80,.14);display:grid;grid-template-columns:repeat(4,1fr);padding:0 4px}
 nav.tabs a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;text-decoration:none;color:var(--muted);font-size:10.5px;font-weight:600}
 nav.tabs a .pi{display:grid;place-content:center;width:46px;height:26px;border-radius:13px;transition:background .2s}
 nav.tabs a .ic{width:20px;height:20px}
@@ -374,6 +375,115 @@ nav.tabs a[aria-current="page"] .pi{background:var(--ink-2);color:var(--ink)}
 .err .why{color:var(--muted);font-size:13px}
 .recog{white-space:pre-wrap;font-family:var(--f-display);font-size:14.5px;line-height:1.6;background:var(--surface-2);border-radius:var(--r-s);padding:10px 12px;max-height:320px;overflow:auto}
 @media (min-width:600px){.hero{padding:18px 20px 10px 34px}.hero::before{left:20px}.lesson-title{font-size:24px}}
+
+/* ===== ЕГЭ ===== */
+body.quizmode nav.tabs{display:none}
+.back{align-self:flex-start;padding:2px 0;font-size:14px}
+.back .ic{width:18px;height:18px}
+.lvl{display:flex;align-items:center;gap:10px;margin-top:4px}
+.lvl>b{font-family:var(--f-display);font-size:40px;line-height:1;min-width:44px;height:52px;padding:0 6px;display:grid;place-content:center;border:2px solid rgba(255,255,255,.5);border-radius:14px}
+.lvl-t{font-family:var(--f-display);font-weight:700;font-size:19px;line-height:1.15}
+.xpbar{height:6px;border-radius:3px;background:rgba(255,255,255,.2);margin-top:12px;overflow:hidden}
+.xpbar i{display:block;height:100%;background:var(--pen);border-radius:3px;transition:width .4s}
+.hero-stats{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12.5px;font-weight:500;color:var(--hero-mute);margin-top:8px}
+.hero-stats span{display:inline-flex;align-items:center;gap:5px}
+.hero-stats .ic{width:15px;height:15px}
+.hero.onb{padding:18px 16px 16px 30px}
+.daily{display:flex;align-items:center;gap:12px}
+.quick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.qa{display:flex;flex-direction:column;align-items:flex-start;gap:2px;border:0;background:var(--surface);box-shadow:var(--shadow);border-radius:var(--r);padding:12px;text-align:left;min-width:0}
+.qa b{font-weight:600;font-size:14px;margin-top:6px}
+.qa span:last-child{font-size:12px;color:var(--muted)}
+.qa:disabled{opacity:.5}
+.qi{display:grid;place-content:center;width:36px;height:36px;border-radius:11px;flex:none;color:var(--c);background:var(--surface-2);background:color-mix(in srgb,var(--c) 14%,transparent)}
+.qi .ic{width:20px;height:20px}
+.sgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.scard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;border:0;background:var(--surface);box-shadow:var(--shadow);border-radius:var(--r);padding:16px 12px 12px;text-align:left;overflow:hidden;min-width:0}
+.sband{position:absolute;inset:0 0 auto;height:5px;background:var(--c)}
+.sname{font-family:var(--f-display);font-weight:700;font-size:15.5px;line-height:1.2}
+.sbar2{display:block;width:100%;height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.sbar2 i{display:block;height:100%;background:var(--c);border-radius:3px}
+.scard .caption{font-size:11.5px}
+.empty{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.pick-list{display:flex;flex-direction:column;gap:6px}
+.pickrow{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 12px;text-align:left;width:100%}
+.pickrow.on{border-color:var(--c);background:var(--surface-2);background:color-mix(in srgb,var(--c) 9%,var(--surface))}
+.dotc{width:12px;height:12px;border-radius:50%;background:var(--c);flex:none}
+.pn{flex:1;min-width:0;display:flex;flex-direction:column}
+.pn b{font-weight:600;font-size:15px}
+.tick{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-content:center;flex:none;color:var(--on-c)}
+.pickrow.on .tick{background:var(--c);border-color:var(--c)}
+.tick .ic{width:15px;height:15px;stroke-width:3}
+.shead{display:flex;flex-direction:column;gap:10px;border-top:5px solid var(--c)}
+.shead-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.rnum{text-align:right;flex:none}
+.rnum b{display:block;font-family:var(--f-display);font-size:34px;line-height:1;color:var(--c)}
+.row2{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px}
+.facts span{background:var(--surface-2);border-radius:10px;padding:7px 9px;font-size:11.5px;color:var(--muted);display:flex;flex-direction:column}
+.facts b{color:var(--fg);font-size:14px;font-weight:600}
+.modes{display:flex;flex-direction:column;gap:8px}
+.mode{display:flex;align-items:center;gap:12px;border:0;background:var(--surface);box-shadow:var(--shadow);border-radius:var(--r);padding:12px;text-align:left;width:100%;color:var(--fg)}
+.mode:disabled{opacity:.55}
+.mode>.ic{color:var(--muted);width:18px;height:18px}
+.mt{flex:1;min-width:0;display:flex;flex-direction:column}
+.mt b{font-weight:600}
+.topics{display:flex;flex-wrap:wrap;gap:6px;padding:2px 2px 6px}
+.qtop{display:flex;align-items:center;gap:10px}
+.qtop-mid{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.qtop-mid b{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qtimer{font-family:var(--f-display);font-weight:700;font-size:20px;color:var(--ink)}
+.qtimer.low{color:var(--red)}
+.qxp{font-weight:700;color:var(--ok);font-size:14px}
+.qprog2{height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.qprog2 i{display:block;height:100%;background:var(--ink);border-radius:3px;transition:width .3s}
+.qcard{display:flex;flex-direction:column;gap:12px;border-top:4px solid var(--c)}
+.qtext{font-size:17px;line-height:1.5;font-weight:500}
+.qtext.sm{font-size:14px;font-weight:500}
+.qtext sub,.qtext sup{font-size:.7em}
+.opts{display:flex;flex-direction:column;gap:7px}
+.qopt.sel{border-color:var(--ink);background:var(--ink-2)}
+.qopt.sel .lt{background:var(--ink);color:var(--on-ink)}
+.ansrow{display:flex;gap:8px}
+.ans{font-size:19px;font-weight:600;letter-spacing:.02em}
+.fb{border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;font-size:14.5px}
+.fb.ok{background:var(--ok-2)}.fb.ok>b{color:var(--ok)}
+.fb.bad{background:var(--red-2)}.fb.bad>b{color:var(--red)}
+.fb p{color:var(--fg)}
+.qnav{display:flex;gap:8px}
+.result{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:22px 14px}
+.rbig{font-family:var(--f-display);font-weight:700;font-size:50px;line-height:1}
+.rstats{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px}
+.rs{display:flex;flex-direction:column;align-items:center;background:var(--surface-2);border-radius:12px;padding:8px 12px;font-size:12px;color:var(--muted);min-width:70px}
+.rs b{font-family:var(--f-display);font-size:20px;color:var(--fg)}
+.rs b.up{color:var(--ok)}.rs b.down{color:var(--red)}
+.levelup{display:flex;align-items:center;gap:8px;background:var(--warn-2);color:var(--warn);font-weight:600;border-radius:12px;padding:8px 12px;margin-top:6px;font-size:14px;text-align:left}
+.levelup.ach-up{background:var(--ok-2);color:var(--ok)}
+.fcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:250px;border:0;border-top:4px solid var(--c);text-align:center;width:100%;color:var(--fg)}
+.fcard .ff{font-family:var(--f-display);font-size:21px;font-weight:700;line-height:1.35}
+.fcard.flip .ff{font-family:var(--f-body);font-size:16px;font-weight:500;text-align:left;align-self:stretch}
+.league{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:3px 9px 3px 6px;border-radius:99px;color:var(--lc);background:var(--surface-2);background:color-mix(in srgb,var(--lc) 15%,transparent)}
+.league .ic{width:15px;height:15px}
+.league.big{font-size:13px;padding:4px 11px 4px 7px}
+.lg-b{--lc:var(--lg-b)}.lg-s{--lc:var(--lg-s)}.lg-g{--lc:var(--lg-g)}.lg-p{--lc:var(--lg-p)}.lg-d{--lc:var(--lg-d)}
+.lrow{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;text-align:left;padding:9px 0;border-top:1px solid var(--line)}
+.rows .lrow:first-child{border-top:0}
+.lb{display:flex;flex-direction:column;gap:4px}
+.lbrow{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:12px}
+.lbrow.me{background:var(--ink-2)}
+.pos{width:20px;text-align:center;font-weight:700;color:var(--muted)}
+.ava{width:34px;height:34px;border-radius:50%;display:grid;place-content:center;font-weight:700;color:#fff;background:hsl(var(--h) 55% 45%);flex:none}
+.sc{font-size:14px;white-space:nowrap}
+.iconbtn.sm{width:30px;height:30px;border-radius:9px;background:transparent}
+.iconbtn.sm .ic{width:16px;height:16px;color:var(--muted)}
+.achs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ach{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;padding:10px 6px;border-radius:12px;background:var(--surface-2);opacity:.55}
+.ach.on{opacity:1;background:var(--warn-2)}
+.ai{width:34px;height:34px;border-radius:50%;display:grid;place-content:center;background:var(--surface);color:var(--muted)}
+.ach.on .ai{color:var(--warn)}
+.ach b{font-size:12.5px;font-weight:600;line-height:1.2}
+.ach span:last-child{font-size:10.5px;color:var(--muted);line-height:1.25}
+@media (max-width:359px){.quick{grid-template-columns:1fr}.sgrid{grid-template-columns:1fr}.achs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 
 </head>
@@ -383,11 +493,10 @@ nav.tabs a[aria-current="page"] .pi{background:var(--ink-2);color:var(--ink)}
 <div class="typebar" id="typebar" aria-live="polite"><span class="w num" id="tbWords">0 слов</span><span class="num" id="tbTimer"></span><button class="btn sm soft" id="tbDone">Готово</button></div>
 
 <nav class="tabs" aria-label="Разделы">
-  <a href="#today" data-tab="today"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4"/></svg></span>Сегодня</a>
-  <a href="#plan" data-tab="plan"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><path d="M6 8v8M11 6h9M11 18h9M11 12h6"/></svg></span>План</a>
-  <a href="#ref" data-tab="ref"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg></span>Справка</a>
-  <a href="#books" data-tab="books"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v14c-3-1-6-1-8 1-2-2-5-2-8-1z"/><path d="M12 6v14"/></svg></span>Книги</a>
-  <a href="#write" data-tab="write"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><path d="M15 4l5 5L9 20H4v-5z"/><path d="M13 6l5 5"/></svg></span>Пишем</a>
+  <a href="#home" data-tab="home"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></span>Главная</a>
+  <a href="#subjects" data-tab="subjects"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></span>Предметы</a>
+  <a href="#rating" data-tab="rating"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9 17h6"/></svg></span>Рейтинг</a>
+  <a href="#profile" data-tab="profile"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></span>Профиль</a>
 </nav>
 
 <script>
@@ -699,179 +808,787 @@ const QUIZ = [
  {q:'К1, К2 и К4 — «зачёт», К3 и К5 — «незачёт». Итог?', o:['«Незачёт»','«Зачёт»','Отправят на перепроверку','Нужно переписать'], a:1}
 ];
 
+/* ===================== ЕГЭ: ПРЕДМЕТЫ ===================== */
+/* time и min — по данным на 2026 год (min — порог для аттестата). tasks — только там, где структура известна точно. */
+const SUBJ=[
+ {id:'rus',name:'Русский язык',short:'Русский',req:1,time:'3 ч 30 мин',tasks:27,min:'24',
+  about:'Обязательный экзамен. Задания с кратким ответом и сочинение по тексту (задание 27).',
+  extra:[{label:'Сочинение и проверка из тетради',go:'write',ic:'pen'}]},
+ {id:'mathp',name:'Математика (профиль)',short:'Профиль',req:2,time:'3 ч 55 мин',tasks:19,min:'27',
+  about:'12 заданий с кратким ответом и 7 с развёрнутым решением. Нужна для технических и экономических вузов.'},
+ {id:'mathb',name:'Математика (база)',short:'База',req:2,time:'3 ч',tasks:21,min:'оценка «3»',
+  about:'Для аттестата и вузов без профильной математики. Оценивается по пятибалльной шкале.'},
+ {id:'phys',name:'Физика',short:'Физика',time:'3 ч 55 мин',min:'36',about:'Расчётные задачи, графики, законы и единицы измерения.'},
+ {id:'chem',name:'Химия',short:'Химия',time:'3 ч 30 мин',min:'36',about:'Строение вещества, реакции, расчёты по формулам.'},
+ {id:'inf',name:'Информатика',short:'Информатика',time:'3 ч 55 мин',tasks:27,min:'40',about:'Сдаётся на компьютере (КЕГЭ): системы счисления, логика, программирование.'},
+ {id:'bio',name:'Биология',short:'Биология',time:'3 ч 55 мин',min:'36',about:'Клетка, генетика, организм человека, эволюция и экология.'},
+ {id:'hist',name:'История',short:'История',time:'3 ч 30 мин',min:'32',about:'История России с древности до наших дней: даты, личности, процессы.'},
+ {id:'soc',name:'Обществознание',short:'Общество',time:'3 ч 55 мин',min:'42',about:'Человек и общество, экономика, право, политика, социальные отношения.'},
+ {id:'geo',name:'География',short:'География',time:'3 ч',min:'37',about:'Природа и население России и мира, расчётные задачи.'},
+ {id:'lit',name:'Литература',short:'Литература',time:'3 ч 55 мин',min:'32',about:'Произведения школьной программы, теория литературы, сочинение.',
+  extra:[{label:'Произведения: герои и эпизоды',go:'books',ic:'book'}]},
+ {id:'eng',name:'Английский язык',short:'Английский',time:'3 ч 10 мин + 17 мин устно',min:'22',about:'Аудирование, чтение, грамматика и лексика, письмо и устная часть.'},
+ {id:'deu',name:'Немецкий язык',short:'Немецкий',time:'3 ч 10 мин + 17 мин устно',min:'22',about:'Аудирование, чтение, грамматика и лексика, письмо и устная часть.'},
+ {id:'fra',name:'Французский язык',short:'Французский',time:'3 ч 10 мин + 17 мин устно',min:'22',about:'Аудирование, чтение, грамматика и лексика, письмо и устная часть.'},
+ {id:'spa',name:'Испанский язык',short:'Испанский',time:'3 ч 10 мин + 17 мин устно',min:'22',about:'Аудирование, чтение, грамматика и лексика, письмо и устная часть.'},
+ {id:'chi',name:'Китайский язык',short:'Китайский',time:'письменно 3 ч + устная часть',min:'22',about:'Иероглифика, грамматика, чтение, письмо и устная часть.'}
+];
+const SUB=Object.fromEntries(SUBJ.map(s=>[s.id,s]));
+
+/* ---------- Русский язык ---------- */
+const STRESS='аэропОрты бАнты бОроду бухгАлтеров вероисповЕдание водопровОд газопровОд граждАнство дефИс дешевИзна диспансЕр докумЕнт жалюзИ знАчимость Иксы каталОг квартАл киломЕтр кОнусов корЫсть крАны кремЕнь лЕкторов лыжнЯ мЕстностей мусоропровОд намЕрение нарОст нЕдруг недУг некролОг ненавИсть нефтепровОд новостЕй нОгтя Отрочество партЕр портфЕль придАное призЫв сирОты созЫв сосредотОчение срЕдства столЯр тамОжня тОрты тУфля цемЕнт цЕнтнер цепОчка шАрфы щавЕль экспЕрт обеспЕчение ходАтайство красИвее кУхонный оптОвый слИвовый мозаИчный гналА взялА бралА ждалА звонИт звонИшь включИт вручИт кровоточИт нАчал началА нАчали облегчИт ободрИт сорИт понялА создалА убралА лгалА клАла крАлась принУдить баловАть бАловень кашлянУть зАгодя дОверху дОнельзя'.split(' ');
+const RUS_BANK=[
+ ...[['Этот метод оказался очень ___: результаты выросли вдвое.','эффективным','эффектным'],['В красном платье она выглядела ___.','эффектно','эффективно'],['Он купил ___ в бассейн на месяц.','абонемент','абонент'],['___ не отвечает или временно недоступен.','Абонент','Абонемент'],['___ конкурса получил диплом второй степени.','Дипломант','Дипломат'],['Мама ___ сына в тёплую куртку.','одела','надела'],['Он ___ шапку и вышел на улицу.','надел','одел'],['Прошу ___ мне отпуск с понедельника.','предоставить','представить'],['Разрешите ___ вам нашего гостя.','представить','предоставить'],['Магазин чинит часы бесплатно в течение ___ срока.','гарантийного','гарантированного'],['Это был ___ поступок, достойный уважения.','гуманный','гуманитарный'],['В пострадавший город доставили ___ помощь.','гуманитарную','гуманную'],['Письмо вернулось: ___ выбыл по другому адресу.','адресат','адресант'],['На работу он пришёл в строгом ___ костюме.','деловом','деловитом']]
+   .map(([s,a,b])=>({q:`Выбери слово, которое подходит по смыслу:<br><i>${s}</i>`,o:[a,b],a:0,t:'Паронимы',k:'Задание 5',e:`Правильно: «${a}». Паронимы похожи по звучанию, но различаются значением.`})),
+ ...[['пр..небрегать','е','значение «пере-»: пренебречь'],['пр..морский','и','близость к чему-либо: у моря'],['пр..дел','е','словарное слово: предел'],['пр..открыть','и','неполнота действия: открыть немного'],['пр..красный','е','значение «очень»'],['пр..одолеть','е','значение «пере-»'],['пр..школьный','и','близость: при школе'],['пр..следовать','е','словарное слово: преследовать'],['пр..вередливый','и','словарное слово'],['пр..смыкаться','е','словарное слово'],['пр..чуда','и','словарное слово'],['пр..мудрый','е','значение «очень»'],['пр..брежный','и','близость: у берега'],['пр..тензия','е','словарное слово'],['пр..вилегия','и','словарное слово'],['пр..митивный','и','словарное слово'],['пр..бывать в хорошем настроении','е','пребывать = находиться'],['поезд пр..бывает в полдень','и','прибывать = приезжать'],['пр..сесть на скамейку','и','приближение, неполнота'],['пр..вратить воду в лёд','е','значение «пере-»: превратить']]
+   .map(([w,a,why])=>({q:`Какая буква пропущена: <b>${w}</b>?`,o:['е','и'],a:a==='е'?0:1,t:'ПРЕ / ПРИ',k:'Задание 10',e:`Пишется «пр${a}»: ${why}.`})),
+ ...[['стекля..ый','нн','исключение: стеклянный, оловянный, деревянный'],['оловя..ый','нн','исключение: стеклянный, оловянный, деревянный'],['деревя..ый','нн','исключение: стеклянный, оловянный, деревянный'],['кожа..ый','н','суффикс -ан- у прилагательного от существительного'],['серебря..ый','н','суффикс -ян-'],['ветре..ый','н','исключение: ветреный'],['жаре..ый','н','отглагольное прилагательное без приставки и зависимых слов'],['покраше..ый','нн','есть приставка: причастие'],['нарисова..ый','нн','суффикс -ова-: нарисованный'],['тума..ый','нн','корень на -н + суффикс -н-: туман + н'],['лимо..ый','нн','корень на -н + суффикс -н-: лимон + н'],['ю..ый','н','непроизводное прилагательное'],['свино..й','н','суффикс -ин-'],['ветряно..й','н','ветряной (мельница) — исключение с одной н']]
+   .map(([w,a,why])=>({q:`Сколько Н пишется: <b>${w}</b>?`,o:['н','нн'],a:a==='н'?0:1,t:'Н и НН',k:'Задание 15',e:`Пишется «${a}»: ${why}.`})),
+];
+const RUS_CARDS=[
+ ['ПРЕ- или ПРИ-?','ПРЕ = «очень» (премудрый) или «пере-» (преодолеть).\nПРИ = близость (приморский), присоединение (пришить), неполнота (приоткрыть), доведение до конца (придумать).'],
+ ['Н и НН в прилагательных','НН: -онн-, -енн- (революционный, клюквенный), корень на -н + суффикс -н- (туманный).\nН: -ан-, -ян-, -ин- (кожаный, серебряный, свиной).\nИсключения: стеклянный, оловянный, деревянный; ветреный.'],
+ ['-ТСЯ или -ТЬСЯ?','Задай вопрос к глаголу: что делает? → -тся (он учится); что делать? → -ться (надо учиться).'],
+ ['НЕ с глаголами','Раздельно: не знал, не видел. Слитно — если без НЕ слово не употребляется: ненавидеть, негодовать, нездоровиться.'],
+ ['Деепричастный оборот','Выделяется запятыми всегда: «Закончив работу, мы ушли домой».'],
+ ['Сочинение (задание 27)','Сформулируй проблему текста, прокомментируй её двумя примерами из текста и покажи связь между ними, передай позицию автора, выскажи своё отношение и обоснуй его.']
+];
+
+/* ---------- Математика ---------- */
+const MATH_CARDS=[
+ ['Квадратное уравнение','ax² + bx + c = 0\nD = b² − 4ac\nx = (−b ± √D) / 2a\nТеорема Виета: x₁ + x₂ = −b/a, x₁·x₂ = c/a'],
+ ['Логарифмы','logₐ(bc) = logₐb + logₐc\nlogₐ(b/c) = logₐb − logₐc\nlogₐ(bⁿ) = n·logₐb\nlogₐa = 1, logₐ1 = 0'],
+ ['Производные','(xⁿ)′ = n·xⁿ⁻¹\n(sin x)′ = cos x, (cos x)′ = −sin x\n(eˣ)′ = eˣ, (ln x)′ = 1/x\n(f·g)′ = f′g + fg′'],
+ ['Таблица значений','sin 30° = 1/2, cos 60° = 1/2\nsin 45° = cos 45° = √2/2\nsin 60° = cos 30° = √3/2\ntg 45° = 1'],
+ ['Вероятность','P(A) = благоприятные исходы / все исходы\nP(не A) = 1 − P(A)\nНезависимые события: P(A и B) = P(A)·P(B)'],
+ ['Прогрессии','Арифметическая: aₙ = a₁ + (n − 1)d, Sₙ = (a₁ + aₙ)·n / 2\nГеометрическая: bₙ = b₁·qⁿ⁻¹'],
+ ['Площади','Треугольник: S = ½·a·h\nПрямоугольный треугольник: S = ½·a·b\nТрапеция: S = ½·(a + b)·h\nКруг: S = πR²']
+];
+const MATHP_BANK=[
+ {q:'Чему равна производная функции f(x) = x³ в точке x = 2?',o:['12','8','6','3'],a:0,t:'Производная',e:'f′(x) = 3x², f′(2) = 3·4 = 12.'},
+ {q:'Если производная функции в точке положительна, функция в этой точке…',o:['возрастает','убывает','имеет максимум','равна нулю'],a:0,t:'Производная',k:'Задание 8',e:'f′(x) > 0 — функция возрастает.'},
+ {q:'В точке максимума производная функции (если существует) равна…',o:['0','1','−1','бесконечности'],a:0,t:'Производная',k:'Задание 8',e:'В точке экстремума производная равна нулю: она меняет знак с «+» на «−».'},
+ {q:'Сколько корней имеет уравнение x² + 4 = 0 на множестве действительных чисел?',o:['0','1','2','бесконечно много'],a:0,t:'Уравнения',k:'Задание 6',e:'x² = −4 — квадрат не бывает отрицательным.'}
+];
+const MATHB_BANK=[
+ {q:'Сколько минут в 2,5 часа?',inp:1,a:'150',t:'Вычисления',e:'2,5 · 60 = 150.'},
+ {q:'Какое число больше: 0,7 или 2/3?',o:['0,7','2/3','они равны'],a:0,t:'Вычисления',e:'2/3 ≈ 0,667 < 0,7.'},
+ {q:'Сколько квадратных сантиметров в 1 квадратном метре?',o:['10 000','100','1000','100 000'],a:0,t:'Единицы измерения',e:'1 м = 100 см, 1 м² = 100 · 100 = 10 000 см².'}
+];
+
+/* ---------- Физика ---------- */
+const PHYS_BANK=[
+ {q:'В каких единицах измеряется сила?',o:['ньютон','джоуль','ватт','паскаль'],a:0,t:'Единицы',e:'Сила — в ньютонах (Н). Джоуль — работа и энергия, ватт — мощность, паскаль — давление.'},
+ {q:'Единица мощности в СИ —',o:['ватт','джоуль','вольт','ом'],a:0,t:'Единицы',e:'Мощность P = A/t измеряется в ваттах (Вт = Дж/с).'},
+ {q:'Какой закон утверждает: действие равно противодействию?',o:['третий закон Ньютона','первый закон Ньютона','второй закон Ньютона','закон Гука'],a:0,t:'Динамика',e:'Третий закон Ньютона: F₁₂ = −F₂₁.'},
+ {q:'Что происходит с сопротивлением проводника при увеличении его длины в 2 раза?',o:['увеличится в 2 раза','уменьшится в 2 раза','не изменится','увеличится в 4 раза'],a:0,t:'Электричество',e:'R = ρl/S — сопротивление пропорционально длине.'},
+ {q:'При последовательном соединении резисторов одинакова…',o:['сила тока','напряжение','мощность','сопротивление'],a:0,t:'Электричество',e:'При последовательном соединении ток через все резисторы одинаков, напряжения складываются.'},
+ {q:'Ускорение свободного падения на Земле примерно равно',o:['9,8 м/с²','98 м/с²','0,98 м/с²','1 м/с²'],a:0,t:'Кинематика',e:'g ≈ 9,8 м/с², в задачах часто берут 10 м/с².'},
+ {q:'Как изменится кинетическая энергия тела при увеличении скорости в 2 раза?',o:['увеличится в 4 раза','увеличится в 2 раза','не изменится','уменьшится в 2 раза'],a:0,t:'Энергия',e:'Eк = mv²/2 — пропорциональна квадрату скорости.'},
+ {q:'Какой процесс происходит при постоянной температуре?',o:['изотермический','изобарный','изохорный','адиабатный'],a:0,t:'Молекулярная физика',e:'Изо- = одинаковый, термо- = температура. Изобарный — при постоянном давлении, изохорный — при постоянном объёме.'},
+ {q:'Заряд электрона —',o:['отрицательный','положительный','нулевой','бывает любым'],a:0,t:'Электричество',e:'Заряд электрона отрицательный, e ≈ −1,6·10⁻¹⁹ Кл.'},
+ {q:'Угол падения луча на зеркало 30°. Угол отражения равен',o:['30°','60°','90°','15°'],a:0,t:'Оптика',e:'Угол отражения равен углу падения.'}
+];
+const PHYS_CARDS=[
+ ['Кинематика','v = s/t\na = (v − v₀)/t\ns = v₀t + at²/2'],['Динамика','F = ma (второй закон Ньютона)\nFтяж = mg\nFупр = kx (закон Гука)'],
+ ['Энергия и работа','A = F·s\nEк = mv²/2\nEп = mgh\nP = A/t'],['Импульс','p = mv\nЗакон сохранения импульса: в замкнутой системе суммарный импульс постоянен'],
+ ['Электричество','I = U/R (закон Ома)\nP = U·I\nПоследовательно: R = R₁ + R₂\nПараллельно: 1/R = 1/R₁ + 1/R₂'],['Давление и плотность','p = F/S\nρ = m/V\np = ρgh (в жидкости)'],
+ ['Теплота','Q = cmΔt\nc воды = 4200 Дж/(кг·°C)']
+];
+
+/* ---------- Химия ---------- */
+const CHEM_BANK=[
+ {q:'Какой элемент самый электроотрицательный?',o:['фтор','кислород','хлор','азот'],a:0,t:'Строение вещества',e:'Фтор — самый электроотрицательный элемент.'},
+ {q:'Какой тип связи в молекуле NaCl?',o:['ионная','ковалентная неполярная','ковалентная полярная','металлическая'],a:0,t:'Химическая связь',e:'Связь между типичным металлом и неметаллом — ионная.'},
+ {q:'Какой тип связи в молекуле O₂?',o:['ковалентная неполярная','ковалентная полярная','ионная','водородная'],a:0,t:'Химическая связь',e:'Связь между одинаковыми атомами неметалла — ковалентная неполярная.'},
+ {q:'Какой тип связи в молекуле HCl?',o:['ковалентная полярная','ковалентная неполярная','ионная','металлическая'],a:0,t:'Химическая связь',e:'Разные неметаллы — ковалентная полярная связь.'},
+ {q:'Какой цвет приобретает фенолфталеин в щелочной среде?',o:['малиновый','синий','бесцветный','жёлтый'],a:0,t:'Индикаторы',e:'Фенолфталеин в щелочи — малиновый, в кислой и нейтральной среде бесцветный.'},
+ {q:'Какая из реакций — реакция нейтрализации?',o:['NaOH + HCl = NaCl + H₂O','Zn + 2HCl = ZnCl₂ + H₂','CaCO₃ = CaO + CO₂','2H₂ + O₂ = 2H₂O'],a:0,t:'Реакции',e:'Нейтрализация — взаимодействие кислоты и основания с образованием соли и воды.'},
+ {q:'Число протонов в ядре атома равно…',o:['порядковому номеру элемента','номеру группы','номеру периода','массовому числу'],a:0,t:'Строение атома',e:'Порядковый номер = заряд ядра = число протонов.'},
+ {q:'Сколько электронных слоёв у атома элемента 3-го периода?',o:['3','2','8','зависит от группы'],a:0,t:'Строение атома',e:'Номер периода = число электронных слоёв.'}
+];
+const CHEM_CARDS=[
+ ['Количество вещества','n = m/M\nn = V/Vm, Vm = 22,4 л/моль (н. у.)\nN = n·Nₐ, Nₐ = 6,02·10²³'],['Массовая доля','ω(элемента) = n·Ar / Mr · 100%\nω(вещества в растворе) = m(вещества)/m(раствора) · 100%'],
+ ['Классы веществ','Оксид: два элемента, один — кислород (CO₂)\nКислота: H + кислотный остаток (H₂SO₄)\nОснование: металл + OH (NaOH)\nСоль: металл + кислотный остаток (NaCl)'],
+ ['Индикаторы','Лакмус: кислая — красный, щелочная — синий\nФенолфталеин: щелочная — малиновый\nМетилоранж: кислая — красный, щелочная — жёлтый']
+];
+
+/* ---------- Информатика ---------- */
+const INF_BANK=[
+ {q:'Сколько бит в одном байте?',o:['8','10','16','1024'],a:0,t:'Информация',e:'1 байт = 8 бит.'},
+ {q:'Сколько байт в 1 Кбайте?',o:['1024','1000','8','512'],a:0,t:'Информация',e:'1 Кбайт = 1024 байта = 2¹⁰ байт.'},
+ {q:'Чему равно выражение A ∧ ¬A при любом A?',o:['0','1','A','¬A'],a:0,t:'Логика',e:'Высказывание и его отрицание не могут быть истинны одновременно.'},
+ {q:'Чему равно выражение A ∨ ¬A при любом A?',o:['1','0','A','¬A'],a:0,t:'Логика',e:'Закон исключённого третьего: одно из двух всегда истинно.'},
+ {q:'Чему равна импликация A → B, если A = 1, B = 0?',o:['0','1'],a:0,t:'Логика',e:'Импликация ложна только при A = 1 и B = 0.'},
+ {q:'Что выведет Python: print(7 // 2)?',o:['3','3.5','4','1'],a:0,t:'Программирование',e:'// — целочисленное деление: 7 // 2 = 3.'},
+ {q:'Что выведет Python: print(7 % 3)?',o:['1','2','0','2.33'],a:0,t:'Программирование',e:'% — остаток от деления: 7 = 3·2 + 1.'},
+ {q:'Что выведет Python: print(len("ЕГЭ"))?',o:['3','6','1','ошибка'],a:0,t:'Программирование',e:'len считает символы строки: их три.'},
+ {q:'Сколько раз выполнится тело цикла for i in range(2, 10, 3)?',o:['3','8','4','2'],a:0,t:'Программирование',e:'i принимает значения 2, 5, 8 — три раза.'}
+];
+const INF_CARDS=[
+ ['Степени двойки','2¹⁰ = 1024, 2⁹ = 512, 2⁸ = 256, 2⁷ = 128, 2⁶ = 64, 2⁵ = 32, 2⁴ = 16'],['Единицы информации','1 байт = 8 бит\n1 Кбайт = 1024 байт\n1 Мбайт = 1024 Кбайт'],
+ ['Формула Хартли','N = 2ⁱ\nN — число символов алфавита, i — бит на символ\nОбъём сообщения I = K·i'],['Логика','¬ — НЕ, ∧ — И, ∨ — ИЛИ\nA → B = ¬A ∨ B\nA ≡ B истинно, когда A и B совпадают'],
+ ['Изображение и звук','Изображение: I = ширина · высота · i, где 2ⁱ — число цветов\nЗвук: I = частота · разрядность · время · каналы']
+];
+
+/* ---------- Биология ---------- */
+const BIO_BANK=[
+ {q:'Где синтезируется АТФ в клетке?',o:['в митохондриях','в рибосомах','в ядре','в лизосомах'],a:0,t:'Клетка',e:'Митохондрии — «энергетические станции» клетки.'},
+ {q:'Где происходит синтез белка?',o:['на рибосомах','в митохондриях','в аппарате Гольджи','в вакуоли'],a:0,t:'Клетка',e:'Трансляция идёт на рибосомах.'},
+ {q:'В каких органоидах идёт фотосинтез?',o:['в хлоропластах','в митохондриях','в рибосомах','в ядре'],a:0,t:'Клетка',e:'Хлоропласты содержат хлорофилл.'},
+ {q:'Сколько хромосом в соматических клетках человека?',o:['46','23','44','92'],a:0,t:'Клетка',e:'Диплоидный набор человека 2n = 46, в гаметах 23.'},
+ {q:'Сколько клеток образуется в результате мейоза из одной?',o:['4 гаплоидные','2 диплоидные','2 гаплоидные','4 диплоидные'],a:0,t:'Деление клетки',e:'Мейоз — два деления подряд, получаются 4 клетки с гаплоидным набором.'},
+ {q:'Какое азотистое основание есть в РНК, но нет в ДНК?',o:['урацил','тимин','аденин','гуанин'],a:0,t:'Нуклеиновые кислоты',e:'В РНК урацил вместо тимина.'},
+ {q:'Какие вещества по химической природе являются ферментами?',o:['белки','углеводы','липиды','нуклеиновые кислоты'],a:0,t:'Химия клетки',e:'Почти все ферменты — белки.'},
+ {q:'Какой газ выделяется при фотосинтезе?',o:['кислород','углекислый газ','азот','водород'],a:0,t:'Обмен веществ',e:'Кислород образуется при фотолизе воды в световой фазе.'},
+ {q:'Какая ткань человека образует кровь?',o:['соединительная','эпителиальная','мышечная','нервная'],a:0,t:'Человек',e:'Кровь — жидкая соединительная ткань.'},
+ {q:'Какой отдел сердца выталкивает кровь в большой круг кровообращения?',o:['левый желудочек','правый желудочек','левое предсердие','правое предсердие'],a:0,t:'Человек',e:'Большой круг начинается в левом желудочке (аорта).'},
+ {q:'Кто сформулировал законы наследственности?',o:['Г. Мендель','Ч. Дарвин','Т. Морган','Н. Вавилов'],a:0,t:'Генетика',e:'Грегор Мендель открыл законы наследования, опыты на горохе.'},
+ {q:'Как называется организм с одинаковыми аллелями гена (AA или aa)?',o:['гомозигота','гетерозигота','гибрид','мутант'],a:0,t:'Генетика',e:'Гомо- = одинаковый. Aa — гетерозигота.'},
+ {q:'Какая группа организмов — продуценты в экосистеме?',o:['зелёные растения','хищники','грибы','бактерии-гнилостные'],a:0,t:'Экология',e:'Продуценты создают органику из неорганической, в основном фотосинтезом.'}
+];
+const BIO_CARDS=[
+ ['Комплементарность','ДНК: A — T, G — C\nРНК: A — U, G — C (в РНК урацил вместо тимина)'],['Деление клетки','Митоз: 2 клетки, набор хромосом сохраняется (2n → 2n)\nМейоз: 4 клетки, набор уменьшается вдвое (2n → n)'],
+ ['Законы Менделя','1. Единообразие гибридов первого поколения\n2. Расщепление 3:1 по фенотипу и 1:2:1 по генотипу при Aa × Aa\n3. Независимое наследование признаков'],
+ ['Органоиды','Митохондрии — АТФ\nРибосомы — белок\nХлоропласты — фотосинтез\nЛизосомы — расщепление веществ']
+];
+
+/* ---------- История ---------- */
+const HIST_DATES=[['862','Призвание варягов, начало правления Рюрика'],['882','Объединение Новгорода и Киева князем Олегом'],['988','Крещение Руси при князе Владимире'],['1147','Первое упоминание Москвы в летописи'],['1223','Битва на реке Калке'],['1240','Невская битва'],['1242','Ледовое побоище'],['1380','Куликовская битва'],['1480','Стояние на реке Угре'],['1497','Судебник Ивана III'],['1547','Венчание Ивана IV на царство'],['1552','Взятие Казани'],['1565','Введение опричнины'],['1613','Избрание Михаила Романова на царство'],['1649','Соборное уложение'],['1654','Переяславская рада'],['1709','Полтавская битва'],['1721','Ништадтский мир, Россия провозглашена империей'],['1755','Основание Московского университета'],['1785','Жалованные грамоты дворянству и городам'],['1812','Бородинское сражение'],['1825','Восстание декабристов'],['1853','Начало Крымской войны'],['1861','Отмена крепостного права'],['1864','Земская и судебная реформы'],['1905','Кровавое воскресенье'],['1914','Вступление России в Первую мировую войну'],['1917','Февральская и Октябрьская революции'],['1922','Образование СССР'],['1941','Начало Великой Отечественной войны'],['1945','Победа в Великой Отечественной войне'],['1957','Запуск первого искусственного спутника Земли'],['1961','Первый полёт человека в космос — Ю. А. Гагарин'],['1991','Распад СССР'],['1993','Принятие Конституции Российской Федерации']];
+const HIST_PEOPLE=[['Владимир Святославич','Крещение Руси'],['Ярослав Мудрый','Русская Правда'],['Александр Невский','Ледовое побоище'],['Дмитрий Донской','Куликовская битва'],['Иван III','Стояние на Угре'],['Иван IV Грозный','Опричнина'],['Кузьма Минин и Дмитрий Пожарский','Освобождение Москвы от поляков в 1612 году'],['Пётр I','Полтавская битва'],['Екатерина II','Жалованная грамота дворянству'],['М. И. Кутузов','Бородинское сражение'],['Александр II','Отмена крепостного права'],['П. А. Столыпин','Аграрная реформа начала XX века'],['Николай II','Последний российский император'],['Г. К. Жуков','Командование при обороне Москвы и взятии Берлина'],['Ю. А. Гагарин','Первый полёт человека в космос']];
+
+/* ---------- Обществознание ---------- */
+const SOC_TERMS=[['Инфляция','устойчивый рост общего уровня цен и снижение покупательной способности денег'],['Дефицит бюджета','превышение расходов государства над доходами'],['Монополия','рынок, на котором один продавец контролирует всё предложение товара'],['Валовой внутренний продукт','рыночная стоимость всех конечных товаров и услуг, произведённых в стране за год'],['Налог','обязательный безвозмездный платёж в бюджет'],['Правоспособность','способность иметь права и нести обязанности; возникает с рождения'],['Дееспособность','способность своими действиями приобретать права и создавать обязанности'],['Санкция','часть правовой нормы, указывающая на последствия её нарушения'],['Референдум','всенародное голосование по важным вопросам государства'],['Федерация','форма государственного устройства, при которой в состав государства входят субъекты с собственной политической самостоятельностью'],['Социальная мобильность','перемещение человека или группы в социальной структуре общества'],['Социализация','процесс усвоения человеком норм, ценностей и ролей общества'],['Гражданство','устойчивая правовая связь человека с государством'],['Демократия','политический режим, при котором источником власти признаётся народ'],['Мировоззрение','система взглядов человека на мир и своё место в нём'],['Конкуренция','соперничество производителей за потребителя и лучшие условия'],['Девиантное поведение','поведение, отклоняющееся от принятых в обществе норм'],['Суверенитет','верховенство и независимость государственной власти внутри страны и вовне']];
+const SOC_BANK=[
+ {q:'С какого возраста в РФ наступает полная дееспособность (по общему правилу)?',o:['с 18 лет','с 14 лет','с 16 лет','с 21 года'],a:0,t:'Право',e:'По общему правилу полная дееспособность — с 18 лет (раньше — при эмансипации или вступлении в брак).'},
+ {q:'С какого возраста наступает административная ответственность?',o:['с 16 лет','с 14 лет','с 18 лет','с 12 лет'],a:0,t:'Право',e:'Административная ответственность — с 16 лет.'},
+ {q:'Общий возраст уголовной ответственности в РФ —',o:['16 лет','14 лет','18 лет','12 лет'],a:0,t:'Право',e:'Общий возраст — 16 лет; за ряд тяжких преступлений — с 14 лет.'},
+ {q:'На какой срок избирается Президент РФ?',o:['6 лет','4 года','5 лет','7 лет'],a:0,t:'Политика',e:'Срок полномочий Президента РФ — 6 лет.'},
+ {q:'Сколько депутатов в Государственной Думе?',o:['450','300','170','500'],a:0,t:'Политика',e:'Государственная Дума состоит из 450 депутатов.'},
+ {q:'С какого возраста гражданин РФ может избирать (активное избирательное право)?',o:['с 18 лет','с 16 лет','с 21 года','с 14 лет'],a:0,t:'Политика',e:'Активное избирательное право — с 18 лет.'},
+ {q:'Какой налог относится к косвенным?',o:['НДС','НДФЛ','налог на имущество','транспортный налог'],a:0,t:'Экономика',e:'НДС включается в цену товара и уплачивается покупателем через продавца — это косвенный налог.'},
+ {q:'Что из перечисленного — фактор производства?',o:['труд','деньги','прибыль','цена'],a:0,t:'Экономика',e:'Факторы производства: труд, земля, капитал, предпринимательские способности (и информация).'},
+ {q:'Какой документ обладает высшей юридической силой в РФ?',o:['Конституция РФ','Федеральный закон','Указ Президента','Постановление Правительства'],a:0,t:'Право',e:'Конституция имеет высшую юридическую силу и прямое действие.'},
+ {q:'Рост спроса при неизменном предложении обычно приводит к…',o:['росту цены','падению цены','неизменной цене','исчезновению товара'],a:0,t:'Экономика',e:'Кривая спроса сдвигается вправо — равновесная цена растёт.'}
+];
+
+/* ---------- География ---------- */
+const GEO_BANK=[
+ {q:'Самое глубокое озеро мира —',o:['Байкал','Танганьика','Каспийское море','Верхнее'],a:0,t:'Природа России',e:'Байкал — около 1642 м глубины.'},
+ {q:'Самая высокая вершина России —',o:['Эльбрус','Белуха','Казбек','Ключевская Сопка'],a:0,t:'Природа России',e:'Эльбрус — 5642 м, Кавказ.'},
+ {q:'Крайняя северная точка материковой России —',o:['мыс Челюскин','мыс Дежнёва','мыс Флигели','остров Ратманова'],a:0,t:'Природа России',e:'Мыс Челюскин на полуострове Таймыр. Мыс Флигели — на острове, мыс Дежнёва — крайняя восточная материковая точка.'},
+ {q:'Крупнейшее по площади озеро мира —',o:['Каспийское море','Байкал','Виктория','Ладожское'],a:0,t:'География мира',e:'Каспийское море — бессточное озеро, крупнейшее по площади.'},
+ {q:'Самая полноводная река мира —',o:['Амазонка','Нил','Енисей','Миссисипи'],a:0,t:'География мира',e:'Амазонка несёт больше всего воды.'},
+ {q:'Сколько часовых зон в России?',o:['11','9','12','7'],a:0,t:'Природа России',e:'В России 11 часовых зон.'},
+ {q:'Какой климат характерен для большей части территории России?',o:['умеренный континентальный','морской','субтропический','экваториальный'],a:0,t:'Природа России',e:'Большая часть России лежит в умеренном поясе с континентальным климатом.'},
+ {q:'Какая страна мира самая большая по площади?',o:['Россия','Канада','Китай','США'],a:0,t:'География мира',e:'Россия — свыше 17 млн км².'},
+ {q:'Что показывает естественный прирост населения?',o:['разницу между рождаемостью и смертностью','разницу между въехавшими и выехавшими','общую численность населения','плотность населения'],a:0,t:'Население',e:'Естественный прирост = рождаемость − смертность. Разница въехавших и выехавших — миграционный прирост.'}
+];
+
+/* ---------- Литература ---------- */
+const LIT_TERMS=[['Эпитет','художественное определение: «золотая осень»'],['Метафора','скрытое сравнение, перенос свойств: «горит восток зарёю новой»'],['Олицетворение','перенос свойств живого на неживое: «спит земля в сиянье голубом»'],['Гипербола','художественное преувеличение: «в сто сорок солнц закат пылал»'],['Литота','художественное преуменьшение: «мальчик с пальчик»'],['Антитеза','противопоставление: «Они сошлись. Волна и камень…»'],['Оксюморон','сочетание противоположных понятий: «живой труп», «горячий снег»'],['Анафора','единоначатие — повтор в начале строк'],['Инверсия','нарушение прямого порядка слов'],['Ирония','скрытая насмешка: слова значат противоположное'],['Сравнение','сопоставление с союзами как, словно, будто'],['Аллитерация','повтор согласных звуков']];
+const LIT_BANK=[
+ {q:'Каким размером написан «Евгений Онегин»?',o:['четырёхстопный ямб','пятистопный хорей','дактиль','анапест'],a:0,t:'Теория',e:'Онегинская строфа — 14 строк четырёхстопного ямба.'},
+ {q:'К какому литературному направлению относится «Горе от ума»?',o:['классицизм с чертами реализма','романтизм','сентиментализм','символизм'],a:0,t:'Теория',e:'В комедии сохраняются единства классицизма, но характеры написаны реалистически.'},
+ {q:'Жанр «Мёртвых душ» Гоголь определил как…',o:['поэма','роман','повесть','комедия'],a:0,t:'Произведения',e:'Гоголь назвал «Мёртвые души» поэмой.'}
+];
+
+/* ---------- Иностранные языки ---------- */
+const ENG_BANK=[
+ ["She ___ to school every day.",["goes","go","is going","gone"],"Present Simple, 3-е лицо единственного числа: goes."],
+ ["Look! It ___ outside.",["is raining","rains","rained","has rained"],"Действие прямо сейчас — Present Continuous."],
+ ["I ___ this film three times already.",["have seen","saw","see","had seen"],"«Already», результат к настоящему — Present Perfect."],
+ ["When I came home, my sister ___ dinner.",["was cooking","cooked","is cooking","cooks"],"Длительное действие в момент в прошлом — Past Continuous."],
+ ["By the time we arrived, the film ___.",["had started","started","has started","starts"],"Действие до другого действия в прошлом — Past Perfect."],
+ ["If I ___ rich, I would travel the world.",["were","am","will be","have been"],"Условное II типа: If + Past Simple (were)."],
+ ["If it rains tomorrow, we ___ at home.",["will stay","would stay","stay","stayed"],"Условное I типа: If + Present, will + глагол."],
+ ["The letter ___ yesterday.",["was sent","sent","is sent","has sent"],"Пассив в прошедшем: was/were + V3."],
+ ["She is ___ than her brother.",["taller","more tall","tallest","the tallest"],"Короткое прилагательное: -er."],
+ ["This is ___ interesting book I have ever read.",["the most","more","most","the more"],"Превосходная степень длинного прилагательного: the most."],
+ ["He has lived here ___ 2015.",["since","for","from","during"],"Since + точка отсчёта, for + период."],
+ ["I am interested ___ history.",["in","on","at","about"],"Interested in."],
+ ["She is good ___ maths.",["at","in","on","with"],"Good at."],
+ ["There isn't ___ milk in the fridge.",["any","some","many","a"],"В отрицании — any; milk неисчисляемое."],
+ ["How ___ apples do you need?",["many","much","a lot","few"],"Исчисляемые — many."],
+ ["I'm looking forward to ___ you.",["seeing","see","saw","have seen"],"Look forward to + -ing."],
+ ["He suggested ___ to the cinema.",["going","to go","go","went"],"Suggest + -ing."],
+ ["She asked me where I ___.",["lived","live","do live","am living"],"Косвенная речь: согласование времён, прямой порядок слов."],
+ ["The ___ of the city is about one million.",["population","popular","popularity","populate"],"Словообразование: существительное population."],
+ ["He gave a very ___ answer.",["careful","care","carefully","careless"],"Перед существительным нужно прилагательное."],
+ ["Neither Tom ___ Ann came to the party.",["nor","or","and","not"],"Neither … nor."],
+ ["___ Moscow is the capital of Russia.",["—","The","A","An"],"С названиями городов артикль не нужен."],
+ ["I have never been to ___ USA.",["the","—","a","an"],"The USA — с артиклем."],
+ ["You ___ smoke here. It's forbidden.",["mustn't","needn't","don't have to","may"],"Запрет — mustn't."]
+].map(([q,o,e])=>({q,o,a:0,e,t:'Грамматика и лексика'}));
+const DEU_BANK=[
+ ["Ich ___ aus Russland.",["komme","kommst","kommt","kommen"],"Ich komme."],
+ ["Er ___ jeden Tag Deutsch.",["lernt","lernst","lerne","lernen"],"Er lernt — 3-е лицо."],
+ ["Wir fahren ___ Berlin.",["nach","in","zu","auf"],"С названиями городов — nach."],
+ ["Ich habe gestern ein Buch ___.",["gelesen","gelest","lesen","las"],"Perfekt: haben + Partizip II (gelesen)."],
+ ["Er ist nach Hause ___.",["gegangen","gegeht","gehen","ging"],"Глаголы движения в Perfekt — с sein: ist gegangen."],
+ ["Das ist ___ Buch.",["das","der","die","den"],"Buch — среднего рода: das Buch."],
+ ["Ich sehe ___ Mann.",["den","der","dem","des"],"Akkusativ мужского рода — den."],
+ ["Ich helfe ___ Mutter.",["der","die","den","das"],"helfen + Dativ; die Mutter → der Mutter."],
+ ["Er sagt, dass er morgen ___.",["kommt","kommen","komme","kam"],"В придаточном с dass глагол в конце: dass er kommt."],
+ ["Ich interessiere mich ___ Musik.",["für","an","auf","mit"],"sich interessieren für."]
+].map(([q,o,e])=>({q,o,a:0,e,t:'Грамматика и лексика'}));
+const FRA_BANK=[
+ ["Je ___ étudiant.",["suis","es","est","sommes"],"Être: je suis."],
+ ["Nous ___ à Paris.",["habitons","habitez","habitent","habite"],"Nous habitons."],
+ ["Elle ___ allée au cinéma.",["est","a","ont","sont"],"Глаголы движения в passé composé — с être."],
+ ["J'___ mangé une pomme.",["ai","suis","as","a"],"Manger — с avoir: j'ai mangé."],
+ ["C'est ___ livre de Marie.",["le","la","les","l'"],"Livre — мужской род: le livre."],
+ ["Je vais ___ France.",["en","à","au","aux"],"Перед странами женского рода — en."],
+ ["Il va ___ Canada.",["au","en","à","aux"],"Перед странами мужского рода — au."],
+ ["Demain je ___ mes amis.",["verrai","vois","voyais","ai vu"],"Futur simple: je verrai."],
+ ["Si j'avais du temps, je ___ plus.",["lirais","lis","lirai","lisais"],"Si + imparfait → conditionnel présent."],
+ ["Il n'y a ___ de pain.",["plus","pas le","rien","aucun"],"Ne … plus = больше нет."]
+].map(([q,o,e])=>({q,o,a:0,e,t:'Грамматика и лексика'}));
+const SPA_BANK=[
+ ["Yo ___ estudiante.",["soy","estoy","es","eres"],"Профессия/принадлежность — ser: soy."],
+ ["Madrid ___ en España.",["está","es","son","están"],"Местонахождение — estar."],
+ ["Nosotros ___ en Moscú.",["vivimos","vivís","viven","vivo"],"Vivir: nosotros vivimos."],
+ ["Ayer ___ al cine.",["fui","voy","iré","iba"],"Pretérito indefinido от ir: fui."],
+ ["Me ___ la música.",["gusta","gustan","gusto","gustas"],"Gustar согласуется с подлежащим: la música → gusta."],
+ ["Me ___ los libros.",["gustan","gusta","gusto","gustamos"],"Мн. ч.: los libros → gustan."],
+ ["Mañana ___ a mis abuelos.",["visitaré","visité","visitaba","visito"],"Futuro simple: visitaré."],
+ ["He ___ la carta.",["escrito","escribido","escribió","escribe"],"Participio от escribir — escrito."],
+ ["___ agua está fría.",["El","La","Los","Un"],"Agua — женский род, но перед ударным a- — артикль el."],
+ ["Quiero que tú ___ conmigo.",["vengas","vienes","vendrás","venir"],"После querer que — subjuntivo: vengas."]
+].map(([q,o,e])=>({q,o,a:0,e,t:'Грамматика и лексика'}));
+const CHI_BANK=[
+ ["Как переводится 你好?",["Здравствуй","Спасибо","До свидания","Извините"],"你好 (nǐ hǎo) — здравствуй."],
+ ["Как переводится 谢谢?",["Спасибо","Пожалуйста","Привет","Да"],"谢谢 (xièxie) — спасибо."],
+ ["Как переводится 再见?",["До свидания","Здравствуй","Спасибо","Хорошо"],"再见 (zàijiàn) — до свидания."],
+ ["Что означает иероглиф 人?",["человек","большой","рот","дерево"],"人 (rén) — человек."],
+ ["Что означает иероглиф 大?",["большой","маленький","небо","человек"],"大 (dà) — большой."],
+ ["Какое слово — счётное для людей в общем случае?",["个","本","张","只"],"个 (gè) — универсальное счётное слово, в том числе для людей; 本 — для книг."],
+ ["Как сказать «я»?",["我","你","他","们"],"我 (wǒ) — я, 你 — ты, 他 — он, 们 — суффикс множественного числа."],
+ ["Какой частицей образуют общий вопрос?",["吗","的","了","很"],"吗 (ma) в конце предложения делает его вопросом."]
+].map(([q,o,e])=>({q,o,a:0,e,t:'Лексика и грамматика'}));
+const LANG_CARDS={
+ eng:[['Present Perfect','have/has + V3: I have finished.\nМаркеры: already, yet, ever, never, since, for'],['Условные предложения','0: If + Present, Present\n1: If + Present, will + V\n2: If + Past, would + V\n3: If + Past Perfect, would have + V3'],['Пассив','be + V3: The house was built in 1990.'],['Герундий','После enjoy, suggest, avoid, mind, look forward to — V-ing']],
+ deu:[['Perfekt','haben/sein + Partizip II\nС sein — глаголы движения и изменения состояния'],['Падежи','Nominativ — кто? Akkusativ — кого? Dativ — кому?\nder → den (Akk) → dem (Dat)']],
+ fra:[['Passé composé','avoir/être + participe passé\nС être — глаголы движения и возвратные'],['Предлоги со странами','en France (ж. р.), au Canada (м. р.), aux États-Unis (мн. ч.)']],
+ spa:[['Ser и estar','ser — постоянные признаки, профессия, происхождение\nestar — местонахождение, состояние'],['Gustar','me gusta + ед. ч.\nme gustan + мн. ч.']],
+ chi:[['Тоны','1 — ровный (mā), 2 — восходящий (má), 3 — нисходяще-восходящий (mǎ), 4 — нисходящий (mà)'],['Вопрос','Общий вопрос — частица 吗 в конце: 你好吗？']]
+};
+/* ===================== ГЕНЕРАТОРЫ ЗАДАЧ ===================== */
+/* Каждый генератор возвращает новую задачу с вычисленным ответом: задачи не заканчиваются. */
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const P=a=>a[Math.floor(Math.random()*a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const nf=x=>{const r=Math.round(x*1e6)/1e6;return String(r).replace('.',',')};          // 0.5 → «0,5»
+const sgn=(n,first)=>n<0?(first?'−':' − ')+Math.abs(n):(first?'':' + ')+n;
+const term=(c,v,first)=>c===0?'':(c<0?(first?'−':' − '):(first?'':' + '))+(Math.abs(c)===1?'':Math.abs(c))+v;
+function distract(ans,spread){const s=new Set([ans]);let g=0;while(s.size<4&&g++<50){const d=ans+P([-1,1])*R(1,spread);if(d!==ans)s.add(d)}return [...s]}
+function mcqNum(q,ans,spread,extra){const opts=shuffle(distract(ans,spread||5));return Object.assign({q,o:opts.map(nf),a:opts.indexOf(ans)},extra)}
+const inp=(q,ans,extra)=>Object.assign({q,inp:1,a:typeof ans==='number'?nf(ans):ans},extra);
+
+const GEN={
+ /* ----- Математика ----- */
+ percent:()=>{const A=R(2,40)*100,p=P([5,10,15,20,25,30,40,50]),up=Math.random()<.6;const v=up?A+A*p/100:A-A*p/100;
+   return inp(`Цена товара — ${A} руб. Её ${up?'повысили':'снизили'} на ${p}%. Сколько рублей стал стоить товар?`,v,{t:'Текстовые задачи',k:'Задание 10',e:`${p}% от ${A} = ${A*p/100}. ${A} ${up?'+':'−'} ${A*p/100} = ${v}.`})},
+ linear:()=>{const a=R(2,9)*P([1,-1]),x=R(-9,9),b=R(-20,20),c=a*x+b;
+   return inp(`Решите уравнение: ${term(a,'x',true)}${sgn(b)} = ${c}`,x,{t:'Уравнения',k:'Задание 6',e:`${a}x = ${c} − (${b}) = ${c-b}, x = ${x}.`})},
+ quad:()=>{let r1=R(-9,9),r2=R(-9,9);while(r2===r1)r2=R(-9,9);const p=-(r1+r2),q=r1*r2,big=Math.random()<.5;
+   return inp(`Решите уравнение x²${p?term(p,'x'):''}${q?sgn(q):''} = 0. Если корней несколько, запишите ${big?'больший':'меньший'}.`,big?Math.max(r1,r2):Math.min(r1,r2),{t:'Уравнения',k:'Задание 6',e:`По теореме Виета корни ${r1} и ${r2}: сумма ${r1+r2}, произведение ${q}.`})},
+ expeq:()=>{const a=P([2,3,5]),k=R(1,a===2?6:3),m=R(-4,4);
+   return inp(`Решите уравнение: ${a}<sup>x${sgn(m)}</sup> = ${a**k}`,k-m,{t:'Уравнения',k:'Задание 6',e:`${a**k} = ${a}<sup>${k}</sup>, значит x${sgn(m)} = ${k}, x = ${k-m}.`})},
+ logeq:()=>{const a=P([2,3,5]),k=R(1,a===2?5:3),m=R(-5,5);
+   return inp(`Решите уравнение: log<sub>${a}</sub>(x${sgn(m)}) = ${k}`,a**k-m,{t:'Уравнения',k:'Задание 6',e:`x${sgn(m)} = ${a}<sup>${k}</sup> = ${a**k}, x = ${a**k-m}.`})},
+ logval:()=>{const a=P([2,3,5]),k=R(1,a===2?6:3),b=P([2,3]),j=R(1,b===2?5:3);
+   return inp(`Найдите значение выражения: log<sub>${a}</sub> ${a**k} + log<sub>${b}</sub> ${b**j}`,k+j,{t:'Вычисления',k:'Задание 7',e:`log<sub>${a}</sub> ${a**k} = ${k}, log<sub>${b}</sub> ${b**j} = ${j}.`})},
+ trig:()=>{const k=R(1,9)*2,m=R(1,9)*2,f=P([['sin 30°',.5],['cos 60°',.5]]),g=P([['tg 45°',1],['cos 0°',1],['sin 90°',1]]);
+   return inp(`Найдите значение выражения: ${k}·${f[0]} + ${m}·${g[0]}`,k*f[1]+m*g[1],{t:'Вычисления',k:'Задание 7',e:`${f[0]} = ${nf(f[1])}, ${g[0]} = 1: ${k}·${nf(f[1])} + ${m} = ${nf(k*f[1]+m)}.`})},
+ deriv:()=>{const a=R(1,4),b=R(-5,5),c=R(-9,9),x=R(-3,3);const v=3*a*x*x+2*b*x+c;
+   return inp(`Найдите f′(${x}), если f(x) = ${term(a,'x³',true)}${term(b,'x²')}${term(c,'x')}`,v,{t:'Производная',e:`f′(x) = ${3*a}x² ${2*b<0?'−':'+'} ${Math.abs(2*b)}x ${c<0?'−':'+'} ${Math.abs(c)}; f′(${x}) = ${v}.`})},
+ prob1:()=>{const n=P([10,20,25,40,50]),k=R(1,n-1);
+   return inp(`В сборнике ${n} билетов, в ${k} из них встречается вопрос по теме «Логарифмы». Найдите вероятность того, что в случайно выбранном билете есть этот вопрос.`,k/n,{t:'Теория вероятностей',k:'Задание 4',e:`P = ${k}/${n} = ${nf(k/n)}.`})},
+ prob2:()=>{const p1=R(80,98),p2=R(40,p1-5);
+   return inp(`Вероятность того, что чайник прослужит больше года, равна ${nf(p1/100)}, а больше двух лет — ${nf(p2/100)}. Найдите вероятность того, что он прослужит больше года, но меньше двух лет.`,(p1-p2)/100,{t:'Теория вероятностей',k:'Задание 5',e:`${nf(p1/100)} − ${nf(p2/100)} = ${nf((p1-p2)/100)}.`})},
+ prob3:()=>{const p=P([.5,.6,.8,.9]),q=P([.5,.7,.8,.9]);
+   return inp(`Два стрелка независимо стреляют по мишени. Вероятность попадания первого ${nf(p)}, второго ${nf(q)}. Найдите вероятность того, что оба попадут.`,p*q,{t:'Теория вероятностей',k:'Задание 5',e:`Независимые события: ${nf(p)} · ${nf(q)} = ${nf(p*q)}.`})},
+ pyth:()=>{const t=P([[3,4,5],[5,12,13],[8,15,17],[7,24,25],[6,8,10]]),m=R(1,3);
+   return inp(`Катеты прямоугольного треугольника равны ${t[0]*m} и ${t[1]*m}. Найдите гипотенузу.`,t[2]*m,{t:'Планиметрия',k:'Задание 1',e:`c = √(${t[0]*m}² + ${t[1]*m}²) = ${t[2]*m}.`})},
+ triarea:()=>{const a=R(2,20),b=R(2,20)*2;
+   return inp(`Катеты прямоугольного треугольника равны ${a} и ${b}. Найдите его площадь.`,a*b/2,{t:'Планиметрия',k:'Задание 1',e:`S = ½·${a}·${b} = ${a*b/2}.`})},
+ vec:()=>{const a=R(-6,6),b=R(-6,6),c=R(-6,6),d=R(-6,6);
+   return inp(`Даны векторы a(${a}; ${b}) и b(${c}; ${d}). Найдите скалярное произведение a·b.`,a*c+b*d,{t:'Векторы',k:'Задание 2',e:`${a}·${c} + ${b}·${d} = ${a*c+b*d}.`})},
+ box:()=>{const t=P([[1,2,2,3],[2,3,6,7],[1,4,8,9],[2,6,9,11],[4,4,7,9],[2,10,11,15]]);
+   return inp(`Рёбра прямоугольного параллелепипеда равны ${t[0]}, ${t[1]} и ${t[2]}. Найдите его диагональ.`,t[3],{t:'Стереометрия',k:'Задание 3',e:`d = √(${t[0]}² + ${t[1]}² + ${t[2]}²) = √${t[3]*t[3]} = ${t[3]}.`})},
+ meet:()=>{const v1=R(4,12)*5,v2=R(4,12)*5,t=R(1,5);const S=(v1+v2)*t;
+   return inp(`Из двух городов, расстояние между которыми ${S} км, одновременно навстречу друг другу выехали два автомобиля со скоростями ${v1} и ${v2} км/ч. Через сколько часов они встретятся?`,t,{t:'Текстовые задачи',k:'Задание 10',e:`Скорость сближения ${v1+v2} км/ч, t = ${S} / ${v1+v2} = ${t}.`})},
+ arith:()=>{const a1=R(-10,10),d=R(-5,6)||2,n=R(5,15);
+   return inp(`В арифметической прогрессии a₁ = ${a1}, d = ${d}. Найдите a${String(n).split('').map(x=>'₀₁₂₃₄₅₆₇₈₉'[x]).join('')}.`,a1+(n-1)*d,{t:'Прогрессии',e:`aₙ = a₁ + (n − 1)d = ${a1} + ${n-1}·${d} = ${a1+(n-1)*d}.`})},
+ frac:()=>{const ds=[2,4,5,8,10,20,25];const b=P(ds),d=P(ds),a=R(1,b*2),c=R(1,d*2);
+   return inp(`Найдите значение выражения: ${a}/${b} + ${c}/${d}`,a/b+c/d,{t:'Вычисления',e:`${a}/${b} = ${nf(a/b)}, ${c}/${d} = ${nf(c/d)}, сумма ${nf(a/b+c/d)}.`})},
+ pctof:()=>{const n=R(2,40)*50,p=P([2,4,5,10,12,15,20,25,30,40,60,75]);
+   return inp(`Найдите ${p}% от числа ${n}.`,n*p/100,{t:'Проценты',e:`${n} · ${p} / 100 = ${nf(n*p/100)}.`})},
+ packs:()=>{const n=P([5,6,8,10,12,20]),k=R(2,9),m=R(3,12);const need=Math.ceil(k*m/n);
+   return inp(`Ученик тратит ${k} тетрадей в неделю. Тетради продаются пачками по ${n} штук. Какое наименьшее число пачек нужно купить на ${m} недель?`,need,{t:'Текстовые задачи',e:`Нужно ${k*m} тетрадей. ${k*m} / ${n} = ${nf(k*m/n)} → округляем вверх: ${need}.`})},
+ change:()=>{const price=R(12,95),cnt=R(2,6),pay=Math.ceil(price*cnt/500)*500;
+   return inp(`Ручка стоит ${price} руб. Какую сдачу получит покупатель с ${pay} руб. при покупке ${cnt} ручек?`,pay-price*cnt,{t:'Текстовые задачи',e:`${cnt} · ${price} = ${price*cnt}; ${pay} − ${price*cnt} = ${pay-price*cnt}.`})},
+ rectarea:()=>{const a=R(2,30),b=R(2,30);
+   return inp(`Участок прямоугольной формы имеет размеры ${a} м × ${b} м. Найдите его площадь в квадратных метрах.`,a*b,{t:'Геометрия',e:`${a} · ${b} = ${a*b}.`})},
+
+ /* ----- Физика (g = 10 м/с²) ----- */
+ kin:()=>{const t=R(2,20),v=R(2,30);return inp(`Тело движется равномерно со скоростью ${v} м/с. Какой путь (в метрах) оно пройдёт за ${t} с?`,v*t,{t:'Кинематика',e:`s = v·t = ${v}·${t} = ${v*t} м.`})},
+ accel:()=>{const a=R(1,5),t=R(2,10),v0=R(0,10);return inp(`Скорость тела за ${t} с выросла с ${v0} до ${v0+a*t} м/с. Найдите ускорение (м/с²).`,a,{t:'Кинематика',e:`a = (v − v₀)/t = ${a*t}/${t} = ${a}.`})},
+ newton:()=>{const m=R(2,50),a=R(1,8);return inp(`На тело массой ${m} кг действует сила, сообщающая ускорение ${a} м/с². Найдите силу (Н).`,m*a,{t:'Динамика',e:`F = ma = ${m}·${a} = ${m*a} Н.`})},
+ ek:()=>{const m=R(1,10)*2,v=R(1,10);return inp(`Найдите кинетическую энергию (Дж) тела массой ${m} кг, движущегося со скоростью ${v} м/с.`,m*v*v/2,{t:'Энергия',e:`Eк = mv²/2 = ${m}·${v*v}/2 = ${m*v*v/2} Дж.`})},
+ ep:()=>{const m=R(1,20),h=R(1,30);return inp(`Тело массой ${m} кг подняли на высоту ${h} м. Найдите его потенциальную энергию (Дж), g = 10 м/с².`,m*10*h,{t:'Энергия',e:`Eп = mgh = ${m}·10·${h} = ${m*10*h} Дж.`})},
+ ohm:()=>{const R0=P([2,4,5,10,20,25,50]),I=R(1,10);return inp(`Сопротивление проводника ${R0} Ом, сила тока ${I} А. Найдите напряжение (В).`,R0*I,{t:'Электричество',e:`U = IR = ${I}·${R0} = ${I*R0} В.`})},
+ power:()=>{const U=P([12,24,110,220]),I=R(1,10);return inp(`Напряжение ${U} В, сила тока ${I} А. Найдите мощность (Вт).`,U*I,{t:'Электричество',e:`P = UI = ${U}·${I} = ${U*I} Вт.`})},
+ pres:()=>{const S=P([.1,.2,.5,2,4]),F=R(1,20)*100;return inp(`Сила ${F} Н действует на площадь ${nf(S)} м². Найдите давление (Па).`,F/S,{t:'Давление',e:`p = F/S = ${F}/${nf(S)} = ${nf(F/S)} Па.`})},
+ dens:()=>{const V=P([2,4,5,10]),r=P([800,1000,2700,7800]);return inp(`Тело объёмом ${nf(V/1000)} м³ имеет массу ${nf(r*V/1000)} кг. Найдите плотность (кг/м³).`,r,{t:'Давление',e:`ρ = m/V = ${r} кг/м³.`})},
+ heat:()=>{const m=R(1,5),dt=R(5,50);return inp(`Какое количество теплоты (кДж) нужно, чтобы нагреть ${m} кг воды на ${dt} °C? c = 4200 Дж/(кг·°C).`,4.2*m*dt,{t:'Теплота',e:`Q = cmΔt = 4200·${m}·${dt} = ${4200*m*dt} Дж = ${nf(4.2*m*dt)} кДж.`})},
+ impulse:()=>{const m=R(1,10),v=R(2,20);return inp(`Найдите импульс (кг·м/с) тела массой ${m} кг, движущегося со скоростью ${v} м/с.`,m*v,{t:'Импульс',e:`p = mv = ${m*v} кг·м/с.`})},
+
+ /* ----- Химия ----- */
+ molar:()=>{const f=P(CHEM_F);return inp(`Вычислите молярную массу ${fml(f)} (г/моль). Ar: ${arList(f)}.`,M(f),{t:'Расчёты',e:`M(${fml(f)}) = ${M(f)} г/моль.`})},
+ moles:()=>{const f=P(CHEM_F),n=P([.5,1,2,3,4]);return inp(`Сколько моль вещества содержится в ${nf(M(f)*n)} г ${fml(f)}? Ar: ${arList(f)}.`,n,{t:'Расчёты',e:`n = m/M = ${nf(M(f)*n)}/${M(f)} = ${nf(n)} моль.`})},
+ omega:()=>{const f=P(CHEM_F.filter(x=>/O/.test(x)));const w=Math.round(16*cnt(f,'O')/M(f)*100);return inp(`Найдите массовую долю кислорода в ${fml(f)} (в %, округлите до целых). Ar: ${arList(f)}.`,w,{t:'Расчёты',e:`ω(O) = ${16*cnt(f,'O')}/${M(f)}·100% ≈ ${w}%.`})},
+ klass:()=>{const [f,c]=P(CHEM_CLASS);const o=['оксид','кислота','основание','соль'];return {q:`К какому классу относится ${fml(f)}?`,o,a:o.indexOf(c),t:'Классы веществ',e:`${fml(f)} — ${c}.`}},
+
+ /* ----- Информатика ----- */
+ d2b:()=>{const n=R(5,255);return inp(`Переведите число ${n} в двоичную систему.`,n.toString(2),{t:'Системы счисления',e:`${n}₁₀ = ${n.toString(2)}₂.`})},
+ b2d:()=>{const n=R(5,255);return inp(`Переведите ${n.toString(2)}₂ в десятичную систему.`,n,{t:'Системы счисления',e:`${n.toString(2)}₂ = ${n}₁₀.`})},
+ d2h:()=>{const n=R(16,255);return inp(`Переведите число ${n} в шестнадцатеричную систему (буквы — латинские заглавные).`,n.toString(16).toUpperCase(),{t:'Системы счисления',e:`${n}₁₀ = ${n.toString(16).toUpperCase()}₁₆.`})},
+ ones:()=>{const n=R(20,1000);const c=n.toString(2).split('').filter(x=>x==='1').length;return inp(`Сколько единиц в двоичной записи числа ${n}?`,c,{t:'Системы счисления',e:`${n}₁₀ = ${n.toString(2)}₂ — единиц: ${c}.`})},
+ hartley:()=>{const i=R(1,8);return inp(`Алфавит содержит ${2**i} символов. Сколько бит нужно для кодирования одного символа?`,i,{t:'Информация',e:`N = 2ⁱ: ${2**i} = 2<sup>${i}</sup>, i = ${i}.`})},
+ msg:()=>{const i=R(3,8),K=R(1,8)*128;return inp(`Сообщение из ${K} символов записано алфавитом мощностью ${2**i}. Каков его объём в байтах?`,K*i/8,{t:'Информация',e:`I = K·i = ${K}·${i} = ${K*i} бит = ${K*i/8} байт.`})},
+ img:()=>{const w=P([64,128,256]),h=P([64,128,256]),i=P([1,2,4,8]);return inp(`Изображение ${w}×${h} пикселей, палитра из ${2**i} цветов. Каков объём файла в Кбайтах (без сжатия)?`,w*h*i/8/1024,{t:'Информация',e:`${w}·${h}·${i} бит = ${w*h*i/8} байт = ${nf(w*h*i/8/1024)} Кбайт.`})},
+ logic:()=>{const A=R(0,1),B=R(0,1),C=R(0,1);const ex=P([['¬A ∨ B ∧ C',(!A)||(B&&C)],['(A ∨ B) ∧ ¬C',(A||B)&&!C],['A → B',(!A)||B],['¬(A ∧ B) ∨ C',!(A&&B)||C],['A ≡ ¬B',A===(1-B)]]);
+   return {q:`Чему равно значение выражения ${ex[0]} при A = ${A}, B = ${B}, C = ${C}?`,o:['0','1'],a:ex[1]?1:0,t:'Логика',e:`Подставляем значения: результат ${ex[1]?1:0}. ¬ — НЕ, ∧ — И, ∨ — ИЛИ, → — импликация, ≡ — эквивалентность.`}},
+
+ /* ----- Биология ----- */
+ dna:()=>{const s=Array.from({length:9},()=>P('ATGC'.split(''))).join('');const c=s.split('').map(x=>({A:'T',T:'A',G:'C',C:'G'})[x]).join('');
+   return inp(`Цепь ДНК: ${s}. Запишите комплементарную цепь ДНК (латинскими буквами, без пробелов).`,c,{t:'Молекулярная биология',e:`A — T, G — C: ${c}.`})},
+ rna:()=>{const s=Array.from({length:9},()=>P('ATGC'.split(''))).join('');const c=s.split('').map(x=>({A:'U',T:'A',G:'C',C:'G'})[x]).join('');
+   return inp(`Матричная цепь ДНК: ${s}. Запишите последовательность иРНК (латинскими буквами, без пробелов).`,c,{t:'Молекулярная биология',e:`При транскрипции A → U, T → A, G → C, C → G: ${c}.`})},
+ cross:()=>{const c=P([['AA × aa',0],['Aa × Aa',25],['Aa × aa',50],['aa × aa',100],['AA × Aa',0]]);
+   return inp(`Признак рецессивный (a). Скрещивание ${c[0]}. Какой процент потомков будет с рецессивным признаком?`,c[1],{t:'Генетика',e:`Составь решётку Пеннета: доля aa — ${c[1]}%.`})},
+ aminos:()=>{const n=R(10,90)*3;return inp(`Фрагмент иРНК содержит ${n} нуклеотидов. Сколько аминокислот закодировано в нём?`,n/3,{t:'Молекулярная биология',e:`Одна аминокислота кодируется триплетом: ${n} / 3 = ${n/3}.`})},
+
+ /* ----- География ----- */
+ natinc:()=>{const b=R(8,15),d=R(9,17);return inp(`Рождаемость в регионе ${b}‰, смертность ${d}‰. Найдите естественный прирост (‰). Если убыль, запишите с минусом.`,b-d,{t:'Население',e:`${b} − ${d} = ${b-d}‰.`})},
+ natabs:()=>{const pop=R(5,40)*100000,b=R(8,14),d=R(9,16);const v=pop*(b-d)/1000;return inp(`Население региона ${pop.toLocaleString('ru-RU')} чел., рождаемость ${b}‰, смертность ${d}‰. Найдите естественный прирост за год (чел.). Убыль — с минусом.`,v,{t:'Население',e:`${pop} · (${b} − ${d}) / 1000 = ${v}.`})},
+ density:()=>{const s=R(10,200)*1000,d=R(2,60);return inp(`Площадь региона ${s.toLocaleString('ru-RU')} км², население ${(s*d).toLocaleString('ru-RU')} чел. Найдите плотность населения (чел./км²).`,d,{t:'Население',e:`${s*d} / ${s} = ${d} чел./км².`})},
+ scale:()=>{const N=P([10000,25000,50000,100000,200000]),cm=R(2,9);return inp(`Масштаб карты 1 : ${N.toLocaleString('ru-RU')}. Расстояние на карте ${cm} см. Каково расстояние на местности в метрах?`,N*cm/100,{t:'Карты',e:`В 1 см ${N/100} м; ${cm} · ${N/100} = ${N*cm/100} м.`})},
+
+ /* ----- Русский язык ----- */
+ stress:()=>{const w=P(STRESS);const lw=w.toLowerCase();const vs=[...lw].map((c,i)=>'аеёиоуыэюя'.includes(c)?i:-1).filter(i=>i>=0);
+   const ci=[...w].findIndex(c=>'АЕЁИОУЫЭЮЯ'.includes(c));const show=i=>[...lw].map((c,j)=>j===i?c.toUpperCase():c).join('');
+   const wrong=shuffle(vs.filter(i=>i!==ci)).slice(0,2);const opts=shuffle([ci,...wrong]);
+   return {q:'Где правильно поставлено ударение?',o:opts.map(show),a:opts.indexOf(ci),t:'Ударения',k:'Задание 4',e:`Правильно: ${show(ci)}. Слово из орфоэпического словника ЕГЭ.`}},
+
+ /* ----- История ----- */
+ date2ev:()=>{const [y,ev]=P(HIST_DATES);const o=shuffle([ev,...shuffle(HIST_DATES.filter(d=>d[0]!==y)).slice(0,3).map(d=>d[1])]);return {q:`Какое событие произошло в <b>${y}</b> году?`,o,a:o.indexOf(ev),t:'Даты',e:`${y} — ${ev}.`}},
+ ev2date:()=>{const [y,ev]=P(HIST_DATES);const near=HIST_DATES.filter(d=>d[0]!==y).sort((a,b)=>Math.abs(a[0]-y)-Math.abs(b[0]-y)).slice(0,6);const o=shuffle([y,...shuffle(near).slice(0,3).map(d=>d[0])]);return {q:`В каком году: <b>${ev}</b>?`,o,a:o.indexOf(y),t:'Даты',e:`${ev} — ${y} год.`}},
+ person:()=>{const [p,ev]=P(HIST_PEOPLE);const o=shuffle([p,...shuffle(HIST_PEOPLE.filter(x=>x[0]!==p)).slice(0,3).map(x=>x[0])]);return {q:`С кем связано: <b>${ev}</b>?`,o,a:o.indexOf(p),t:'Личности',e:`${ev} — ${p}.`}},
+
+ /* ----- Обществознание ----- */
+ term:()=>{const [t,d]=P(SOC_TERMS);const o=shuffle([t,...shuffle(SOC_TERMS.filter(x=>x[0]!==t)).slice(0,3).map(x=>x[0])]);return {q:`Какому понятию соответствует определение: <i>${d}</i>?`,o,a:o.indexOf(t),t:'Понятия',e:`${t} — ${d}.`}},
+
+ /* ----- Литература ----- */
+ author:()=>{const b=P(BOOKS);const o=shuffle([b.a,...shuffle([...new Set(BOOKS.map(x=>x.a))].filter(a=>a!==b.a)).slice(0,3)]);return {q:`Кто автор произведения «${b.t}»?`,o,a:o.indexOf(b.a),t:'Произведения',e:`«${b.t}» — ${b.a}.`}},
+ hero:()=>{const b=P(BOOKS.filter(x=>!['rya','chuk'].includes(x.id)));const h=b.heroes.split(',')[0].trim();const o=shuffle([b.t,...shuffle(BOOKS.filter(x=>x.id!==b.id)).slice(0,3).map(x=>x.t)]);return {q:`В каком произведении есть герой: <b>${h}</b>?`,o:o.map(x=>'«'+x+'»'),a:o.indexOf(b.t),t:'Произведения',e:`${h} — «${b.t}», ${b.a}.`}},
+ lterm:()=>{const [t,d]=P(LIT_TERMS);const o=shuffle([t,...shuffle(LIT_TERMS.filter(x=>x[0]!==t)).slice(0,3).map(x=>x[0])]);return {q:`Как называется приём: <i>${d}</i>?`,o,a:o.indexOf(t),t:'Теория литературы',e:`${t} — ${d}.`}}
+};
+
+/* Химия: формулы и расчёт молярной массы */
+const AR={H:1,C:12,N:14,O:16,Na:23,Mg:24,Al:27,S:32,Cl:35.5,K:39,Ca:40,Fe:56,Cu:64,Zn:65,P:31,Ag:108,Ba:137};
+const CHEM_F=['H2O','CO2','NaCl','H2SO4','CaCO3','NaOH','HCl','KOH','HNO3','MgO','Al2O3','Fe2O3','CuSO4','Ca(OH)2','NH3','CH4','SO2','KCl','ZnO','H3PO4','AgNO3','BaCl2','Na2SO4','MgCl2'];
+const CHEM_CLASS=[['CO2','оксид'],['Na2O','оксид'],['SO3','оксид'],['Fe2O3','оксид'],['MgO','оксид'],['H2SO4','кислота'],['HCl','кислота'],['HNO3','кислота'],['H3PO4','кислота'],['NaOH','основание'],['KOH','основание'],['Ca(OH)2','основание'],['Mg(OH)2','основание'],['NaCl','соль'],['CaCO3','соль'],['K2SO4','соль'],['CuSO4','соль'],['AgNO3','соль']];
+function parseF(f){const st=[{}];const re=/([A-Z][a-z]?|\(|\))(\d*)/g;let m;
+  while((m=re.exec(f))){const n=+m[2]||1;if(m[1]==='(')st.push({});else if(m[1]===')'){const g=st.pop(),t=st[st.length-1];for(const k in g)t[k]=(t[k]||0)+g[k]*n}else{const t=st[st.length-1];t[m[1]]=(t[m[1]]||0)+n}}
+  return st[0]}
+const M=f=>{const c=parseF(f);let s=0;for(const k in c)s+=AR[k]*c[k];return Math.round(s*10)/10};
+const cnt=(f,el)=>parseF(f)[el]||0;
+const fml=f=>f.replace(/(\d+)/g,'<sub>$1</sub>');
+const arList=f=>Object.keys(parseF(f)).map(k=>`${k} = ${nf(AR[k])}`).join(', ');
+
+/* Какие генераторы у какого предмета */
+const SUBJ_GENS={
+ rus:['stress'],
+ mathp:['linear','quad','expeq','logeq','logval','trig','deriv','prob1','prob2','prob3','pyth','triarea','vec','box','percent','meet','arith'],
+ mathb:['frac','pctof','percent','packs','change','rectarea','pyth','triarea','prob1','arith','linear'],
+ phys:['kin','accel','newton','ek','ep','ohm','power','pres','dens','heat','impulse'],
+ chem:['molar','moles','omega','klass'],
+ inf:['d2b','b2d','d2h','ones','hartley','msg','img','logic'],
+ bio:['dna','rna','cross','aminos'],
+ hist:['date2ev','ev2date','person'],
+ soc:['term'],
+ geo:['natinc','natabs','density','scale'],
+ lit:['author','hero','lterm']
+};
+const SUBJ_BANK={rus:RUS_BANK,mathp:MATHP_BANK,mathb:MATHB_BANK,phys:PHYS_BANK,chem:CHEM_BANK,inf:INF_BANK,bio:BIO_BANK,soc:SOC_BANK,geo:GEO_BANK,lit:LIT_BANK,eng:ENG_BANK,deu:DEU_BANK,fra:FRA_BANK,spa:SPA_BANK,chi:CHI_BANK,hist:[]};
+const SUBJ_CARDS={rus:RUS_CARDS,mathp:MATH_CARDS,mathb:MATH_CARDS,phys:PHYS_CARDS,chem:CHEM_CARDS,inf:INF_CARDS,bio:BIO_CARDS,
+ hist:HIST_DATES.map(([y,e])=>[y,e]),soc:SOC_TERMS,geo:[['Естественный прирост','рождаемость − смертность (в ‰ — на 1000 жителей)'],['Миграционный прирост','въехавшие − выехавшие'],['Плотность населения','население / площадь'],['Масштаб','1 : 100 000 — в 1 см 1 км']],
+ lit:LIT_TERMS,eng:LANG_CARDS.eng,deu:LANG_CARDS.deu,fra:LANG_CARDS.fra,spa:LANG_CARDS.spa,chi:LANG_CARDS.chi};
+
+/* Темы предмета: из банка и генераторов */
+function subjTopics(id){const t=new Map();(SUBJ_BANK[id]||[]).forEach(q=>t.set(q.t,(t.get(q.t)||0)+1));(SUBJ_GENS[id]||[]).forEach(g=>{const s=GEN[g]();t.set(s.t,(t.get(s.t)||0)+1)});return [...t.keys()]}
+/* Новая задача: случайно из генератора или из банка, с фильтром по теме */
+function makeQ(id,topic){
+  const bank=(SUBJ_BANK[id]||[]).map((q,i)=>({...q,id:id+':'+i})).filter(q=>!topic||q.t===topic);
+  let gens=(SUBJ_GENS[id]||[]);
+  if(topic)gens=gens.filter(g=>{for(let k=0;k<3;k++){if(GEN[g]().t===topic)return true}return false});
+  const useGen=gens.length&&(!bank.length||Math.random()<gens.length/(gens.length+Math.min(bank.length,gens.length*2)));
+  let q=useGen?GEN[P(gens)]():P(bank);
+  if(topic&&q.t!==topic&&useGen){for(let k=0;k<10&&q.t!==topic;k++)q=GEN[P(gens)]()}
+  q=Object.assign({},q,{subj:id});
+  if(q.o&&q.o.length>2&&!q.shuffled){const idx=shuffle(q.o.map((_,i)=>i));q.o=idx.map(i=>q.o[i]);q.a=idx.indexOf(q.a);q.shuffled=1}
+  return q;
+}
 
 /* ===================== ХРАНИЛИЩЕ ===================== */
 const KEY='zachet21:v1';
 function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}return null}
 function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-const fresh=()=>({plan:15,paper:'',start:iso(new Date()),done:{},books:{},essays:[],draft:{topic:'',text:''},timer:{dur:120*60,end:null,left:120*60},check:{},view:null,refTab:'crit',bookFilter:'all',bookMode:'list'});
+const fresh=()=>({paper:'',books:{},essays:[],draft:{topic:'',text:''},timer:{dur:120*60,end:null,left:120*60},check:{},bookFilter:'all',bookMode:'list',
+  name:'',subjects:[],examDate:'2027-06-01',goal:20,xp:0,r:{},days:{},ach:{},friends:[],mistakes:[],stat:{correct:0,answered:0,mocks:0,blitzBest:0},uid:Math.random().toString(36).slice(2,10),onboarded:false});
 let S=Object.assign(fresh(),load()||{});
+['r','days','ach','stat'].forEach(k=>{if(!S[k]||typeof S[k]!=='object')S[k]=fresh()[k]});
+['friends','mistakes','subjects','essays'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[]});
 if(S.writeMode==='photo')S.writeMode='paper';
 if(S.lastCheck&&!Array.isArray(S.lastCheck.hints))S.lastCheck=null;
-if(S.plan!==15){S.plan=15;S.done={};S.view=null;save()}  // переход со старого плана на 21 день
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 
 /* ===================== ПОМОЩНИКИ ===================== */
-const TOTAL=15;
-const STAGES=[{n:'Основа',d:'Правила, структура, аргумент'},{n:'Аргументы',d:'Три раздела банка тем, чистая речь'},{n:'Тренировка',d:'Грамотность и полные репетиции'}];
 const SECC={1:'var(--s1)',2:'var(--s2)',3:'var(--s3)'};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function plural(n,a,b,c){n=Math.abs(n)%100;const m=n%10;if(n>10&&n<20)return c;if(m>1&&m<5)return b;if(m===1)return a;return c}
 function dayStart(d){const x=new Date(d);x.setHours(0,0,0,0);return x}
-function currentDay(){const s=new Date(S.start+'T00:00:00');const n=Math.floor((dayStart(new Date())-s)/864e5)+1;return Math.min(TOTAL,Math.max(1,n))}
-function daysLeft(){return Math.max(0,Math.round((dayStart(EXAM)-dayStart(new Date()))/864e5))}
-function tasksDone(i){const d=S.done[i]||{};return DAYS[i-1].tasks.filter((_,k)=>d[k]).length}
-function dayState(i){const n=tasksDone(i);return n===0?'':(n===DAYS[i-1].tasks.length?'done':'part')}
-function doneDays(){let c=0;for(let i=1;i<=TOTAL;i++)if(dayState(i)==='done')c++;return c}
-function dateOfDay(i){const d=new Date(S.start+'T00:00:00');d.setDate(d.getDate()+i-1);return d}
-const WD=['вс','пн','вт','ср','чт','пт','сб'], MON=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
-const fmtShort=d=>`${WD[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}`;
-const fmtLong=d=>d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
 function words(t){return (t.match(/[A-Za-zА-Яа-яЁё0-9]+(?:-[A-Za-zА-Яа-яЁё0-9]+)*/g)||[]).length}
-function toast(msg){document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),1900)}
+function toast(msg){document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2100)}
 function booksFor(sub){return BOOKS.filter(b=>b.tags.includes(sub))}
 const secOf=b=>+b.tags[0][0];
 const tag=t=>`<span class="tag" style="--c:${SECC[t[0]]}">${t}</span>`;
 function bookChip(id){const b=BOOK[id];return `<button class="chip" style="--c:${SECC[secOf(b)]}" data-sheet="${id}">«${esc(b.t)}»</button>`}
 function spine(b){return `<span class="spine" style="--c:${SECC[secOf(b)]}" aria-hidden="true">${(b.t.match(/[А-ЯЁA-Z0-9]/i)||['?'])[0]}</span>`}
-
 const IC={
- check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
- left:'<path d="M15 5l-7 7 7 7"/>', right:'<path d="M9 5l7 7-7 7"/>',
+ check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', left:'<path d="M15 5l-7 7 7 7"/>', right:'<path d="M9 5l7 7-7 7"/>',
  shuffle:'<path d="M3 7h3.5c5 0 6 10 11 10H21M3 17h3.5c1.8 0 3-1.2 4-2.8M21 7h-3.5c-1.8 0-3 1.2-4 2.8M18 4l3 3-3 3M18 14l3 3-3 3"/>',
  play:'<path d="M8 5.2v13.6a.8.8 0 0 0 1.2.7l10.6-6.8a.8.8 0 0 0 0-1.4L9.2 4.5A.8.8 0 0 0 8 5.2z"/>',
  pause:'<rect x="6.5" y="5" width="4" height="14" rx="1.2"/><rect x="13.5" y="5" width="4" height="14" rx="1.2"/>',
- reset:'<path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v5h5"/>',
- close:'<path d="M6 6l12 12M18 6L6 18"/>',
+ reset:'<path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v5h5"/>', close:'<path d="M6 6l12 12M18 6L6 18"/>',
  copy:'<rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 9V6.5A2.5 2.5 0 0 0 12.5 4h-6A2.5 2.5 0 0 0 4 6.5v6A2.5 2.5 0 0 0 6.5 15H9"/>',
  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>', pen:'<path d="M15 4l5 5L9 20H4v-5z"/>',
- camera:'<path d="M4 8.5h3.2L9 6h6l1.8 2.5H20V19H4z"/><circle cx="12" cy="13.3" r="3.4"/>', plus:'<path d="M12 5v14M5 12h14"/>'
+ camera:'<path d="M4 8.5h3.2L9 6h6l1.8 2.5H20V19H4z"/><circle cx="12" cy="13.3" r="3.4"/>', plus:'<path d="M12 5v14M5 12h14"/>',
+ book:'<path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v14c-3-1-6-1-8 1-2-2-5-2-8-1z"/><path d="M12 6v14"/>',
+ bolt:'<path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/>', target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
+ trophy:'<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9 17h6"/>',
+ cards:'<rect x="3" y="6" width="13" height="15" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v13"/>', timer:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/>',
+ list:'<path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>', flame:'<path d="M12 3c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-3-1-5 1-8z"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>', home:'<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>', grid:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+ star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>', share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.3 10.8l7.4-3.6M8.3 13.2l7.4 3.6"/>',
+ redo:'<path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5"/>', medal:'<circle cx="12" cy="15" r="6"/><path d="M8 3l4 6 4-6M12 12.5v5M10 15h4"/>', doc:'<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>'
 };
-const ic=(n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
+const ic=(n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" aria-hidden="true">${IC[n]||''}</svg>`;
 function head(title,sub){return `<header class="apphead"><h1>${title}</h1>${sub?`<p class="sub">${sub}</p>`:''}</header>`}
-function ring(p){const r=34,c=2*Math.PI*r;return `<div class="ring" role="img" aria-label="Закрыто дней: ${doneDays()} из ${TOTAL}"><svg viewBox="0 0 84 84"><circle class="bgc" cx="42" cy="42" r="${r}"/><circle class="fgc" cx="42" cy="42" r="${r}" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p)}"/></svg><b class="num">${doneDays()}<small>из ${TOTAL}</small></b></div>`}
+function backBar(to,label){return `<button class="link back" data-nav="${to}">${ic('left')}${label}</button>`}
+const sc=id=>`var(--c-${id})`;
 
-/* ===================== СЕГОДНЯ ===================== */
-function viewToday(){
-  const cur=currentDay(), i=S.view||cur, D=DAYS[i-1], st=Math.ceil(i/5), done=S.done[i]||{};
-  const n=tasksDone(i), total=D.tasks.length, left=daysLeft();
-  const today=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
-  const dots=[0,1,2].map(g=>`<div class="stage">${[1,2,3,4,5].map(k=>{const d=g*5+k;return `<button class="dot ${dayState(d)} ${d===cur?'cur':''} ${d===i?'sel':''}" data-goday="${d}" aria-label="День ${d}"><i></i></button>`}).join('')}</div>`).join('');
+/* ===================== ПРОГРЕСС: XP, УРОВНИ, ЛИГИ ===================== */
+const levelOf=xp=>Math.floor((1+Math.sqrt(1+8*xp/100))/2);
+const xpFor=L=>50*L*(L-1);
+const TITLES=[[25,'Легенда ЕГЭ'],[20,'Эксперт'],[16,'Мастер'],[12,'Отличник'],[8,'Знаток'],[5,'Старательный'],[3,'Ученик'],[1,'Новичок']];
+const titleOf=L=>TITLES.find(t=>L>=t[0])[1];
+const LEAGUES=[[1250,'Алмаз','lg-d'],[1150,'Платина','lg-p'],[1050,'Золото','lg-g'],[950,'Серебро','lg-s'],[-1e9,'Бронза','lg-b']];
+const leagueOf=r=>LEAGUES.find(l=>r>=l[0]);
+const rs=id=>S.r[id]||(S.r[id]={r:1000,n:0,c:0,h:[]});
+const readiness=id=>{const h=rs(id).h;return h.length?Math.round(h.filter(Boolean).length/h.length*100):0};
+function league(r,big){const l=leagueOf(r);return `<span class="league ${l[2]} ${big?'big':''}">${ic('medal')}${l[1]}</span>`}
+const today=()=>iso(new Date());
+function streak(){let d=new Date(),n=0;if(!S.days[iso(d)])d.setDate(d.getDate()-1);while(S.days[iso(d)]){n++;d.setDate(d.getDate()-1)}return n}
+const todayCount=()=>S.days[today()]||0;
+function daysToExam(){return Math.max(0,Math.round((dayStart(new Date(S.examDate+'T00:00:00'))-dayStart(new Date()))/864e5))}
+
+const ACH=[
+ ['first','Первый шаг','Реши первую задачу',s=>s.stat.answered>=1],
+ ['c100','Сотня','100 верных ответов',s=>s.stat.correct>=100],
+ ['c500','Пятьсот','500 верных ответов',s=>s.stat.correct>=500],
+ ['goal','План выполнен','Дневная цель за день',s=>Object.values(s.days).some(v=>v>=s.goal)],
+ ['streak3','Три дня подряд','Занимайся 3 дня без пропусков',s=>streak()>=3],
+ ['streak7','Неделя','7 дней подряд',s=>streak()>=7],
+ ['mock','Пробник','Пройди пробный вариант',s=>s.stat.mocks>=1],
+ ['mock80','На высокий балл','Пробный вариант от 80%',s=>s.stat.mock80],
+ ['blitz15','Молния','15 верных в блице',s=>s.stat.blitzBest>=15],
+ ['multi3','Многостаночник','Занимайся по 3 предметам',s=>Object.values(s.r).filter(x=>x.n>0).length>=3],
+ ['gold','Золотая лига','Лига «Золото» по предмету',s=>Object.values(s.r).some(x=>x.n>=20&&x.r>=1050)],
+ ['diamond','Алмаз','Лига «Алмаз» по предмету',s=>Object.values(s.r).some(x=>x.n>=40&&x.r>=1250)],
+ ['lvl5','Уровень 5','Набери 5-й уровень',s=>levelOf(s.xp)>=5],
+ ['lvl10','Уровень 10','Набери 10-й уровень',s=>levelOf(s.xp)>=10],
+ ['friend','Не один','Добавь друга в рейтинг',s=>s.friends.length>=1]
+];
+function checkAch(){const got=[];for(const [id,n,,f] of ACH){if(!S.ach[id]&&f(S)){S.ach[id]=today();S.xp+=50;got.push(n)}}return got}
+
+/* ===================== ДРУЗЬЯ: КОД ДЛЯ ОБМЕНА ===================== */
+function hashStr(s){let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return (h%1679616).toString(36)}
+function myCard(){const s={};for(const id of S.subjects){const x=rs(id);if(x.n)s[id]=Math.round(x.r)}return {u:S.uid,n:(S.name||'Ученик').slice(0,24),x:S.xp,s,st:streak(),d:today()}}
+function myCode(){const j=JSON.stringify(myCard());const b=btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');return 'ZCH1.'+b+'.'+hashStr(b)}
+function parseCode(t){const m=String(t).match(/ZCH1\.([A-Za-z0-9_-]+)\.([a-z0-9]+)/);if(!m||hashStr(m[1])!==m[2])return null;
+  try{const j=JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g,'+').replace(/_/g,'/')))));if(!j.u||typeof j.x!=='number')return null;return {u:String(j.u).slice(0,12),n:String(j.n||'Друг').slice(0,24),x:Math.max(0,Math.min(1e7,j.x|0)),s:j.s&&typeof j.s==='object'?j.s:{},st:j.st|0,d:String(j.d||'')}}catch(e){return null}}
+function addFriend(t){const f=parseCode(t);if(!f){toast('Код не распознан. Скопируй его целиком');return false}
+  if(f.u===S.uid){toast('Это твой собственный код');return false}
+  const i=S.friends.findIndex(x=>x.u===f.u);if(i>=0)S.friends[i]=f;else S.friends.push(f);
+  checkAch();save();toast(i>=0?`Результат ${f.n} обновлён`:`${f.n} добавлен(а) в рейтинг`);return true}
+function shareText(){return `Я готовлюсь к ЕГЭ в «Зачёте»: уровень ${levelOf(S.xp)}, ${S.xp} XP. Добавь меня в рейтинг — скопируй код и вставь во вкладке «Рейтинг»:\n${myCode()}`}
+
+/* ===================== ГЛАВНАЯ ===================== */
+function viewHome(){
+  const L=levelOf(S.xp),cur=S.xp-xpFor(L),need=xpFor(L+1)-xpFor(L),tc=todayCount(),st=streak(),dl=daysToExam();
+  const mine=S.subjects.map(id=>SUB[id]).filter(Boolean);
+  const mist=S.mistakes.length;
   return `
-  <div class="brandline"><span class="mark">Зачёт<small>за 15 дней</small></span><span class="caption">${today}</span></div>
+  <div class="brandline"><span class="mark">Зачёт<small>ЕГЭ</small></span><span class="caption">${new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}</span></div>
   <section class="hero">
     <div class="hero-top">
-      <div><div class="hero-num num">${left}</div><div class="hero-lbl">${plural(left,'день','дня','дней')} до сочинения<span>${EXAM_LABEL}, среда</span></div></div>
-      ${ring(doneDays()/TOTAL)}
+      <div style="min-width:0"><div class="hero-lbl" style="margin:0"><span>${esc(S.name?'Привет, '+S.name+'!':'Привет!')}</span></div>
+        <div class="lvl"><b class="num">${L}</b><div><div class="lvl-t">${titleOf(L)}</div><div class="hero-lbl" style="margin:0"><span class="num">${S.xp} XP · до ${L+1}-го уровня ${need-cur}</span></div></div></div></div>
+      ${ringGoal(tc)}
     </div>
-    <div class="track">${dots}</div>
-    <div class="track-lbl"><span>Основа</span><span>Аргументы</span><span>Тренировка</span></div>
+    <div class="xpbar"><i style="width:${cur/need*100}%"></i></div>
+    <div class="hero-stats num"><span>${ic('flame')}${st} ${plural(st,'день','дня','дней')} подряд</span><span>${ic('timer')}${dl} ${plural(dl,'день','дня','дней')} до ЕГЭ</span></div>
   </section>
-  ${i!==cur?`<button class="link" data-goday="${cur}">${ic('left')}Вернуться к сегодняшнему дню</button>`:''}
-  <article class="card lesson">
-    <div class="lesson-meta"><span class="pill">Этап ${st} · ${STAGES[st-1].n}</span><span class="caption">${fmtShort(dateOfDay(i))}</span></div>
-    <h1 class="lesson-title"><span class="daynum">День ${i} из ${TOTAL}</span>${D.t}</h1>
-    <div class="prose" id="prose">${D.th}</div><button class="link more" id="moreBtn" hidden></button>
-    ${D.sec?secBooks(D.sec):''}
-    ${D.act?`<div class="actions"><button class="btn soft sm" data-go="${D.act.go}">${D.act.label}${ic('arrow')}</button>${i===1?'<button class="btn ghost sm" data-go="quiz">Проверь себя</button>':''}</div>`:''}
-  </article>
-  <section class="card tasks">
-    ${n===total?'<div class="stamp" aria-label="День выполнен">зачёт</div>':''}
-    <div class="tasks-head"><h2>Задания дня</h2>${n===total?'':`<span class="count num">${n} из ${total}</span>`}</div>
-    <div class="minibar"><i style="width:${n/total*100}%"></i></div>
-    <ul class="checklist">${D.tasks.map((t,k)=>`<li class="${done[k]?'done':''}"><input type="checkbox" class="chk" id="t${i}_${k}" data-day="${i}" data-k="${k}" ${done[k]?'checked':''}><label for="t${i}_${k}">${t}</label></li>`).join('')}</ul>
+  <section class="card daily">
+    <div style="flex:1;min-width:0"><div class="eyebrow">Задание дня</div><h2 style="font-size:17px;margin-top:2px">10 задач по твоим предметам</h2><p class="caption">${mine.map(s=>s.short).join(' · ')||'Выбери предметы'}</p></div>
+    <button class="btn" data-start="daily-all" ${mine.length?'':'disabled'}>${ic('play','fill')}Начать</button>
   </section>
-  <div class="daynav">
-    ${i>1?`<button class="btn ghost sm" data-goday="${i-1}">${ic('left')}День ${i-1}</button>`:'<span></span>'}
-    ${i<TOTAL?`<button class="btn ghost sm" data-goday="${i+1}">День ${i+1}${ic('right')}</button>`:''}
-  </div>`;
+  <div class="quick">
+    <button class="qa" data-start="blitz-all" ${mine.length?'':'disabled'}><span class="qi" style="--c:var(--warn)">${ic('bolt')}</span><b>Блиц</b><span>60 секунд</span></button>
+    <button class="qa" data-start="mist-all"><span class="qi" style="--c:var(--red)">${ic('redo')}</span><b>Ошибки</b><span class="num">${mist} ${plural(mist,'задача','задачи','задач')}</span></button>
+    <button class="qa" data-nav="rating"><span class="qi" style="--c:var(--ok)">${ic('trophy')}</span><b>Рейтинг</b><span class="num">${S.friends.length} ${plural(S.friends.length,'друг','друга','друзей')}</span></button>
+  </div>
+  <div class="tasks-head" style="padding:4px 2px 0"><h2>Мои предметы</h2><button class="link" data-nav="subjects">${ic('plus')}Изменить</button></div>
+  <div class="sgrid">${mine.map(s=>subjCard(s)).join('')||`<section class="card empty"><b>Предметы не выбраны</b><button class="btn soft sm" data-nav="subjects">Выбрать предметы</button></section>`}</div>`;
 }
-function secBooks(sec){
-  return `<div class="subbooks">${SECTIONS[sec-1].subs.map(s=>`<div><div class="lbl">${s.id} <span>${s.name}</span></div><div class="chips">${booksFor(s.id).slice(0,4).map(b=>bookChip(b.id)).join('')}</div></div>`).join('')}</div>`;
+function ringGoal(tc){const p=Math.min(1,tc/S.goal),r=34,c=2*Math.PI*r;return `<div class="ring" role="img" aria-label="Сегодня ${tc} из ${S.goal}"><svg viewBox="0 0 84 84"><circle class="bgc" cx="42" cy="42" r="${r}"/><circle class="fgc" cx="42" cy="42" r="${r}" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p)}"/></svg><b class="num">${tc}<small>из ${S.goal}</small></b></div>`}
+function subjCard(s){const x=rs(s.id),rd=readiness(s.id);
+  return `<button class="scard" style="--c:${sc(s.id)}" data-nav="s-${s.id}"><span class="sband"></span><span class="sname">${s.name}</span>
+  <span class="smeta">${x.n?league(x.r):'<span class="caption">ещё не начат</span>'}</span>
+  <span class="sbar2"><i style="width:${rd}%"></i></span><span class="caption num">${x.n?`готовность ${rd}% · ${x.n} ${plural(x.n,'задача','задачи','задач')}`:'нажми, чтобы начать'}</span></button>`}
+
+/* ===================== ПРЕДМЕТЫ ===================== */
+function viewSubjects(first){
+  return `${first?'':head('Предметы','Отметь, к чему готовишься. Русский и математика обязательны.')}
+  <div class="pick-list">${SUBJ.map(s=>{const on=S.subjects.includes(s.id);return `<button class="pickrow ${on?'on':''}" style="--c:${sc(s.id)}" data-toggle="${s.id}" aria-pressed="${on}">
+    <span class="dotc"></span><span class="pn"><b>${s.name}</b><span class="caption">${s.req===1?'обязательный · ':s.req===2?'обязательна база или профиль · ':''}${s.time}</span></span><span class="tick">${on?ic('check'):''}</span></button>`}).join('')}</div>`;
+}
+function viewOnboard(){
+  return `<section class="hero onb"><div class="mark" style="color:var(--pen);font-size:34px">Зачёт</div><h1 style="font-size:26px;margin-top:6px">Подготовка к ЕГЭ</h1>
+    <p class="hero-lbl" style="font-weight:400"><span>Тренировки, тесты и пробные варианты по всем предметам. Уровни, лиги и рейтинг с друзьями.</span></p></section>
+  <section class="card" style="display:flex;flex-direction:column;gap:8px"><label class="eyebrow" for="nameIn">Как тебя зовут?</label><input class="field" id="nameIn" maxlength="24" placeholder="Имя для рейтинга" value="${esc(S.name)}"></section>
+  <div class="tasks-head" style="padding:0 2px"><h2>Какие предметы сдаёшь?</h2><span class="count num" id="selCount">${S.subjects.length}</span></div>
+  ${viewSubjects(true)}
+  <button class="btn" id="finishOnb" style="position:sticky;bottom:calc(12px + env(safe-area-inset-bottom,0px));box-shadow:0 8px 24px rgba(20,30,80,.25)">Начать подготовку${ic('arrow')}</button>`;
 }
 
-/* ===================== ПЛАН ===================== */
-function viewPlan(){
-  const cur=currentDay();
-  return `${head('План',`${TOTAL} дней · ${fmtLong(dateOfDay(1))} — ${fmtLong(dateOfDay(TOTAL))}`)}
-  ${STAGES.map((stg,si)=>{const ids=[1,2,3,4,5].map(k=>si*5+k);const dn=ids.filter(i=>dayState(i)==='done').length;
-  return `<section class="card">
-    <div class="stagehead"><span class="stagenum">${si+1}</span><div><h2>${stg.n}</h2><p class="caption">${stg.d}</p></div><span class="count num">${dn}/5</span></div>
-    <div class="timeline">${ids.map(i=>{const s=dayState(i);return `<button class="tl ${s} ${i===cur?'cur':''}" data-goday="${i}">
-      <span class="tl-node num">${s==='done'?ic('check'):i}</span>
-      <span class="tl-body"><span class="tl-title">${DAYS[i-1].t}</span><span class="tl-sub">${fmtShort(dateOfDay(i))} · ${tasksDone(i)} из ${DAYS[i-1].tasks.length}</span></span>
-      ${i===cur?'<span class="pill red">сегодня</span>':''}</button>`}).join('')}</div>
-  </section>`}).join('')}
-  <section class="card" style="display:flex;flex-direction:column;gap:12px">
-    <h2 style="font-size:20px">Дата старта</h2>
-    <p class="caption">План считает дни от этой даты. Начал(а) позже или сбился(-ась) — поменяй её.</p>
-    <div class="topicrow"><input type="date" id="startDate" class="field" value="${S.start}"><button class="btn" id="setStart">Сохранить</button></div>
-    <div id="resetZone"><button class="link" id="askReset" style="color:var(--red)">Сбросить весь прогресс</button></div>
-  </section>`;
+/* ===================== СТРАНИЦА ПРЕДМЕТА ===================== */
+let topicOpen=false;
+function viewSubject(id){
+  const s=SUB[id];if(!s)return viewHome();
+  const x=rs(id),rd=readiness(id),mist=S.mistakes.filter(q=>q.subj===id).length,cards=(SUBJ_CARDS[id]||[]).length;
+  const topics=subjTopics(id);
+  const modes=[
+   ['train','Тренировка по темам','Задачи с разбором после каждого ответа','target'],
+   ['test','Тест','15 задач, ответы — в конце','list'],
+   ['mock','Пробный вариант','25 задач за 40 минут, как на экзамене','doc'],
+   ['blitz','Блиц','Сколько успеешь за 60 секунд','bolt'],
+   ...(cards?[['cards','Карточки',`${cards} ${plural(cards,'карточка','карточки','карточек')}: формулы, правила, даты`,'cards']]:[]),
+   ['mist','Работа над ошибками',mist?`${mist} ${plural(mist,'задача','задачи','задач')} к повторению`:'Ошибок пока нет','redo']
+  ];
+  return `${backBar('home','Главная')}
+  <section class="card shead" style="--c:${sc(id)}">
+    <div class="shead-top"><div style="min-width:0"><div class="eyebrow" style="color:var(--c)">ЕГЭ</div><h1 style="font-size:23px">${s.name}</h1></div>
+      <div class="rnum"><b class="num">${Math.round(x.r)}</b><span class="caption">рейтинг</span></div></div>
+    <div class="row2">${league(x.r,true)}<span class="caption num">готовность ${rd}% · решено ${x.n}</span></div>
+    <div class="sbar2"><i style="width:${rd}%"></i></div>
+    <div class="facts"><span><b>${s.time}</b>длительность</span><span><b>${s.min}</b>мин. балл (2026)</span>${s.tasks?`<span><b>${s.tasks}</b>заданий</span>`:''}</div>
+    <p class="caption">${s.about}</p>
+  </section>
+  ${(s.extra||[]).map(e=>`<button class="mode" data-nav="${e.go}" style="--c:${sc(id)}"><span class="qi">${ic(e.ic)}</span><span class="mt"><b>${e.label}</b></span>${ic('right')}</button>`).join('')}
+  <section class="modes">${modes.map(([m,t,d,i])=>`<button class="mode" ${m==='train'?'id="trainBtn"':`data-start="${m}-${id}"`} ${m==='mist'&&!mist?'disabled':''} style="--c:${sc(id)}"><span class="qi">${ic(i)}</span><span class="mt"><b>${t}</b><span class="caption">${d}</span></span>${ic('right')}</button>
+    ${m==='train'?`<div class="topics" id="topics" ${topicOpen?'':'hidden'}><button class="chip" style="--c:${sc(id)}" data-start="train-${id}">Все темы</button>${topics.map(t=>`<button class="chip" style="--c:${sc(id)}" data-start="train-${id}" data-topic-q="${esc(t)}">${t}</button>`).join('')}</div>`:''}`).join('')}</section>
+  <p class="caption" style="padding:0 2px">Официальные демоверсии и спецификации — на сайте ФИПИ: <a href="https://fipi.ru/ege/demoversii-specifikacii-kodifikatory" target="_blank" rel="noopener">fipi.ru</a>. Структура экзамена может меняться: сверяйся с демоверсией своего года.</p>`;
 }
 
-/* ===================== СПРАВКА ===================== */
-function viewRef(){
-  const tabs=[['crit','Критерии'],['struct','Структура'],['bank','Банк тем'],['phr','Фразы'],['quiz','Проверь себя'],['day','День Х']];
-  const t=S.refTab; let body='';
-  if(t==='crit') body=`
-   <section class="card" style="display:flex;flex-direction:column;gap:14px"><div class="eyebrow">Формула зачёта</div>
-    <div class="formula"><span class="fk m">К1</span><span class="op">+</span><span class="fk m">К2</span><span class="op">+</span><span class="fgroup"><span class="fk">К3</span><span class="fk">К4</span><span class="fk">К5</span><small>любой один</small></span><span class="op">=</span><span class="stampmini">зачёт</span></div>
-    <p class="caption">Плюс оба требования: объём и самостоятельность.</p></section>
-   <section class="card tight"><div class="rows">
-    <div class="rowi"><span class="fk req">Т1</span><div><h3>Объём</h3><p>Рекомендовано от 350 слов. Меньше 250 — «незачёт» за всю работу, её даже не проверяют. Верхней границы нет.</p></div></div>
-    <div class="rowi"><span class="fk req">Т2</span><div><h3>Самостоятельность</h3><p>Списанный или заученный чужой текст — «незачёт».</p></div></div>
-   </div></section>
-   <section class="card tight"><div class="rows">
-    <div class="rowi"><span class="fk m">К1</span><div><h3>Соответствие теме <span class="pill red">обязательно</span></h3><p>Отвечаешь именно на вопрос темы, а не на близкий.</p></div></div>
-    <div class="rowi"><span class="fk m">К2</span><div><h3>Аргументация, литература <span class="pill red">обязательно</span></h3><p>Минимум одно произведение, и оно работает на мысль, а не просто пересказано.</p></div></div>
-    <div class="rowi"><span class="fk">К3</span><div><h3>Композиция и логика</h3><p>Вступление — тезис — аргументы — вывод; мысли связаны между собой.</p></div></div>
-    <div class="rowi"><span class="fk">К4</span><div><h3>Качество речи</h3><p>Нет постоянных повторов, штампов, неточных слов.</p></div></div>
-    <div class="rowi"><span class="fk">К5</span><div><h3>Грамотность</h3><p>Не больше 5 ошибок на 100 слов: орфография, пунктуация и грамматика вместе.</p></div></div>
-   </div></section>`;
-  if(t==='struct'){const parts=[['Вступление',60,'var(--s1)','Подводка к теме, определение ключевого понятия, тезис последней фразой.'],['Аргумент 1',140,'var(--s3)','Микротезис → эпизод с деталями → анализ → микровывод.'],['Аргумент 2',140,'var(--s2)','Другое произведение. Можно взять противоположный пример: герой, который поступил наоборот.'],['Заключение',50,'var(--red)','Тезис другими словами, обобщение, без новых примеров.']];
-   body=`<section class="card" style="display:flex;flex-direction:column;gap:14px"><div class="eyebrow">Схема на 350–450 слов</div>
-    <div class="sbar">${parts.map(p=>`<span style="flex:${p[1]};background:${p[2]}">~${p[1]}</span>`).join('')}</div>
-    <div class="legend">${parts.map(p=>`<div class="li"><span class="sw" style="background:${p[2]}"></span><div><b>${p[0]}</b> <span class="caption num">· ~${p[1]} слов</span><p class="caption" style="font-size:14.5px;margin-top:2px">${p[3]}</p></div></div>`).join('')}</div></section>
-    <section class="card prose"><h2 style="font-size:20px">Как выглядит аргумент</h2>${DAYS[4].th.split('</ol>')[1]}</section>`;}
-  if(t==='bank') body=`<p class="caption" style="padding:0 2px">Темы ниже — примеры в стиле банка ФИПИ для тренировки. Реальные темы экзамена заранее не публикуются. Нажми на тему — она откроется в тренажёре.</p>
-   ${SECTIONS.map(sec=>`<section class="card tight" style="--c:${SECC[sec.id]}"><div class="secthead" style="padding:16px 0 12px"><span class="bar"></span><div><div class="eyebrow">Раздел ${sec.id}</div><h2>${sec.name}</h2></div></div>
-    ${sec.subs.map(s=>`<details class="acc"><summary><span class="idx num">${s.id}</span><span class="nm">${s.name}</span></summary><div class="acc-body">
-      <div class="kv"><div class="k">Ключевые понятия</div><div>${s.concepts}</div></div>
-      <div class="kv"><div class="k">Примеры тем</div><div class="topic-list">${s.topics.map(x=>`<button class="topic" data-topic="${esc(x)}"><span>${x}</span>${ic('pen')}</button>`).join('')}</div></div>
-      <div class="kv"><div class="k">Подходят</div><div class="chips">${booksFor(s.id).map(b=>bookChip(b.id)).join('')}</div></div>
-    </div></details>`).join('')}</section>`).join('')}`;
-  if(t==='phr'){const G=[['Вступление',['Чтобы ответить на этот вопрос, нужно понять, что такое…','Над этим вопросом задумывались многие писатели.','На мой взгляд, … Попробую доказать это.']],['Переход к аргументу',['Обратимся к роману …','Ярким подтверждением этой мысли служит …','Совсем иначе поступает герой произведения …']],['Анализ',['Этот поступок показывает, что…','Автор подчёркивает…, потому что…','Важно, что герой делает это, хотя…']],['Микровывод',['Этот пример доказывает, что…','Так судьба героя подтверждает мысль о том, что…']],['Заключение',['Таким образом, …','Подводя итог, можно сказать, что…','Рассмотренные примеры убеждают, что…']]];
-   body=`${G.map(g=>`<section class="card" style="display:flex;flex-direction:column;gap:10px"><div class="eyebrow">${g[0]}</div><div class="phr">${g[1].map(p=>`<button data-copy="${esc(p)}"><span>${p}</span>${ic('copy')}</button>`).join('')}</div></section>`).join('')}
-   <section class="card" style="background:var(--red-2);box-shadow:none;display:flex;flex-direction:column;gap:8px"><div class="eyebrow" style="color:var(--red)">Избегай</div><div class="chips">${['в наше время','в современном мире','испокон веков','является','данный','имеет место','красной нитью','автор хочет сказать','каждый из нас'].map(c=>`<span class="hl" style="background:var(--surface);color:var(--red)">${c}</span>`).join('')}</div></section>`;}
-  if(t==='quiz') body=viewQuiz();
-  if(t==='day'){const tl=[['План',15,'var(--s1)'],['Черновик',90,'var(--s3)'],['Проверка',25,'var(--s2)'],['Начисто',60,'var(--ink)'],['Вычитка',20,'var(--red)']];
-   body=`<section class="hero" style="padding-bottom:20px"><div class="hero-lbl" style="margin:0"><span>День сочинения</span></div><div class="hero-num" style="font-size:40px;margin-top:6px">${EXAM_LABEL}</div><div class="hero-lbl">3 часа 55 минут · 6 тем на выбор</div></section>
-   <section class="card" style="display:flex;flex-direction:column;gap:14px"><div class="eyebrow">Как распределить время</div>
-    <div class="sbar">${tl.map(p=>`<span style="flex:${p[1]};background:${p[2]}">${p[1]}</span>`).join('')}</div>
-    <div class="legend">${tl.map(p=>`<div class="li"><span class="sw" style="background:${p[2]}"></span><div><b>${p[0]}</b> <span class="caption num">· ${p[1]} мин</span></div></div>`).join('')}</div></section>
-   <section class="card tight"><div class="rows">
-    <div class="rowi"><span class="fk m">${ic('check')}</span><div><h3>Взять с собой</h3><p>Паспорт, чёрную гелевую или капиллярную ручку (лучше две), воду; лекарства и питание, если нужно.</p></div></div>
-    <div class="rowi"><span class="fk req">${ic('close')}</span><div><h3>Нельзя</h3><p>Телефон и любые гаджеты — сдаются до начала. Шпаргалки, книги, распечатки.</p></div></div>
-    <div class="rowi"><span class="fk">${ic('pen')}</span><div><h3>Выдадут</h3><p>Орфографический словарь, бланки, черновики.</p></div></div>
-   </div></section>
-   <div class="note">Выбирай тему, к которой у тебя есть два сильных аргумента, а не ту, что звучит красивее.</div>`;}
-  return `${head('Справка','Всё об итоговом сочинении в одном месте')}
-  <div class="seg" role="group" aria-label="Разделы справки">${tabs.map(([k,l])=>`<button aria-pressed="${t===k}" data-ref="${k}">${l}</button>`).join('')}</div>${body}`;
+/* ===================== ТЕСТЫ ===================== */
+let Q=null;   // текущая сессия
+const MODE_NAME={train:'Тренировка',test:'Тест',mock:'Пробный вариант',blitz:'Блиц',mist:'Работа над ошибками',cards:'Карточки',daily:'Задание дня'};
+function startSession(code,topic){
+  const [mode,arg]=code.split('-');const all=arg==='all';const subj=all?null:arg;
+  const pool=subj?[subj]:S.subjects.filter(id=>SUB[id]);
+  if(mode!=='mist'&&!pool.length){toast('Сначала выбери предметы');return}
+  const n={train:10,test:15,mock:25,daily:10,blitz:999,mist:15}[mode]||10;
+  Q={mode,subj,pool,topic:topic||null,i:0,list:[],res:[],xp:0,r0:{},picked:null,checked:false,start:Date.now(),ach:[],combo:0,best:0};
+  pool.forEach(id=>Q.r0[id]=rs(id).r);
+  if(mode==='cards'){Q.list=shuffle((SUBJ_CARDS[subj]||[]).map(([f,b])=>({f,b})));Q.known=0;if(!Q.list.length){Q=null;return}}
+  else if(mode==='mist'){const src=S.mistakes.filter(q=>!subj||q.subj===subj);if(!src.length){toast('Ошибок нет — так держать!');Q=null;return}Q.list=shuffle(src).slice(0,n).map(q=>({...q,fromMist:1}))}
+  else{const k=mode==='blitz'?40:n;for(let j=0;j<k;j++){const id=pool[j%pool.length];Q.list.push(makeQ(id,topic))}if(mode!=='mock'&&mode!=='test')Q.list=shuffle(Q.list)}
+  Q.n=mode==='blitz'?Q.list.length:Q.list.length;
+  if(mode==='mock')Q.end=Date.now()+40*60*1000;
+  if(mode==='blitz')Q.end=Date.now()+60*1000;
+  nav('quiz');
 }
-
-let quiz={i:0,score:0,picked:null};
+const instant=()=>['train','mist','daily','blitz'].includes(Q.mode);
+function norm(s){return String(s).trim().toLowerCase().replace(/ё/g,'е').replace(/\s+/g,'').replace(',', '.')}
+function isRight(q,ans){if(q.o)return ans===q.a;const a=norm(ans),b=norm(q.a);if(a===b)return true;const x=parseFloat(a),y=parseFloat(b);return /^-?[\d.]+$/.test(a)&&!isNaN(x)&&!isNaN(y)&&Math.abs(x-y)<1e-6}
 function viewQuiz(){
-  if(quiz.i>=QUIZ.length){const ok=quiz.score>=8;return `<section class="card" style="text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;padding:30px 18px"><span class="bigmark">${ok?'зачёт':'ещё раз'}</span><h2 class="num" style="font-size:26px">${quiz.score} из ${QUIZ.length}</h2><p class="caption" style="font-size:15px">${ok?'Правила знаешь. Двигаемся дальше.':'Перечитай «Критерии» и попробуй снова.'}</p><button class="btn" id="quizAgain">Пройти заново</button></section>`}
-  const Q=QUIZ[quiz.i];
-  return `<section class="card" style="display:flex;flex-direction:column;gap:16px">
-  <div class="qprog">${QUIZ.map((_,k)=>`<i class="${k<=quiz.i?'on':''}"></i>`).join('')}</div>
-  <div class="eyebrow num">Вопрос ${quiz.i+1} из ${QUIZ.length}</div><h2 style="font-size:21px">${Q.q}</h2>
-  <div style="display:flex;flex-direction:column;gap:8px">${Q.o.map((o,k)=>{let c='';if(quiz.picked!==null){if(k===Q.a)c='right';else if(k===quiz.picked)c='wrong'}return `<button class="qopt ${c}" data-opt="${k}" ${quiz.picked!==null?'disabled':''}><span class="lt">${'АБВГ'[k]}</span><span>${o}</span></button>`}).join('')}</div>
-  ${quiz.picked!==null?`<button class="btn" id="quizNext">${quiz.i<QUIZ.length-1?'Дальше':'Итог'}${ic('arrow')}</button>`:''}</section>`;
+  if(!Q)return viewHome();
+  if(Q.mode==='cards')return viewCards();
+  if(Q.done)return viewResult();
+  const q=Q.list[Q.i];const s=SUB[q.subj];const timed=!!Q.end;
+  const prog=Q.mode==='blitz'?'':`<div class="qprog2"><i style="width:${(Q.i)/Q.n*100}%"></i></div>`;
+  const right=Q.checked&&isRight(q,Q.picked);
+  return `<div class="qtop"><button class="iconbtn" id="quitQ" aria-label="Выйти">${ic('close')}</button>
+    <div class="qtop-mid"><b>${MODE_NAME[Q.mode]}${Q.topic?' · '+esc(Q.topic):''}</b><span class="caption num">${Q.mode==='blitz'?`верно: ${Q.res.filter(x=>x.ok).length}`:`${Q.i+1} из ${Q.n}`}${Q.combo>=3?` · серия ${Q.combo}`:''}</span></div>
+    ${timed?`<span class="qtimer num" id="qtimer">${fmtT(Math.max(0,Math.round((Q.end-Date.now())/1000)))}</span>`:`<span class="qxp num">+${Q.xp} XP</span>`}</div>
+  ${prog}
+  <section class="card qcard" style="--c:${sc(q.subj)}">
+    <div class="tagrow"><span class="tag" style="--c:var(--c)">${s?s.short:''}</span>${q.k?`<span class="tag" style="--c:var(--muted)">${q.k}</span>`:''}<span class="tag" style="--c:var(--muted)">${esc(q.t||'')}</span></div>
+    <div class="qtext">${q.q}</div>
+    ${q.o?`<div class="opts">${q.o.map((o,k)=>{let c='';if(Q.checked&&instant()){if(k===q.a)c='right';else if(k===Q.picked)c='wrong'}else if(Q.picked===k)c='sel';
+      return `<button class="qopt ${c}" data-pick="${k}" ${Q.checked?'disabled':''}><span class="lt">${'АБВГДЕ'[k]}</span><span>${o}</span></button>`}).join('')}</div>`
+    :`<div class="ansrow"><input class="field ans" id="ansIn" autocomplete="off" inputmode="${/^-?[\d.,]+$/.test(String(q.a))?'decimal':'text'}" placeholder="Ответ" value="${Q.picked!=null?esc(Q.picked):''}" ${Q.checked?'disabled':''}>${Q.checked?'':`<button class="btn" id="ansBtn">Ответить</button>`}</div>`}
+    ${Q.checked&&instant()?`<div class="fb ${right?'ok':'bad'}"><b>${right?'Верно!':'Неверно'}</b>${right?'':`<span>Правильный ответ: <b>${q.o?q.o[q.a]:esc(q.a)}</b></span>`}${Q.mode!=='blitz'&&q.e?`<p>${q.e}</p>`:''}</div>`:''}
+  </section>
+  <div class="qnav">${instant()?(Q.checked?`<button class="btn wide" id="nextQ">${Q.i<Q.n-1||Q.mode==='blitz'?'Дальше':'Результат'}${ic('arrow')}</button>`:(q.o?'':''))
+    :`${Q.i>0?`<button class="btn ghost" id="prevQ">${ic('left')}</button>`:''}<button class="btn wide" id="nextQ">${Q.i<Q.n-1?'Дальше':'Завершить'}${ic('arrow')}</button>`}</div>`;
+}
+function answer(val){
+  const q=Q.list[Q.i];if(Q.checked)return;
+  if(!instant()){Q.res[Q.i]={ok:isRight(q,val),ans:val};Q.picked=val;render(true);return}
+  Q.picked=val;Q.checked=true;const ok=isRight(q,val);
+  Q.res[Q.i]={ok,ans:val};record(q,ok);
+  if(Q.mode==='blitz'){render(true);setTimeout(()=>{if(Q&&Q.mode==='blitz'&&Q.checked&&!Q.done)next()},ok?350:900);return}
+  render(true);
+}
+function record(q,ok){
+  const x=rs(q.subj);const d=q.d||2,Rq=800+100*d,E=1/(1+10**((Rq-x.r)/400));
+  x.r=Math.round((x.r+24*((ok?1:0)-E))*10)/10;x.n++;if(ok)x.c++;x.h.push(ok?1:0);if(x.h.length>40)x.h.shift();
+  S.stat.answered++;if(ok)S.stat.correct++;S.days[today()]=(S.days[today()]||0)+1;
+  Q.combo=ok?Q.combo+1:0;Q.best=Math.max(Q.best,Q.combo);
+  const gain=ok?({train:10,mist:10,daily:12,blitz:5,test:12,mock:15}[Q.mode]||10)+(Q.combo>=5?5:0):0;Q.xp+=gain;S.xp+=gain;
+  const key=q.id||null;
+  if(!ok&&Q.mode!=='blitz'){if(!S.mistakes.some(m=>key?m.id===key:m.q===q.q)){S.mistakes.unshift({...q});S.mistakes=S.mistakes.slice(0,120)}}
+  if(ok&&q.fromMist){S.mistakes=S.mistakes.filter(m=>key?m.id!==key:m.q!==q.q)}
+  if(todayCount()===S.goal){S.xp+=50;Q.xp+=50;toast('Дневная цель выполнена! +50 XP')}
+  Q.ach.push(...checkAch());save();
+}
+function next(){
+  if(!Q)return;
+  if(Q.mode==='blitz'){if(Date.now()>=Q.end){finish();return}Q.i++;if(Q.i>=Q.list.length)Q.list.push(...Q.pool.map(id=>makeQ(id)));Q.picked=null;Q.checked=false;render(true);focusAns();return}
+  if(!instant()&&Q.res[Q.i]==null){const v=Q.list[Q.i].o?null:($('#ansIn')||{}).value;if(v&&v.trim()){Q.res[Q.i]={ok:isRight(Q.list[Q.i],v),ans:v}}}
+  if(Q.i>=Q.n-1){finish();return}
+  Q.i++;Q.checked=false;Q.picked=Q.res[Q.i]?Q.res[Q.i].ans:null;render(true);focusAns();
+}
+function focusAns(){setTimeout(()=>{const a=$('#ansIn');if(a&&!a.disabled)a.focus()},30)}
+function finish(){
+  if(!Q||Q.done)return;
+  if(!instant()){Q.list.forEach((q,i)=>{const r=Q.res[i]||{ok:false,ans:null};Q.res[i]=r;record(q,r.ok)})}
+  const ok=Q.res.filter(x=>x&&x.ok).length,tot=Q.mode==='blitz'?Q.res.length:Q.n,pct=tot?Math.round(ok/tot*100):0;
+  let bonus=0;
+  if(Q.mode==='test')bonus=30;
+  if(Q.mode==='mock'){bonus=80+(pct>=80?50:0);S.stat.mocks++;if(pct>=80)S.stat.mock80=true;(S.mocks=S.mocks||[]).unshift({subj:Q.subj,date:new Date().toLocaleDateString('ru-RU'),pct});S.mocks=S.mocks.slice(0,30)}
+  if(Q.mode==='blitz'){S.stat.blitzBest=Math.max(S.stat.blitzBest,ok)}
+  S.xp+=bonus;Q.xp+=bonus;Q.ach.push(...checkAch());Q.done=true;Q.pct=pct;Q.ok=ok;Q.tot=tot;save();render();
+}
+function viewResult(){
+  const L=levelOf(S.xp);const lvlBefore=levelOf(S.xp-Q.xp);
+  const rch=Q.pool.filter(id=>S.r[id]).map(id=>({id,d:Math.round(rs(id).r-Q.r0[id])})).filter(x=>x.d!==0||Q.pool.length===1);
+  const wrong=Q.list.map((q,i)=>({q,r:Q.res[i]})).filter(x=>x.r&&!x.r.ok).slice(0,30);
+  const mark=Q.mode==='blitz'?`${Q.ok}`:`${Q.pct}%`;
+  return `<section class="card result">
+    <span class="bigmark">${Q.mode==='blitz'?'блиц':Q.pct>=80?'отлично':Q.pct>=50?'хорошо':'ещё раз'}</span>
+    <div class="rbig num">${mark}</div><p class="caption num">${Q.mode==='blitz'?`верных ответов за 60 секунд · рекорд ${S.stat.blitzBest}`:`верно ${Q.ok} из ${Q.tot}`}${Q.best>=3?` · лучшая серия ${Q.best}`:''}</p>
+    <div class="rstats"><span class="rs"><b class="num">+${Q.xp}</b>XP</span>${rch.map(x=>`<span class="rs" style="--c:${sc(x.id)}"><b class="num ${x.d>=0?'up':'down'}">${x.d>=0?'+':''}${x.d}</b>${SUB[x.id].short}</span>`).join('')}</div>
+    ${L>lvlBefore?`<div class="levelup">${ic('star')}Новый уровень: ${L} — ${titleOf(L)}</div>`:''}
+    ${Q.ach.length?`<div class="levelup ach-up">${ic('trophy')}${Q.ach.join(', ')}</div>`:''}
+  </section>
+  ${wrong.length?`<section class="card" style="display:flex;flex-direction:column;gap:4px"><div class="tasks-head"><h2>Разбор ошибок</h2><span class="count num">${wrong.length}</span></div>
+    <div class="errs">${wrong.map(({q,r})=>`<div class="err"><div class="qtext sm">${q.q}</div><div class="fx">${r.ans!=null&&r.ans!==''?`<s>${q.o?q.o[r.ans]:esc(r.ans)}</s><span class="caption">→</span>`:'<span class="caption">нет ответа →</span>'}<ins>${q.o?q.o[q.a]:esc(q.a)}</ins></div>${q.e?`<div class="why">${q.e}</div>`:''}</div>`).join('')}</div>
+    <p class="caption">Эти задачи добавлены в «Работу над ошибками».</p></section>`:''}
+  <div class="actions"><button class="btn ghost wide" id="quitQ">Готово</button><button class="btn wide" id="againQ">${ic('redo')}Ещё раз</button></div>`;
+}
+function viewCards(){
+  const c=Q.list[Q.i];if(!c||Q.done){return `<section class="card result"><span class="bigmark">готово</span><div class="rbig num">${Q.known}/${Q.list.length}</div><p class="caption">карточек ты знаешь</p></section><div class="actions"><button class="btn ghost wide" id="quitQ">Готово</button><button class="btn wide" id="againQ">${ic('redo')}Ещё раз</button></div>`}
+  return `<div class="qtop"><button class="iconbtn" id="quitQ" aria-label="Выйти">${ic('close')}</button><div class="qtop-mid"><b>Карточки · ${SUB[Q.subj].short}</b><span class="caption num">${Q.i+1} из ${Q.list.length}</span></div><span class="qxp num">знаю ${Q.known}</span></div>
+  <div class="qprog2"><i style="width:${Q.i/Q.list.length*100}%"></i></div>
+  <button class="card fcard ${Q.flip?'flip':''}" id="flipCard" style="--c:${sc(Q.subj)}"><span class="eyebrow">${Q.flip?'ответ':'вспомни'}</span><span class="ff">${esc(Q.flip?c.b:c.f).replace(/\n/g,'<br>')}</span>${Q.flip?'':'<span class="caption">нажми, чтобы перевернуть</span>'}</button>
+  <div class="actions">${Q.flip?`<button class="btn ghost wide" data-card="0">Повторить</button><button class="btn wide" data-card="1">Знаю</button>`:''}</div>`;
 }
 
+/* ===================== РЕЙТИНГ ===================== */
+let lbSubj='all';
+function viewRating(){
+  const L=levelOf(S.xp);
+  const me={u:S.uid,n:S.name||'Ты',x:S.xp,s:myCard().s,me:1,st:streak()};
+  const rows=[me,...S.friends].map(f=>({...f,score:lbSubj==='all'?f.x:(f.s&&f.s[lbSubj])||0})).filter(f=>lbSubj==='all'||f.score>0||f.me).sort((a,b)=>b.score-a.score);
+  const subjOpts=[...new Set([...S.subjects,...S.friends.flatMap(f=>Object.keys(f.s||{}))])].filter(id=>SUB[id]);
+  const ach=ACH.map(([id,n,d])=>({id,n,d,on:!!S.ach[id]}));
+  return `${head('Рейтинг',`Уровень ${L} · ${titleOf(L)} · ${S.xp} XP`)}
+  <section class="card tight"><div class="tasks-head" style="padding:12px 0 4px"><h2>Лиги по предметам</h2></div>
+    <div class="rows">${S.subjects.filter(id=>SUB[id]).map(id=>{const x=rs(id);return `<button class="lrow" data-nav="s-${id}" style="--c:${sc(id)}"><span class="dotc"></span><span class="pn"><b>${SUB[id].name}</b><span class="caption num">рейтинг ${Math.round(x.r)} · решено ${x.n}</span></span>${x.n?league(x.r):'<span class="caption">—</span>'}</button>`}).join('')||'<p class="caption" style="padding:10px 0">Выбери предметы, чтобы попасть в лиги.</p>'}</div>
+    <p class="caption" style="padding:8px 0 12px">Лиги: Бронза → Серебро (950) → Золото (1050) → Платина (1150) → Алмаз (1250). Рейтинг растёт за верные ответы и сильнее — за трудные задачи.</p></section>
+  <section class="card" style="display:flex;flex-direction:column;gap:10px">
+    <div class="tasks-head"><h2>Друзья</h2><span class="count num">${S.friends.length}</span></div>
+    <div class="scroller"><button class="fchip" aria-pressed="${lbSubj==='all'}" data-lb="all">По XP</button>${subjOpts.map(id=>`<button class="fchip" aria-pressed="${lbSubj===id}" data-lb="${id}">${SUB[id].short}</button>`).join('')}</div>
+    <div class="lb">${rows.map((f,i)=>`<div class="lbrow ${f.me?'me':''}"><span class="pos num">${i+1}</span><span class="ava" style="--h:${parseInt(hashStr(f.u),36)%360}">${esc((f.n||'?')[0].toUpperCase())}</span><span class="pn"><b>${esc(f.n)}${f.me?' (ты)':''}</b><span class="caption num">ур. ${levelOf(f.x)}${f.st?` · ${f.st} ${plural(f.st,'день','дня','дней')} подряд`:''}${!f.me&&f.d?` · обновлено ${f.d.split('-').reverse().slice(0,2).join('.')}`:''}</span></span><b class="num sc">${lbSubj==='all'?f.score+' XP':Math.round(f.score)}</b>${f.me?'':`<button class="iconbtn sm" data-unfriend="${esc(f.u)}" aria-label="Убрать ${esc(f.n)}">${ic('close')}</button>`}</div>`).join('')}</div>
+    <div class="actions"><button class="btn wide" id="shareCode">${ic('share')}Поделиться своим кодом</button></div>
+    <div class="topicrow"><input class="field" id="friendIn" placeholder="Вставь код друга (ZCH1…)" autocomplete="off"><button class="btn soft" id="addFriend">Добавить</button></div>
+    <p class="caption">Рейтинг работает без интернета: обменивайтесь кодами в мессенджере. Код — снимок твоих результатов; чтобы обновить место в таблице, поделись им снова.</p>
+  </section>
+  <section class="card" style="display:flex;flex-direction:column;gap:10px"><div class="tasks-head"><h2>Достижения</h2><span class="count num">${ach.filter(a=>a.on).length} из ${ach.length}</span></div>
+    <div class="achs">${ach.map(a=>`<div class="ach ${a.on?'on':''}"><span class="ai">${ic(a.on?'trophy':'star')}</span><b>${a.n}</b><span>${a.d}</span></div>`).join('')}</div></section>`;
+}
+
+/* ===================== ПРОФИЛЬ ===================== */
+function viewProfile(){
+  const tot=S.stat.answered,acc=tot?Math.round(S.stat.correct/tot*100):0;
+  return `${head('Профиль','Настройки и статистика')}
+  <section class="card" style="display:flex;flex-direction:column;gap:10px">
+    <label class="eyebrow" for="nameIn">Имя в рейтинге</label><input class="field" id="nameIn" maxlength="24" value="${esc(S.name)}" placeholder="Твоё имя">
+    <label class="eyebrow" for="examIn">Дата первого экзамена</label><input class="field" type="date" id="examIn" value="${S.examDate}">
+    <p class="caption">Расписание ЕГЭ-2027 ещё не утверждено, по умолчанию стоит 1 июня 2027. Поменяй дату, когда расписание выйдет.</p>
+    <label class="eyebrow">Дневная цель</label>
+    <div class="seg" role="group" aria-label="Дневная цель">${[10,20,30,50].map(g=>`<button data-goal="${g}" aria-pressed="${S.goal===g}">${g} задач</button>`).join('')}</div>
+    <button class="btn soft" data-nav="subjects">${ic('grid')}Выбрать предметы (${S.subjects.length})</button>
+  </section>
+  <section class="card"><div class="stats num" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="stat"><b>${tot}</b><span>задач решено</span></div><div class="stat"><b>${acc}%</b><span>точность</span></div><div class="stat"><b>${S.stat.mocks}</b><span>пробников</span></div></div></section>
+  ${(S.mocks||[]).length?`<section class="card" style="display:flex;flex-direction:column;gap:4px"><div class="eyebrow">Пробные варианты</div>${S.mocks.slice(0,8).map(m=>`<div class="essay"><div class="meta"><b>${SUB[m.subj]?SUB[m.subj].name:''}</b><span class="caption">${m.date}</span></div><b class="num">${m.pct}%</b></div>`).join('')}</section>`:''}
+  <section class="card" id="resetZone"><button class="link" id="askReset" style="color:var(--red)">Сбросить весь прогресс</button></section>`;
+}
+
+/* ===================== РОУТИНГ ===================== */
+const VIEWS={home:viewHome,subjects:()=>viewSubjects(false),rating:viewRating,profile:viewProfile,quiz:viewQuiz,onboard:viewOnboard,
+  write:()=>backBar('s-rus','Русский язык')+viewWrite(),books:()=>backBar('s-lit','Литература')+viewBooks()};
+function route(){const h=(location.hash||'#home').slice(1);if(!S.onboarded)return 'onboard';if(/^s-[a-z]+$/.test(h)&&SUB[h.slice(2)])return h;return VIEWS[h]?h:'home'}
+function render(keepScroll){
+  const r=route();
+  const tab={home:'home',subjects:'subjects',rating:'rating',profile:'profile'}[r]||(r.startsWith('s-')||r==='write'||r==='books'?'subjects':'');
+  document.querySelectorAll('nav.tabs a').forEach(a=>{if(a.dataset.tab===tab)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  document.body.classList.toggle('quizmode',r==='quiz'||r==='onboard');
+  const y=window.scrollY, app=$('#app');
+  app.innerHTML=r.startsWith('s-')?viewSubject(r.slice(2)):VIEWS[r]();
+  if(!keepScroll){app.classList.remove('view-in');void app.offsetWidth;app.classList.add('view-in')}
+  if(r==='write') renderStats();
+  if(keepScroll) window.scrollTo(0,y);
+}
+function nav(r){if(location.hash==='#'+r)render();else location.hash=r;window.scrollTo(0,0)}
+window.addEventListener('hashchange',()=>{closeSheet();if(Q&&route()!=='quiz'&&!Q.done&&Q.mode!=='cards'){Q=null}render();window.scrollTo(0,0)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();if(e.key==='Enter'&&e.target.id==='ansIn'){e.preventDefault();submitInput()}if(e.key==='Enter'&&e.target.id==='friendIn'){e.preventDefault();$('#addFriend').click()}});
+function submitInput(){const v=($('#ansIn')||{}).value||'';if(!v.trim()){toast('Введи ответ');return}if(instant())answer(v.trim());else{Q.res[Q.i]={ok:isRight(Q.list[Q.i],v),ans:v.trim()};next()}}
+function doShare(text){
+  if(HAS_APP&&window.Android.share){try{window.Android.share(text);return}catch(e){}}
+  const copy=()=>{try{navigator.clipboard.writeText(text).then(()=>toast('Код скопирован — отправь его другу'),()=>showCode(text))}catch(e){showCode(text)}};
+  try{if(navigator.share){navigator.share({text}).catch(e=>{if(!e||e.name!=='AbortError')copy()});return}}catch(e){}
+  copy();
+}
+function showCode(text){const z=$('#friendIn');if(z){z.value=myCode();z.select();toast('Скопируй код из поля')}}
 /* ===================== КНИГИ ===================== */
 let flash={id:null,open:false};
 function bookList(){const f=S.bookFilter;return f==='all'?BOOKS:f==='mine'?BOOKS.filter(b=>S.books[b.id]?.read):booksFor(f)}
@@ -1009,7 +1726,7 @@ window.receiveShared=receiveShared;
 
 function viewWrite(){
   const mode=S.writeMode==='paper'?'paper':'type', d=S.draft;
-  return `${head('Пишем',mode==='paper'?'Проверь сочинение, написанное в тетради':'Тренажёр с таймером и проверкой текста')}
+  return `${head('Сочинение',mode==='paper'?'Проверь сочинение, написанное в тетради':'Тренажёр с таймером и проверкой текста')}
   <div class="seg" role="group" aria-label="Режим"><button aria-pressed="${mode==='type'}" data-wmode="type">Набрать текст</button><button aria-pressed="${mode==='paper'}" data-wmode="paper">${ic('camera')}Из тетради</button></div>
   <section class="card" style="display:flex;flex-direction:column;gap:6px">
     <label class="eyebrow" for="topic">Тема</label>
@@ -1020,7 +1737,7 @@ function viewWrite(){
   ${!checking&&S.lastCheck&&S.lastCheck.source===mode?resultView(S.lastCheck):''}
   <section class="card" style="display:flex;flex-direction:column;gap:2px"><div class="tasks-head"><h2>Мои сочинения</h2><span class="count num">${S.essays.length}</span></div>
   ${S.essays.length?`<div>${S.essays.map((e,k)=>`<div class="essay"><div class="meta"><b>${esc(e.topic||'Без темы')}</b><span class="caption num">${e.date} · ${e.words} ${plural(e.words,'слово','слова','слов')}${e.errors!=null?` · ${e.errors} ${plural(e.errors,'ошибка','ошибки','ошибок')}`:''}</span></div><div class="actions" id="ed-${k}"><button class="btn soft sm" data-open="${k}">Открыть</button><button class="iconbtn" data-del="${k}" aria-label="Удалить">${ic('close')}</button></div></div>`).join('')}</div>`
-  :'<p class="caption">Сохранённые сочинения появятся здесь. Их удобно перечитывать на 14-й день.</p>'}</section>`;
+  :'<p class="caption">Сохранённые сочинения появятся здесь. Перечитывай их перед экзаменом.</p>'}</section>`;
 }
 function typePanel(){
   const run=!!S.timer.end, tl=timerLeft();
@@ -1106,67 +1823,56 @@ function renderStats(){
   ${found.length||rep.length?`<div class="chips">${found.map(([c,n])=>`<span class="hl">штамп: ${c==='данн'?'данный':c}${n>1?' ×'+n:''}</span>`).join('')}${rep.map(([x,n])=>`<span class="hl">повтор: ${x} ×${n}</span>`).join('')}</div>`:`<span class="caption">${w?'Штампов и частых повторов не найдено.':'Начни писать — здесь появятся подсказки про штампы и повторы.'}</span>`}`;
 }
 
-/* ===================== РОУТИНГ ===================== */
-const VIEWS={today:viewToday,plan:viewPlan,ref:viewRef,books:viewBooks,write:viewWrite};
-function route(){const h=(location.hash||'#today').slice(1);return VIEWS[h]?h:'today'}
-function render(keepScroll){
-  const r=route();
-  document.querySelectorAll('nav.tabs a').forEach(a=>{if(a.dataset.tab===r)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
-  const y=window.scrollY, app=$('#app');
-  app.innerHTML=VIEWS[r]();
-  if(!keepScroll){app.classList.remove('view-in');void app.offsetWidth;app.classList.add('view-in')}
-  if(r==='write') renderStats();
-  if(r==='today') clampProse();
-  if(keepScroll) window.scrollTo(0,y);
-}
-const openedDays=new Set();
-function clampProse(){const p=$('#prose'),b=$('#moreBtn');if(!p||!b)return;const i=S.view||currentDay();
-  if(p.scrollHeight<=230){b.hidden=true;return}
-  const open=openedDays.has(i);p.classList.toggle('closed',!open);b.hidden=false;b.textContent=open?'Свернуть':'Читать полностью'}
-function go(target){
-  if(target.startsWith('ref:')){S.refTab=target.slice(4);save();nav('ref')}
-  else if(target==='quiz'){S.refTab='quiz';quiz={i:0,score:0,picked:null};save();nav('ref')}
-  else nav(target);
-}
-function nav(r){if(location.hash==='#'+r)render();else location.hash=r;window.scrollTo(0,0)}
-window.addEventListener('hashchange',()=>{closeSheet();render();window.scrollTo(0,0)});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
 
 /* ===================== СОБЫТИЯ ===================== */
 document.addEventListener('click',e=>{
   const el=e.target.closest('button,[data-close]'); if(!el) return;
   const d=el.dataset;
   if(d.close){closeSheet();return}
-  if(el.id==='moreBtn'){const i=S.view||currentDay();openedDays.has(i)?openedDays.delete(i):openedDays.add(i);clampProse();return}
+  if(d.nav){nav(d.nav);return}
+  /* онбординг и выбор предметов */
+  if(d.toggle){const id=d.toggle;S.subjects=S.subjects.includes(id)?S.subjects.filter(x=>x!==id):[...S.subjects,id];save();
+    el.classList.toggle('on');el.setAttribute('aria-pressed',S.subjects.includes(id));el.querySelector('.tick').innerHTML=S.subjects.includes(id)?ic('check'):'';const c=$('#selCount');if(c)c.textContent=S.subjects.length;return}
+  if(el.id==='finishOnb'){const n=($('#nameIn')||{}).value||'';if(!S.subjects.length){toast('Выбери хотя бы один предмет');return}S.name=n.trim().slice(0,24);S.onboarded=true;save();nav('home');return}
+  /* тесты */
+  if(el.id==='trainBtn'){topicOpen=!topicOpen;const t=$('#topics');if(t)t.hidden=!topicOpen;return}
+  if(d.start){startSession(d.start,d.topicQ||null);return}
+  if(d.pick!==undefined&&Q){answer(+d.pick);return}
+  if(el.id==='ansBtn'){submitInput();return}
+  if(el.id==='nextQ'){next();return}
+  if(el.id==='prevQ'&&Q&&Q.i>0){const v=($('#ansIn')||{}).value;if(v&&v.trim()&&!Q.list[Q.i].o)Q.res[Q.i]={ok:isRight(Q.list[Q.i],v),ans:v.trim()};Q.i--;Q.picked=Q.res[Q.i]?Q.res[Q.i].ans:null;render(true);return}
+  if(el.id==='quitQ'){const back=Q&&Q.subj?'s-'+Q.subj:'home';Q=null;nav(back);return}
+  if(el.id==='againQ'&&Q){const code=Q.mode+'-'+(Q.subj||'all'),tp=Q.topic;if(Q.mode==='daily'){startSession('daily-all');return}startSession(code,tp);return}
+  if(el.id==='flipCard'&&Q){Q.flip=!Q.flip;render(true);return}
+  if(d.card!==undefined&&Q){if(d.card==='1'){Q.known++;S.xp+=2;save()}else{Q.list.push(Q.list[Q.i])}Q.flip=false;Q.i++;if(Q.i>=Q.list.length||Q.i>=60){Q.done=true;checkAch();save()}render(true);return}
+  /* рейтинг */
+  if(d.lb){lbSubj=d.lb;render(true);return}
+  if(el.id==='shareCode'){doShare(shareText());return}
+  if(el.id==='addFriend'){const v=($('#friendIn')||{}).value||'';if(addFriend(v))render(true);return}
+  if(d.unfriend){S.friends=S.friends.filter(f=>f.u!==d.unfriend);save();render(true);return}
+  /* профиль */
+  if(d.goal){S.goal=+d.goal;save();render(true);return}
+  if(el.id==='askReset'){$('#resetZone').innerHTML='<div style="display:flex;flex-direction:column;gap:10px"><span>Удалить весь прогресс: уровни, рейтинг, друзей, ошибки и сочинения? Это нельзя отменить.</span><div class="actions"><button class="btn danger sm" id="doReset">Да, сбросить</button><button class="btn ghost sm" id="noReset">Отмена</button></div></div>';return}
+  if(el.id==='noReset'){render(true);return}
+  if(el.id==='doReset'){S=fresh();save();Q=null;nav('home');toast('Прогресс сброшен');return}
+  /* сочинение (русский язык) */
   if(d.wmode){S.writeMode=d.wmode;save();render(true);return}
   if(el.id==='runText'){runCheck('type');return}
   if(el.id==='runPaper'){runCheck('paper');return}
   if(el.id==='stopCheck'){checking&&checking.abort();return}
   if(el.id==='openLens'){let ok=false;try{ok=window.Android.openLens()}catch(err){}if(!ok)toast('Открой Объектив сам: в камере, в приложении Google или в Google Фото');return}
-  if(el.id==='pasteBtn'){if(HAS_APP){let t='';try{t=window.Android.clipboard()||''}catch(err){}if(t.trim())receiveShared(t);else toast('Буфер пуст — сначала скопируй текст в Объективе');return}
-    try{navigator.clipboard.readText().then(t=>t&&t.trim()?receiveShared(t):toast('Буфер пуст'),()=>toast('Нажми в поле и вставь текст долгим нажатием'))}catch(err){toast('Нажми в поле и вставь текст долгим нажатием')}return}
+  if(el.id==='pasteBtn'){if(HAS_APP){let t='';try{t=window.Android.clipboard()||''}catch(err){}if(t.trim())window.receiveShared(t);else toast('Буфер пуст — сначала скопируй текст в Объективе');return}
+    try{navigator.clipboard.readText().then(t=>t&&t.trim()?window.receiveShared(t):toast('Буфер пуст'),()=>toast('Нажми в поле и вставь текст долгим нажатием'))}catch(err){toast('Нажми в поле и вставь текст долгим нажатием')}return}
   if(el.id==='askClearPaper'){$('#clearZone').innerHTML='<div class="actions"><span class="caption" style="flex:1">Удалить текст из тетради?</span><button class="btn danger sm" id="doClearPaper">Удалить</button><button class="btn ghost sm" id="noClearPaper">Нет</button></div>';return}
   if(el.id==='doClearPaper'){S.paper='';if(S.lastCheck&&S.lastCheck.source==='paper')S.lastCheck=null;save();render(true);return}
   if(el.id==='noClearPaper'){$('#clearZone').innerHTML='';return}
   if(el.id==='saveChecked'){const c=S.lastCheck;S.essays.unshift({topic:S.draft.topic,text:c.text,words:words(c.text),errors:c.lt?c.errors.length:undefined,date:c.date});save();render(true);toast('Сочинение сохранено');return}
   if(el.id==='clearCheck'){S.lastCheck=null;save();render(true);return}
   if(d.sheet){openSheet(d.sheet);return}
-  if(d.goday){S.view=+d.goday===currentDay()?null:+d.goday;save();nav('today');return}
-  if(d.go){go(d.go);return}
-  if(d.ref){S.refTab=d.ref;if(d.ref==='quiz')quiz={i:0,score:0,picked:null};save();render(true);return}
-  if(d.topic){S.draft.topic=d.topic;save();nav('write');toast('Тема открыта в тренажёре');return}
-  if(d.copy){const txt=d.copy;const ok=()=>toast('Скопировано');try{navigator.clipboard.writeText(txt).then(ok,()=>toast('Не получилось скопировать'))}catch(err){toast('Не получилось скопировать')}return}
-  if(d.opt!==undefined){quiz.picked=+d.opt;if(+d.opt===QUIZ[quiz.i].a)quiz.score++;render(true);return}
-  if(el.id==='quizNext'){quiz.i++;quiz.picked=null;render(true);return}
-  if(el.id==='quizAgain'){quiz={i:0,score:0,picked:null};render(true);return}
   if(d.filter){S.bookFilter=d.filter;flash.id=null;save();render(true);return}
   if(d.mode){S.bookMode=d.mode;save();render(true);return}
   if(d.fl){if(d.fl==='open')flash.open=true;else{S.books[flash.id]=Object.assign({},S.books[flash.id],{known:d.fl==='know'});save();const l=bookList();flash.id=pickFlash(l.length?l:BOOKS);flash.open=false}render(true);return}
-  if(el.id==='setStart'){const v=$('#startDate').value;if(v){S.start=v;S.view=null;save();render(true);toast('Дата старта сохранена')}return}
-  if(el.id==='askReset'){$('#resetZone').innerHTML='<div style="display:flex;flex-direction:column;gap:10px"><span>Удалить отметки, сочинения и черновик? Это нельзя отменить.</span><div class="actions"><button class="btn danger sm" id="doReset">Да, сбросить</button><button class="btn ghost sm" id="noReset">Отмена</button></div></div>';return}
-  if(el.id==='noReset'){render(true);return}
-  if(el.id==='doReset'){S=fresh();save();render();toast('Прогресс сброшен');return}
-  if(el.id==='rndTopic'){const x=ALL_TOPICS[Math.floor(Math.random()*ALL_TOPICS.length)];S.draft.topic=x.t;save();$('#topic').value=x.t;toast('Подраздел '+x.sub);return}
+  if(el.id==='rndTopic'){const x=ALL_TOPICS[Math.floor(Math.random()*ALL_TOPICS.length)];S.draft.topic=x.t;save();$('#topic').value=x.t;return}
   if(d.dur){const s=+d.dur*60;S.timer={dur:s,end:null,left:s};save();render(true);return}
   if(el.id==='tStart'){if(S.timer.end){S.timer.left=timerLeft();S.timer.end=null}else{S.timer.end=Date.now()+S.timer.left*1000}save();render(true);return}
   if(el.id==='tReset'){S.timer={dur:S.timer.dur,end:null,left:S.timer.dur};save();render(true);return}
@@ -1180,9 +1886,8 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',e=>{
   const el=e.target;
-  if(el.dataset.day){const i=+el.dataset.day,k=+el.dataset.k;S.done[i]=S.done[i]||{};S.done[i][k]=el.checked;save();
-    el.closest('li').classList.toggle('done',el.checked);
-    setTimeout(()=>{render(true);if(el.checked&&dayState(i)==='done')toast('День '+i+' закрыт!')},220);return}
+  if(el.id==='nameIn'){S.name=el.value.trim().slice(0,24);save();return}
+  if(el.id==='examIn'&&el.value){S.examDate=el.value;save();toast('Дата сохранена');return}
   if(el.dataset.read){const id=el.dataset.read;S.books[id]=Object.assign({},S.books[id],{read:el.checked});save();toast(el.checked?'Добавлено в твою базу':'Убрано из базы');return}
   if(el.dataset.check){S.check[el.dataset.check]=el.checked;el.closest('li').classList.toggle('done',el.checked);save();
     const c=el.closest('section').querySelector('.count');if(c)c.textContent=Object.values(S.check).filter(Boolean).length+' из 5';return}
@@ -1195,8 +1900,14 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('focusin',e=>{if(e.target.classList&&e.target.classList.contains('paper')){document.body.classList.add('typing');renderStats();tick()}});
 document.addEventListener('focusout',e=>{if(e.target.classList&&e.target.classList.contains('paper'))document.body.classList.remove('typing')});
-function tick(){const s=timerLeft();const t=$('#timer');if(t&&S.timer.end){t.textContent=fmtT(s);t.classList.toggle('over',s<0)}const tb=$('#tbTimer');if(tb)tb.textContent=S.timer.end?'⏱ '+fmtT(s):''}
+function tick(){
+  const s=timerLeft();const t=$('#timer');if(t&&S.timer.end){t.textContent=fmtT(s);t.classList.toggle('over',s<0)}const tb=$('#tbTimer');if(tb)tb.textContent=S.timer.end?'⏱ '+fmtT(s):'';
+  if(Q&&Q.end&&!Q.done&&route()==='quiz'){const left=Math.round((Q.end-Date.now())/1000);const qt=$('#qtimer');if(qt){qt.textContent=fmtT(Math.max(0,left));qt.classList.toggle('low',left<=10)}if(left<=0)finish()}
+}
 setInterval(tick,1000);
+/* «Поделиться» → Зачёт: код друга или текст сочинения */
+const recvText=receiveShared;
+window.receiveShared=t=>{if(/ZCH1\./.test(t)){if(addFriend(t)){if(route()!=='rating')location.hash='rating';else render()}return}recvText(t)};
 
 render();
 if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}

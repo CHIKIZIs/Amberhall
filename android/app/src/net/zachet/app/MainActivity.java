@@ -79,7 +79,7 @@ public class MainActivity extends Activity {
         setContentView(web);
         takeShared(getIntent());
         if (state != null) web.restoreState(state);
-        else web.loadUrl(START + (pendingText != null ? "#write" : "#today"));
+        else web.loadUrl(START + "#home");
     }
 
     @Override
@@ -125,6 +125,16 @@ public class MainActivity extends Activity {
             });
             try { done.await(2, TimeUnit.SECONDS); } catch (InterruptedException ignored) { }
             return out[0];
+        }
+
+        @JavascriptInterface
+        public void share(final String text) {
+            runOnUiThread(() -> {
+                Intent s = new Intent(Intent.ACTION_SEND);
+                s.setType("text/plain");
+                s.putExtra(Intent.EXTRA_TEXT, text);
+                try { startActivity(Intent.createChooser(s, "Поделиться")); } catch (Exception ignored) { }
+            });
         }
 
         @JavascriptInterface
