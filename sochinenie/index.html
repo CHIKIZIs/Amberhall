@@ -302,11 +302,11 @@ details.acc[open]>summary::after{transform:rotate(225deg);margin-bottom:-4px}
 .play{width:46px;height:46px;border-radius:50%;border:0;background:var(--ink);color:var(--on-ink);display:grid;place-content:center;flex:none}
 .play .ic{width:20px;height:20px}
 .sheetpaper{position:relative}
-textarea#essay{display:block;width:100%;min-height:48vh;resize:vertical;border:0;border-radius:var(--r);padding:14px 14px 14px 42px;box-shadow:var(--shadow);
+textarea.paper{display:block;width:100%;min-height:48vh;resize:vertical;border:0;border-radius:var(--r);padding:14px 14px 14px 42px;box-shadow:var(--shadow);
   background-color:var(--surface);
   background-image:linear-gradient(90deg,transparent 30px,var(--red) 30px,var(--red) 31.5px,transparent 31.5px),repeating-linear-gradient(transparent 0 27px,var(--line) 27px 28px);
   background-attachment:local;background-position:0 14px;line-height:28px;font-size:16px;font-family:var(--f-body)}
-textarea#essay:focus{outline:2px solid var(--ink);outline-offset:0}
+textarea.paper:focus{outline:2px solid var(--ink);outline-offset:0}
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .stat{background:var(--surface-2);border-radius:var(--r-s);padding:8px 4px;text-align:center;min-width:0}
 .stat b{display:block;font-family:var(--f-display);font-size:21px;line-height:1.15}
@@ -341,7 +341,9 @@ nav.tabs a[aria-current="page"] .pi{background:var(--ink-2);color:var(--ink)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 22px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;font-weight:600;white-space:nowrap;animation:toast .25s ease-out}
 @keyframes toast{from{transform:translate(-50%,10px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
-/* проверка по фото */
+/* проверка сочинения из тетради */
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:14px}
+.steps li::marker{color:var(--red);font-weight:700}
 .shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px}
 .shot{position:relative;aspect-ratio:3/4;max-width:100%;border-radius:10px;overflow:hidden;background:var(--surface-2)}
 .shot img{width:100%;height:100%;object-fit:cover;display:block}
@@ -702,8 +704,10 @@ const QUIZ = [
 const KEY='zachet21:v1';
 function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}return null}
 function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-const fresh=()=>({plan:15,start:iso(new Date()),done:{},books:{},essays:[],draft:{topic:'',text:''},timer:{dur:120*60,end:null,left:120*60},check:{},view:null,refTab:'crit',bookFilter:'all',bookMode:'list'});
+const fresh=()=>({plan:15,paper:'',start:iso(new Date()),done:{},books:{},essays:[],draft:{topic:'',text:''},timer:{dur:120*60,end:null,left:120*60},check:{},view:null,refTab:'crit',bookFilter:'all',bookMode:'list'});
 let S=Object.assign(fresh(),load()||{});
+if(S.writeMode==='photo')S.writeMode='paper';
+if(S.lastCheck&&!Array.isArray(S.lastCheck.hints))S.lastCheck=null;
 if(S.plan!==15){S.plan=15;S.done={};S.view=null;save()}  // переход со старого плана на 21 день
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 
@@ -917,93 +921,103 @@ function openSheet(id){
 function closeSheet(){if($('#sheet').hidden)return;$('#sheet').hidden=true;$('#sheet').innerHTML='';document.body.classList.remove('locked');if(route()==='books')render(true)}
 
 /* ===================== ТРЕНАЖЁР ===================== */
-const WEB_URL='https://claude.ai/artifact/X8J2fhmwJ9AmBjdrKfKx8f';
+const HAS_APP=!!(window.Android&&window.Android.isApp);   // мост из APK (буфер обмена, Google Объектив)
 function timerLeft(){return S.timer.end?Math.round((S.timer.end-Date.now())/1000):S.timer.left}
 function fmtT(s){const neg=s<0;s=Math.abs(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (neg?'+':'')+(h?h+':':'')+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0')}
 function sentences(t){return (t.replace(/\s+/g,' ').match(/[^.!?…]+(?:[.!?…]+|$)/g)||[]).filter(x=>words(x)>0).length}
 function paragraphs(t){return t.split(/\n+/).filter(x=>x.trim()).length}
 
-/* Claude: распознавание почерка и поиск ошибок. В APK и PWA его нет — там показываем подсказку. */
-let sampleFn, imgLimits=null, checking=null, checkStage='', photos=[];
-async function initSample(){
-  try{sampleFn=(window.claude&&window.claude.use)?await window.claude.use('sample'):null}catch(e){sampleFn=null}
-  if(sampleFn){try{imgLimits=(await sampleFn.limits()).images||null}catch(e){imgLimits=null}}
-  if(route()==='write')render(true);
-}
-function errCopy(e){return ({not_granted:'Нет доступа к Claude: разреши его в окне запроса',rate_limited:'Слишком много проверок подряд. Попробуй через пару минут',image_rejected:'Фото не подошло: попробуй другой снимок (JPG или PNG)',refused:'Claude не смог проверить этот текст',invalid_json:'Ответ пришёл в неверном виде. Нажми «Проверить» ещё раз',session_expired:'Войди в claude.ai заново',prompt_too_large:'Слишком длинный текст или много фото',empty_completion:'Пустой ответ. Попробуй ещё раз'})[e&&e.code]||'Не получилось проверить. Попробуй ещё раз'}
-
-async function halves(file){
-  // Режем страницу пополам с нахлёстом: так каждая половина приходит в лучшем разрешении и почерк читается точнее.
-  const bmp=await createImageBitmap(file); const w=bmp.width,h=bmp.height, wide=w>h;
-  const L=wide?w:h, mid=Math.round(L/2), ov=Math.round(L*0.04), out=[];
-  for(const [a,b] of [[0,mid+ov],[mid-ov,L]]){
-    const c=document.createElement('canvas'); const cw=wide?b-a:w, ch=wide?h:b-a; c.width=cw; c.height=ch;
-    c.getContext('2d').drawImage(bmp,wide?a:0,wide?0:a,cw,ch,0,0,cw,ch);
-    out.push(await new Promise((res,rej)=>c.toBlob(x=>x?res(x):rej(new Error('blob')),'image/jpeg',.92)));
+/* Текст из Google Объектива приходит построчно. Склеиваем строки в абзацы:
+   абзац заканчивается на короткой строке с точкой в конце (как в тетради) или на пустой строке. */
+function cleanOCR(raw){
+  let t=String(raw||'').replace(/\r\n?/g,'\n').replace(/[ \t]+/g,' ');
+  t=t.replace(/([а-яёa-z])[-‐­]\n\s*([а-яёa-z])/gi,'$1$2');
+  const lines=t.split('\n').map(l=>l.trim());
+  const lens=lines.filter(Boolean).map(l=>l.length).sort((a,b)=>a-b);
+  const med=lens.length?lens[Math.floor(lens.length/2)]:0;
+  const paras=[];let cur=[];
+  const close=()=>{if(cur.length){paras.push(cur.join(' '));cur=[]}};
+  for(const l of lines){
+    if(!l){close();continue}
+    cur.push(l);
+    if(lens.length>3&&/[.!?…»")]$/.test(l)&&l.length<med*0.72)close();
   }
-  if(bmp.close)bmp.close(); return out;
+  close();
+  return paras.join('\n\n');
 }
-function buildPrompt(typed,split,text){
-  const topic=S.draft.topic.trim(); const n=typed?1:2;
-  return `Ты — учитель русского языка и проверяешь итоговое сочинение ученика 11 класса (Россия). ${topic?`Тема: «${topic}».`:'Тема не указана — определи её по тексту.'}
-${typed?`Текст сочинения:\n"""\n${text.slice(0,40000)}\n"""`:
-`На изображениях — страницы сочинения, написанного от руки, по порядку.${split?' Каждая страница разрезана на две части (верх и низ, или левая и правая половины разворота) с небольшим нахлёстом: строки на стыке могут повториться — не переписывай их дважды.':''}
-Шаг 1. Перепиши текст ДОСЛОВНО, как написал ученик. Сохрани все его орфографические, пунктуационные и грамматические ошибки — ничего не исправляй. Абзацы (красная строка) раздели пустой строкой. Неразборчивое слово замени на [?]. Зачёркнутое не переписывай.`}
-Шаг ${n}. Найди ошибки по нормам русского языка: орфографические, пунктуационные, грамматические и речевые (повторы, неточное слово, штампы, канцелярит). Указывай только настоящие ошибки, одна ошибка — один пункт; неразборчивое [?] ошибкой не считай.
-Шаг ${n+1}. Кратко оцени работу по критериям итогового сочинения: К1 соответствие теме; К2 аргументация и привлечение литературного материала (названо ли произведение, есть ли анализ, а не пересказ); К3 композиция и логика; К4 качество речи. Для каждого: ok (true/false) и комментарий в одно предложение.
-Ответь только JSON такого вида:
-{${typed?'':'"text": "дословный текст, абзацы через \\n\\n", "unclear": 0, '}"topic": "тема", "works": ["И. О. Автор «Произведение»"], "errors": [{"type": "орфография|пунктуация|грамматика|речь", "fragment": "фрагмент как в тексте", "fix": "как правильно", "rule": "правило в 3–8 словах"}], "criteria": [{"k": "К1", "ok": true, "comment": "…"}, {"k": "К2", "ok": true, "comment": "…"}, {"k": "К3", "ok": true, "comment": "…"}, {"k": "К4", "ok": true, "comment": "…"}], "advice": ["главный совет", "второй совет"]}
-Пояснения — на русском, коротко и доброжелательно, обращайся к ученику на «ты».`;
+
+/* Подсказки по запятым: самые частые пропуски в сочинениях. Это подсказки «проверь», в счёт ошибок не идут. */
+const INTRO=['на мой взгляд','по моему мнению','таким образом','во-первых','во-вторых','в-третьих','к сожалению','к счастью','конечно','безусловно','несомненно','например','по-моему','следовательно','итак','кроме того','разумеется','видимо','наверное','с одной стороны','с другой стороны','одним словом','как известно','как правило'];
+const PREP='в|во|на|с|со|о|об|обо|к|ко|по|у|из|за|от|для|при|про|через|без|над|под|до|перед|между|среди|благодаря|вопреки|согласно';
+function commaHints(text){
+  const out=[], seen=new Set();
+  const add=(frag,fix,why)=>{const k=frag.toLowerCase();if(seen.has(k))return;seen.add(k);out.push({fragment:frag,fix,rule:why})};
+  for(const s of text.match(/[^.!?…]+[.!?…]*/g)||[]){
+    const st=s.trim(), low=st.toLowerCase();
+    for(const w of INTRO){ if(low.startsWith(w+' ')){const next=st.slice(w.length+1).split(/\s+/)[0]||'';add(st.slice(0,w.length)+' '+next,st.slice(0,w.length)+', '+next,'вводное слово выделяется запятой')} }
+  }
+  let m;
+  const re1=/(^|[^,—–\-\s])\s+((?:тот|та|то|те|того|тех|тому|тем|той|того)\s+(?:кто|что|кого|чего|кому|чему|кем|чем))(?=[\s.,!?])/gi;
+  while((m=re1.exec(text))){const p=m[2].split(/\s+/);add(m[2],p[0]+', '+p.slice(1).join(' '),'запятая перед придаточным: «тот, кто», «то, что»')}
+  const re2=new RegExp('([а-яё]+)\\s+(?:('+PREP+')\\s+)?(котор[а-яё]+)','gi');
+  while((m=re2.exec(text))){const before=text.slice(Math.max(0,m.index-1),m.index);if(/[,—–(]/.test(before)||/^(то|те|тот)$/i.test(m[1]))continue;if(new RegExp('^('+PREP+')$','i').test(m[1]))continue;
+    const frag=m[0];const fix=m[1]+', '+(m[2]?m[2]+' ':'')+m[3];add(frag,fix,'придаточное с «который» отделяется запятой')}
+  const re3=/([а-яё]{3,})\s+(что|чтобы|потому что|если|но|хотя)(?=\s)/gi;
+  const skip=/^(потому|так|то|не|ни|вот|оттого|затем|для|того|тем|ли|лишь|только|даже|и|а|или|все|всё|почти|именно|будто|как)$/i;
+  while((m=re3.exec(text))){const prev=text[m.index-1];if(prev===','||skip.test(m[1]))continue;if(/^хотя$/i.test(m[2])&&/^бы\b/i.test(text.slice(m.index+m[0].length).trim()))continue;
+    add(m[0],m[1]+', '+m[2],m[2].toLowerCase()==='но'||m[2].toLowerCase()==='хотя'?'запятая перед союзом «'+m[2].toLowerCase()+'»':'запятая перед «'+m[2].toLowerCase()+'» в сложном предложении')}
+  return out.slice(0,30);
 }
+
+/* Проверка ошибок: бесплатный сервис LanguageTool (нужен интернет, текст отправляется на languagetool.org). */
 const ETYPES=['орфография','пунктуация','грамматика','речь'];
 const ECOL={'орфография':'var(--red)','пунктуация':'var(--s1)','грамматика':'var(--s2)','речь':'var(--warn)'};
-function normalize(r,typedText){
-  r=(r&&typeof r==='object')?r:{};
-  const text=typedText!=null?typedText:String(r.text||'').trim();
-  const errors=(Array.isArray(r.errors)?r.errors:[]).filter(e=>e&&e.fragment).map(e=>{let t=String(e.type||'').toLowerCase();t=ETYPES.find(x=>t.startsWith(x.slice(0,5)))||'речь';return {type:t,fragment:String(e.fragment),fix:String(e.fix||''),rule:String(e.rule||'')}}).slice(0,80);
-  const criteria=(Array.isArray(r.criteria)?r.criteria:[]).filter(c=>c&&c.k).map(c=>({k:String(c.k).replace('K','К'),ok:!!c.ok,comment:String(c.comment||'')})).slice(0,4);
-  return {text,errors,criteria,topic:String(r.topic||''),works:(Array.isArray(r.works)?r.works:[]).map(String).slice(0,6),advice:(Array.isArray(r.advice)?r.advice:[]).map(String).slice(0,3),unclear:(text.match(/\[\?\]/g)||[]).length};
+function ltType(m){const c=(m.rule&&m.rule.category&&m.rule.category.id)||'';const it=m.rule&&m.rule.issueType;
+  if(c==='TYPOGRAPHY'||c==='WHITESPACE')return null;
+  if(c==='TYPOS'||c==='CASING'||it==='misspelling')return 'орфография';
+  if(c==='PUNCTUATION'||it==='typographical')return 'пунктуация';
+  if(c==='GRAMMAR'||it==='grammar')return 'грамматика';
+  return 'речь';}
+async function langTool(text,signal){
+  const body=new URLSearchParams({text,language:'ru-RU'});
+  const r=await fetch('https://api.languagetool.org/v2/check',{method:'POST',body,signal});
+  if(!r.ok)throw new Error('http '+r.status);
+  const d=await r.json();
+  return (d.matches||[]).map(m=>{const type=ltType(m);if(!type)return null;const frag=text.substr(m.offset,m.length);if(!frag.trim()||/\[\?\]/.test(frag))return null;
+    return {type,fragment:frag,fix:(m.replacements||[]).slice(0,2).map(x=>x.value).join(' / '),rule:String(m.shortMessage||m.message||'').replace(/^Возможно найдена /,'').slice(0,90)}}).filter(Boolean).slice(0,80);
 }
-async function runCheck(kind){
-  if(!sampleFn||checking)return;
-  const typed=kind==='text', text=S.draft.text;
-  if(typed&&words(text)<20){toast('Напиши хотя бы пару абзацев');return}
-  if(!typed&&!photos.length)return;
-  checking=new AbortController(); const sig=checking.signal;
-  checkStage=typed?'Ищу ошибки в тексте…':'Готовлю фото…'; render(true); scrollToEl('#busy');
-  try{
-    const opts={signal:sig,modelTier:'default',cache:false}; let split=false;
-    if(!typed){
-      const max=imgLimits?imgLimits.maxCount:photos.length; split=photos.length*2<=max; const imgs=[];
-      for(const p of photos){if(split){try{imgs.push(...await halves(p.file))}catch(e){split=false;break}}}
-      opts.images=split?imgs:photos.map(p=>p.file);
-      checkStage='Распознаю почерк и ищу ошибки…'; render(true); scrollToEl('#busy');
-    }
-    const r=await sampleFn.json(buildPrompt(typed,split,text),opts);
-    const res=normalize(r,typed?text:null);
-    if(!typed&&!words(res.text)){toast('Не удалось разобрать текст на фото');return}
-    Object.assign(res,{source:typed?'text':'photo',date:new Date().toLocaleDateString('ru-RU'),userTopic:S.draft.topic});
-    S.lastCheck=res; save(); toast('Проверка готова');
-  }catch(e){
-    if(e&&e.code==='cancelled')return;
-    if(e&&['not_granted','sampling_disabled','not_declared','capability_disabled'].includes(e.code))sampleFn=null;
-    if(e&&e.code==='images_unavailable')imgLimits=null;
-    toast(errCopy(e));
-  }finally{checking=null;render(true);if(S.lastCheck)scrollToEl('#result')}
+let checking=null;
+async function runCheck(source){
+  if(checking)return;
+  const text=(source==='paper'?S.paper:S.draft.text).trim();
+  if(words(text)<10){toast(source==='paper'?'Сначала добавь текст с фото':'Напиши хотя бы пару абзацев');return}
+  checking=new AbortController();render(true);scrollToEl('#busy');
+  let errors=[], lt=true;
+  try{errors=await langTool(text,checking.signal)}catch(e){if(e&&e.name==='AbortError'){checking=null;render(true);return}lt=false}
+  S.lastCheck={source,text,errors,lt,hints:commaHints(text),date:new Date().toLocaleDateString('ru-RU'),topic:S.draft.topic};
+  save();checking=null;render(true);scrollToEl('#result');
+  toast(lt?'Проверка готова':'Нет связи с сервисом ошибок — посчитал только слова и абзацы');
 }
 function scrollToEl(sel){setTimeout(()=>{const el=$(sel);el&&el.scrollIntoView({block:'start',behavior:'smooth'})},40)}
+function receiveShared(t){
+  const add=cleanOCR(t); if(!add.trim())return;
+  S.paper=(S.paper.trim()?S.paper.trim()+'\n\n':'')+add; S.writeMode='paper'; save();
+  if(route()!=='write')location.hash='write';else render();
+  toast('Текст добавлен: '+words(add)+' '+plural(words(add),'слово','слова','слов'));
+}
+window.receiveShared=receiveShared;
 
 function viewWrite(){
-  const mode=S.writeMode||'type', d=S.draft;
-  return `${head('Пишем',mode==='photo'?'Сфотографируй сочинение из тетради — проверим его':'Тренажёр с таймером и проверкой текста')}
-  <div class="seg" role="group" aria-label="Режим"><button aria-pressed="${mode==='type'}" data-wmode="type">Набрать текст</button><button aria-pressed="${mode==='photo'}" data-wmode="photo">${ic('camera')}Фото из тетради</button></div>
+  const mode=S.writeMode==='paper'?'paper':'type', d=S.draft;
+  return `${head('Пишем',mode==='paper'?'Проверь сочинение, написанное в тетради':'Тренажёр с таймером и проверкой текста')}
+  <div class="seg" role="group" aria-label="Режим"><button aria-pressed="${mode==='type'}" data-wmode="type">Набрать текст</button><button aria-pressed="${mode==='paper'}" data-wmode="paper">${ic('camera')}Из тетради</button></div>
   <section class="card" style="display:flex;flex-direction:column;gap:6px">
-    <label class="eyebrow" for="topic">Тема${mode==='photo'?' · можно не указывать':''}</label>
+    <label class="eyebrow" for="topic">Тема</label>
     <div class="topicrow"><input class="field" id="topic" value="${esc(d.topic)}" placeholder="Например: Что значит быть свободным?"><button class="iconbtn" id="rndTopic" aria-label="Случайная тема" title="Случайная тема">${ic('shuffle')}</button></div>
   </section>
-  ${mode==='photo'?photoPanel():typePanel()}
-  ${checking?`<section class="card busy" id="busy"><span class="spin"></span><div style="flex:1;min-width:0"><b>${checkStage}</b><div class="caption">Обычно 30–90 секунд. Можно не уходить с экрана.</div></div><button class="btn ghost sm" id="stopCheck">Стоп</button></section>`:''}
-  ${!checking&&S.lastCheck?resultView(S.lastCheck):''}
+  ${mode==='paper'?paperPanel():typePanel()}
+  ${checking?`<section class="card busy" id="busy"><span class="spin"></span><div style="flex:1;min-width:0"><b>Ищу ошибки…</b><div class="caption">Несколько секунд</div></div><button class="btn ghost sm" id="stopCheck">Стоп</button></section>`:''}
+  ${!checking&&S.lastCheck&&S.lastCheck.source===mode?resultView(S.lastCheck):''}
   <section class="card" style="display:flex;flex-direction:column;gap:2px"><div class="tasks-head"><h2>Мои сочинения</h2><span class="count num">${S.essays.length}</span></div>
   ${S.essays.length?`<div>${S.essays.map((e,k)=>`<div class="essay"><div class="meta"><b>${esc(e.topic||'Без темы')}</b><span class="caption num">${e.date} · ${e.words} ${plural(e.words,'слово','слова','слов')}${e.errors!=null?` · ${e.errors} ${plural(e.errors,'ошибка','ошибки','ошибок')}`:''}</span></div><div class="actions" id="ed-${k}"><button class="btn soft sm" data-open="${k}">Открыть</button><button class="iconbtn" data-del="${k}" aria-label="Удалить">${ic('close')}</button></div></div>`).join('')}</div>`
   :'<p class="caption">Сохранённые сочинения появятся здесь. Их удобно перечитывать на 14-й день.</p>'}</section>`;
@@ -1016,63 +1030,69 @@ function typePanel(){
       <button class="play" id="tStart" aria-label="${run?'Пауза':'Старт'}">${ic(run?'pause':'play','fill')}</button></div>
     <div class="seg" role="group" aria-label="Длительность">${[[30,'30 мин'],[60,'1 час'],[120,'2 часа'],[235,'3:55']].map(([m,l])=>`<button data-dur="${m}" aria-pressed="${S.timer.dur===m*60}">${l}</button>`).join('')}</div>
   </section>
-  <textarea id="essay" aria-label="Текст сочинения" placeholder="Пиши здесь. Текст сохраняется сам.">${esc(S.draft.text)}</textarea>
+  <textarea id="essay" class="paper" aria-label="Текст сочинения" placeholder="Пиши здесь. Текст сохраняется сам.">${esc(S.draft.text)}</textarea>
   <section class="card" style="display:flex;flex-direction:column;gap:10px"><div id="statsBox" style="display:flex;flex-direction:column;gap:10px"></div>
-    ${sampleFn?`<button class="btn soft" id="runText" ${checking?'disabled':''}>${ic('check')}Найти ошибки и оценить по критериям</button>`:''}</section>
+    <button class="btn soft" id="runText" ${checking?'disabled':''}>${ic('check')}Найти ошибки</button></section>
   <section class="card" style="display:flex;flex-direction:column;gap:2px">
     <div class="tasks-head"><h2>Самопроверка</h2><span class="count num" id="chkCount">${Object.values(S.check).filter(Boolean).length} из 5</span></div>
     <ul class="checklist">${[['k1','К1: отвечаю именно на вопрос темы, тезис есть во вступлении'],['k2','К2: есть хотя бы одно произведение (лучше два), и я анализирую эпизоды, а не пересказываю'],['k3','К3: вступление — аргументы — заключение, абзацы связаны'],['k4','К4: нет повторов и штампов, слова точные'],['k5','К5: перечитал(а) на ошибки, проверил(а) запятые']].map(([k,l])=>`<li class="${S.check[k]?'done':''}"><input type="checkbox" class="chk" id="c-${k}" data-check="${k}" ${S.check[k]?'checked':''}><label for="c-${k}">${l}</label></li>`).join('')}</ul>
     <div class="actions" style="margin-top:6px"><button class="btn wide" id="saveEssay">Сохранить</button><button class="btn ghost wide" id="newEssay">Новое</button></div>
   </section>`;
 }
-function photoPanel(){
-  if(sampleFn===undefined) return `<section class="card busy"><span class="spin"></span><span>Подключаю проверку…</span></section>`;
-  if(!sampleFn||!imgLimits) return `<section class="card" style="display:flex;flex-direction:column;gap:8px">
-    <h2 style="font-size:17px">Проверка по фото работает в веб-версии</h2>
-    <p class="caption" style="font-size:14px">Почерк распознаёт и ошибки ищет Claude, а он доступен в версии приложения на claude.ai. Здесь можно перепечатать текст в режиме «Набрать текст»: приложение посчитает слова, абзацы, предложения и найдёт штампы.</p>
-    <div class="actions"><a class="btn soft sm" href="${WEB_URL}" target="_blank" rel="noopener">Открыть веб-версию</a><button class="btn ghost sm" data-wmode="type">Набрать текст</button></div></section>`;
-  const max=imgLimits.maxCount;
+function paperPanel(){
   return `<section class="card" style="display:flex;flex-direction:column;gap:10px">
-    <input type="file" id="photoInput" accept="${imgLimits.mediaTypes.join(',')}" multiple hidden>
-    ${photos.length?`<div class="shots">${photos.map((p,k)=>`<div class="shot"><img src="${p.url}" alt="Страница ${k+1}"><b>${k+1}</b><button data-rmphoto="${k}" aria-label="Убрать страницу ${k+1}">${ic('close')}</button></div>`).join('')}${photos.length<max?`<button class="pick shot" id="pickPhotos" style="padding:8px;justify-content:center">${ic('plus')}<span class="caption">Ещё</span></button>`:''}</div>`
-    :`<button class="pick" id="pickPhotos">${ic('camera')}<b>Сфотографировать страницы</b><span class="caption">или выбрать из галереи · до ${max} ${plural(max,'страницы','страниц','страниц')}</span></button>`}
-    <ul class="caption" style="padding-left:18px;display:flex;flex-direction:column;gap:1px"><li>Снимай сверху при хорошем свете, лист целиком, без бликов</li><li>Добавляй страницы по порядку</li><li>Чем разборчивее почерк, тем точнее проверка</li></ul>
-    <button class="btn" id="runPhoto" ${photos.length&&!checking?'':'disabled'}>${ic('check')}Распознать и проверить</button>
+    <div class="eyebrow">Как перенести текст из тетради</div>
+    <ol class="steps">
+      <li>Сфотографируй страницу через <b>Google Объектив</b>: он есть в камере, в приложении Google и в Google Фото (кнопка «Объектив» под снимком).</li>
+      <li>Нажми «Текст» → «Выделить всё» → «Поделиться» → <b>Зачёт</b>. Или «Копировать» и вернись сюда.</li>
+      <li>Следующую страницу добавь так же — текст допишется в конец.</li>
+    </ol>
+    <div class="actions">${HAS_APP?`<button class="btn soft sm" id="openLens">${ic('camera')}Открыть Объектив</button>`:''}<button class="btn soft sm" id="pasteBtn">${ic('copy')}Вставить из буфера</button></div>
+  </section>
+  <textarea id="paper" class="paper" aria-label="Текст из тетради" placeholder="Здесь появится текст с фото. Его можно поправить: Объектив иногда путает слова.">${esc(S.paper)}</textarea>
+  <section class="card" style="display:flex;flex-direction:column;gap:10px">
+    <div class="stats num" id="paperStats"></div>
+    <p class="caption">Сверь текст с тетрадью: Объектив может сам исправить слово с ошибкой. Между абзацами должна быть пустая строка.</p>
+    <div class="actions"><button class="btn wide" id="runPaper" ${checking?'disabled':''}>${ic('check')}Проверить</button><button class="btn ghost" id="askClearPaper">Очистить</button></div>
+    <div id="clearZone"></div>
   </section>`;
 }
+function statTiles(t,extra){const w=words(t),p=paragraphs(t),s=sentences(t);
+  return `<div class="stat"><b>${w}</b><span>${plural(w,'слово','слова','слов')}</span></div><div class="stat"><b>${p}</b><span>${plural(p,'абзац','абзаца','абзацев')}</span></div><div class="stat"><b>${s}</b><span>предлож.</span></div>${extra}`}
 function resultView(c){
-  const w=words(c.text), p=paragraphs(c.text), s=sentences(c.text);
+  const w=words(c.text);
   const by={}; ETYPES.forEach(t=>by[t]=0); c.errors.forEach(e=>by[e.type]++);
   const lit=by['орфография']+by['пунктуация']+by['грамматика'], allowed=Math.floor(w*5/100), k5=lit<=allowed;
   const vol=w>=350?['ok','Объём',`${w} — норма`]:w>=250?['warn','Объём',`${w} — лучше от 350`]:['bad','Объём',`${w} — меньше 250`];
-  const gr=k5?['ok','Грамотность, К5',`${lit} из ${allowed} допустимых`]:['bad','Грамотность, К5',`${lit} при ${allowed} допустимых`];
-  const K=Object.fromEntries(c.criteria.map(x=>[x.k,x.ok]));
-  const pass=w>=250&&K['К1']!==false&&K['К2']!==false&&(K['К3']||K['К4']||k5);
+  const gr=!c.lt?['warn','Грамотность, К5','не проверено: нет интернета']:k5?['ok','Грамотность, К5',`${lit} из ${allowed} допустимых`]:['bad','Грамотность, К5',`${lit} при ${allowed} допустимых`];
   const maxBy=Math.max(1,...Object.values(by));
-  const names={'К1':'Соответствие теме','К2':'Аргументация, литература','К3':'Композиция и логика','К4':'Качество речи'};
-  return `<section class="card" id="result" style="display:flex;flex-direction:column;gap:10px;position:relative">
-    ${pass?'<div class="stamp" style="top:10px">зачёт?</div>':''}
-    <div><h2 style="font-size:18px">Результат проверки</h2><span class="caption">${c.source==='photo'?'по фото':'по тексту'} · ${c.date}${c.unclear?` · не разобрано слов: ${c.unclear}`:''}</span></div>
-    <div class="stats num"><div class="stat"><b>${w}</b><span>${plural(w,'слово','слова','слов')}</span></div><div class="stat"><b>${p}</b><span>${plural(p,'абзац','абзаца','абзацев')}</span></div><div class="stat"><b>${s}</b><span>предлож.</span></div><div class="stat ${k5?'good':'bad'}"><b>${c.errors.length}</b><span>${plural(c.errors.length,'ошибка','ошибки','ошибок')}</span></div></div>
-    <div class="verdicts">${[vol,gr].map(v=>`<div class="verdict ${v[0]}"><span>${v[1]}</span><b class="num">${v[2]}</b></div>`).join('')}</div>
-    <div class="ebars">${ETYPES.map(t=>`<div class="ebar"><span>${t==='речь'?'речевые':t}</span><span class="t"><i style="width:${by[t]/maxBy*100}%;background:${ECOL[t]}"></i></span><b class="num">${by[t]}</b></div>`).join('')}</div>
-    <p class="caption">${pass?'Похоже на зачёт.':'Есть риск незачёта — смотри красные пункты.'} Оценка ориентировочная: окончательно решает комиссия.</p>
+  const low=c.text.toLowerCase();
+  const found=CLICHES.map(x=>[x,(low.match(new RegExp(x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'))||[]).length]).filter(x=>x[1]);
+  const freq={};(low.match(/[а-яё]{5,}/g)||[]).forEach(x=>{if(!STOP.has(x))freq[x]=(freq[x]||0)+1});
+  const rep=Object.entries(freq).filter(x=>x[1]>=4).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const errRow=(e,col,tagTxt)=>`<div class="err"><div class="fx"><span class="tag" style="--c:${col}">${tagTxt}</span><s>${esc(e.fragment)}</s>${e.fix?`<span class="caption">→</span><ins>${esc(e.fix)}</ins>`:''}</div>${e.rule?`<div class="why">${esc(e.rule)}</div>`:''}</div>`;
+  return `<section class="card" id="result" style="display:flex;flex-direction:column;gap:10px">
+    <div><h2 style="font-size:18px">Результат проверки</h2><span class="caption">${c.date}</span></div>
+    <div class="stats num">${statTiles(c.text,`<div class="stat ${!c.lt?'':k5?'good':'bad'}"><b>${c.lt?c.errors.length:'—'}</b><span>${c.lt?plural(c.errors.length,'ошибка','ошибки','ошибок'):'ошибки'}</span></div>`)}</div>
+    <div class="verdicts">${[vol,gr].map(v=>`<div class="verdict ${v[0]}"><span>${v[1]}</span><b class="num">${v[2]}</b></div>`).join('')}${paragraphs(c.text)<3&&w>150?'<div class="verdict warn"><span>Абзацы</span><b>мало — нужно 4–5</b></div>':''}</div>
+    ${c.lt?`<div class="ebars">${ETYPES.map(t=>`<div class="ebar"><span>${t==='речь'?'речевые':t}</span><span class="t"><i style="width:${by[t]/maxBy*100}%;background:${ECOL[t]}"></i></span><b class="num">${by[t]}</b></div>`).join('')}</div>`:''}
+    ${found.length||rep.length?`<div class="chips">${found.map(([x,n])=>`<span class="hl">штамп: ${x==='данн'?'данный':x}${n>1?' ×'+n:''}</span>`).join('')}${rep.map(([x,n])=>`<span class="hl">повтор: ${x} ×${n}</span>`).join('')}</div>`:''}
+    <p class="caption">Автопроверка находит не все ошибки, особенно в запятых. Это ориентир, а не оценка комиссии.</p>
   </section>
-  ${c.criteria.length?`<section class="card tight"><div class="rows">${c.criteria.map(x=>`<div class="rowi"><span class="fk" style="background:${x.ok?'var(--ok-2)':'var(--red-2)'};color:${x.ok?'var(--ok)':'var(--red)'}">${esc(x.k)}</span><div><h3>${names[x.k]||''} <span class="pill ${x.ok?'ok':'red'}">${x.ok?'зачёт':'риск'}</span></h3><p>${esc(x.comment)}</p></div></div>`).join('')}
-    ${c.works.length?`<div class="rowi"><span class="fk">${ic('pen')}</span><div><h3>Произведения</h3><p>${c.works.map(esc).join('; ')}</p></div></div>`:''}</div></section>`:''}
   ${c.errors.length?`<section class="card" style="display:flex;flex-direction:column;gap:4px"><div class="tasks-head"><h2>Ошибки</h2><span class="count num">${c.errors.length}</span></div>
-    <div class="errs">${c.errors.map(e=>`<div class="err"><div class="fx"><span class="tag" style="--c:${ECOL[e.type]}">${e.type}</span><s>${esc(e.fragment)}</s>${e.fix?`<span class="caption">→</span><ins>${esc(e.fix)}</ins>`:''}</div>${e.rule?`<div class="why">${esc(e.rule)}</div>`:''}</div>`).join('')}</div></section>`:''}
-  ${c.advice.length?`<section class="card" style="display:flex;flex-direction:column;gap:6px"><div class="eyebrow">Что улучшить</div><ul style="padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:14.5px">${c.advice.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></section>`:''}
-  ${c.source==='photo'?`<section class="card" style="display:flex;flex-direction:column;gap:8px"><div class="eyebrow">Распознанный текст</div><div class="recog">${esc(c.text)}</div>
-    <p class="caption">Сверь с тетрадью: если слово распознано неверно, исправь его в редакторе и проверь ещё раз.</p>
-    <div class="actions"><button class="btn soft sm wide" id="toEditor">Открыть в редакторе</button><button class="btn sm wide" id="saveChecked">Сохранить</button></div></section>`:''}
-  <button class="link" id="clearCheck" style="align-self:center;color:var(--muted)">Скрыть результат</button>`;
+    <div class="errs">${c.errors.map(e=>errRow(e,ECOL[e.type],e.type)).join('')}</div></section>`:''}
+  ${c.hints.length?`<section class="card" style="display:flex;flex-direction:column;gap:4px"><div class="tasks-head"><h2>Проверь запятые</h2><span class="count num">${c.hints.length}</span></div>
+    <p class="caption">Здесь часто пропускают запятую. Посмотри сам: в счёт ошибок это не входит.</p>
+    <div class="errs">${c.hints.map(e=>errRow(e,'var(--s1)','запятая?')).join('')}</div></section>`:''}
+  <div class="actions" style="justify-content:center">${c.source==='paper'?'<button class="btn sm" id="saveChecked">Сохранить в мои сочинения</button>':''}<button class="link" id="clearCheck" style="color:var(--muted)">Скрыть результат</button></div>`;
 }
 function renderStats(){
-  const t=S.draft.text, w=words(t);
-  const tb=$('#tbWords'); if(tb) tb.textContent=`${w} ${plural(w,'слово','слова','слов')}${w<250?' · минимум 250':w<350?' · цель 350':' ✓'}`;
+  const ta=document.activeElement&&document.activeElement.classList.contains('paper')?document.activeElement:null;
+  const tbt=ta?ta.value:S.draft.text, tw=words(tbt);
+  const tb=$('#tbWords'); if(tb) tb.textContent=`${tw} ${plural(tw,'слово','слова','слов')}${tw<250?' · минимум 250':tw<350?' · цель 350':' ✓'}`;
+  const ps=$('#paperStats'); if(ps) ps.innerHTML=statTiles(S.paper,`<div class="stat"><b>${Math.floor(words(S.paper)*5/100)}</b><span>ошибок макс.</span></div>`);
   const box=$('#statsBox'); if(!box) return;
-  const paras=paragraphs(t), sn=sentences(t);
+  const t=S.draft.text, w=words(t), paras=paragraphs(t);
   const col=w<250?'var(--red)':w<350?'var(--warn)':'var(--ok)';
   const status=w<250?`<span class="pill red">ещё ${250-w} до минимума</span>`:w<350?`<span class="pill">ещё ${350-w} до рекомендуемого</span>`:`<span class="pill ok">объём в норме</span>`;
   const low=t.toLowerCase();
@@ -1080,7 +1100,7 @@ function renderStats(){
   const freq={};(low.match(/[а-яё]{5,}/g)||[]).forEach(x=>{if(!STOP.has(x))freq[x]=(freq[x]||0)+1});
   const rep=Object.entries(freq).filter(x=>x[1]>=4).sort((a,b)=>b[1]-a[1]).slice(0,6);
   const max=Math.max(450,w);
-  box.innerHTML=`<div class="stats num"><div class="stat"><b>${w}</b><span>${plural(w,'слово','слова','слов')}</span></div><div class="stat"><b>${paras}</b><span>${plural(paras,'абзац','абзаца','абзацев')}</span></div><div class="stat"><b>${sn}</b><span>предлож.</span></div><div class="stat"><b>${Math.floor(w*5/100)}</b><span>ошибок макс.</span></div></div>
+  box.innerHTML=`<div class="stats num">${statTiles(t,`<div class="stat"><b>${Math.floor(w*5/100)}</b><span>ошибок макс.</span></div>`)}</div>
   <div class="meter" aria-hidden="true"><i style="width:${Math.min(100,w/max*100)}%;background:${col}"></i><span class="mk" style="left:${250/max*100}%"><span>250</span></span><span class="mk" style="left:${350/max*100}%"><span>350</span></span></div>
   <div class="chips">${status}${paras&&paras<4&&w>150?'<span class="pill">мало абзацев: нужно 4–5</span>':''}</div>
   ${found.length||rep.length?`<div class="chips">${found.map(([c,n])=>`<span class="hl">штамп: ${c==='данн'?'данный':c}${n>1?' ×'+n:''}</span>`).join('')}${rep.map(([x,n])=>`<span class="hl">повтор: ${x} ×${n}</span>`).join('')}</div>`:`<span class="caption">${w?'Штампов и частых повторов не найдено.':'Начни писать — здесь появятся подсказки про штампы и повторы.'}</span>`}`;
@@ -1119,13 +1139,16 @@ document.addEventListener('click',e=>{
   if(d.close){closeSheet();return}
   if(el.id==='moreBtn'){const i=S.view||currentDay();openedDays.has(i)?openedDays.delete(i):openedDays.add(i);clampProse();return}
   if(d.wmode){S.writeMode=d.wmode;save();render(true);return}
-  if(el.id==='pickPhotos'){const f=$('#photoInput');f&&f.click();return}
-  if(d.rmphoto!==undefined){const k=+d.rmphoto;URL.revokeObjectURL(photos[k].url);photos.splice(k,1);render(true);return}
-  if(el.id==='runPhoto'){runCheck('photo');return}
-  if(el.id==='runText'){runCheck('text');return}
-  if(el.id==='stopCheck'){checking&&checking.abort();checking=null;render(true);return}
-  if(el.id==='toEditor'){S.draft.text=S.lastCheck.text;S.writeMode='type';save();render();toast('Текст в редакторе');return}
-  if(el.id==='saveChecked'){const c=S.lastCheck;S.essays.unshift({topic:S.draft.topic||c.topic,text:c.text,words:words(c.text),errors:c.errors.length,date:c.date});save();render(true);toast('Сочинение сохранено');return}
+  if(el.id==='runText'){runCheck('type');return}
+  if(el.id==='runPaper'){runCheck('paper');return}
+  if(el.id==='stopCheck'){checking&&checking.abort();return}
+  if(el.id==='openLens'){let ok=false;try{ok=window.Android.openLens()}catch(err){}if(!ok)toast('Открой Объектив сам: в камере, в приложении Google или в Google Фото');return}
+  if(el.id==='pasteBtn'){if(HAS_APP){let t='';try{t=window.Android.clipboard()||''}catch(err){}if(t.trim())receiveShared(t);else toast('Буфер пуст — сначала скопируй текст в Объективе');return}
+    try{navigator.clipboard.readText().then(t=>t&&t.trim()?receiveShared(t):toast('Буфер пуст'),()=>toast('Нажми в поле и вставь текст долгим нажатием'))}catch(err){toast('Нажми в поле и вставь текст долгим нажатием')}return}
+  if(el.id==='askClearPaper'){$('#clearZone').innerHTML='<div class="actions"><span class="caption" style="flex:1">Удалить текст из тетради?</span><button class="btn danger sm" id="doClearPaper">Удалить</button><button class="btn ghost sm" id="noClearPaper">Нет</button></div>';return}
+  if(el.id==='doClearPaper'){S.paper='';if(S.lastCheck&&S.lastCheck.source==='paper')S.lastCheck=null;save();render(true);return}
+  if(el.id==='noClearPaper'){$('#clearZone').innerHTML='';return}
+  if(el.id==='saveChecked'){const c=S.lastCheck;S.essays.unshift({topic:S.draft.topic,text:c.text,words:words(c.text),errors:c.lt?c.errors.length:undefined,date:c.date});save();render(true);toast('Сочинение сохранено');return}
   if(el.id==='clearCheck'){S.lastCheck=null;save();render(true);return}
   if(d.sheet){openSheet(d.sheet);return}
   if(d.goday){S.view=+d.goday===currentDay()?null:+d.goday;save();nav('today');return}
@@ -1147,17 +1170,16 @@ document.addEventListener('click',e=>{
   if(d.dur){const s=+d.dur*60;S.timer={dur:s,end:null,left:s};save();render(true);return}
   if(el.id==='tStart'){if(S.timer.end){S.timer.left=timerLeft();S.timer.end=null}else{S.timer.end=Date.now()+S.timer.left*1000}save();render(true);return}
   if(el.id==='tReset'){S.timer={dur:S.timer.dur,end:null,left:S.timer.dur};save();render(true);return}
-  if(el.id==='tbDone'){const t=$('#essay');t&&t.blur();return}
-  if(el.id==='saveEssay'){const w=words(S.draft.text);if(!w){toast('Сначала напиши текст');return}const ck=S.lastCheck&&S.lastCheck.source==='text'&&S.lastCheck.text===S.draft.text?S.lastCheck.errors.length:undefined;S.essays.unshift({topic:S.draft.topic,text:S.draft.text,words:w,errors:ck,date:new Date().toLocaleDateString('ru-RU')});save();render(true);toast('Сочинение сохранено');return}
+  if(el.id==='tbDone'){const t=document.activeElement;t&&t.blur&&t.blur();return}
+  if(el.id==='saveEssay'){const w=words(S.draft.text);if(!w){toast('Сначала напиши текст');return}const ck=S.lastCheck&&S.lastCheck.source==='type'&&S.lastCheck.lt&&S.lastCheck.text===S.draft.text?S.lastCheck.errors.length:undefined;S.essays.unshift({topic:S.draft.topic,text:S.draft.text,words:w,errors:ck,date:new Date().toLocaleDateString('ru-RU')});save();render(true);toast('Сочинение сохранено');return}
   if(el.id==='newEssay'){S.draft={topic:'',text:''};S.check={};S.timer={dur:S.timer.dur,end:null,left:S.timer.dur};save();render();return}
-  if(d.open!==undefined){const x=S.essays[+d.open];S.draft={topic:x.topic,text:x.text};save();render();toast('Открыто в редакторе');return}
+  if(d.open!==undefined){const x=S.essays[+d.open];S.draft={topic:x.topic,text:x.text};S.writeMode='type';save();render();toast('Открыто в редакторе');return}
   if(d.del!==undefined){const k=+d.del;$('#ed-'+k).innerHTML=`<button class="btn danger sm" data-delok="${k}">Удалить</button><button class="btn ghost sm" data-delno="1">Нет</button>`;return}
   if(d.delok!==undefined){S.essays.splice(+d.delok,1);save();render(true);return}
   if(d.delno){render(true);return}
 });
 document.addEventListener('change',e=>{
   const el=e.target;
-  if(el.id==='photoInput'){const max=imgLimits?imgLimits.maxCount:10;for(const f of el.files){if(photos.length>=max){toast('Можно до '+max+' страниц');break}photos.push({file:f,url:URL.createObjectURL(f)})}el.value='';render(true);return}
   if(el.dataset.day){const i=+el.dataset.day,k=+el.dataset.k;S.done[i]=S.done[i]||{};S.done[i][k]=el.checked;save();
     el.closest('li').classList.toggle('done',el.checked);
     setTimeout(()=>{render(true);if(el.checked&&dayState(i)==='done')toast('День '+i+' закрыт!')},220);return}
@@ -1168,15 +1190,15 @@ document.addEventListener('change',e=>{
 let tmr;
 document.addEventListener('input',e=>{
   if(e.target.id==='essay'){S.draft.text=e.target.value;clearTimeout(tmr);tmr=setTimeout(()=>{save();renderStats()},250)}
+  if(e.target.id==='paper'){S.paper=e.target.value;clearTimeout(tmr);tmr=setTimeout(()=>{save();renderStats()},250)}
   if(e.target.id==='topic'){S.draft.topic=e.target.value;save()}
 });
-document.addEventListener('focusin',e=>{if(e.target.id==='essay'){document.body.classList.add('typing');renderStats();tick()}});
-document.addEventListener('focusout',e=>{if(e.target.id==='essay')document.body.classList.remove('typing')});
+document.addEventListener('focusin',e=>{if(e.target.classList&&e.target.classList.contains('paper')){document.body.classList.add('typing');renderStats();tick()}});
+document.addEventListener('focusout',e=>{if(e.target.classList&&e.target.classList.contains('paper'))document.body.classList.remove('typing')});
 function tick(){const s=timerLeft();const t=$('#timer');if(t&&S.timer.end){t.textContent=fmtT(s);t.classList.toggle('over',s<0)}const tb=$('#tbTimer');if(tb)tb.textContent=S.timer.end?'⏱ '+fmtT(s):''}
 setInterval(tick,1000);
 
 render();
-initSample();
 if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 </script>
 
