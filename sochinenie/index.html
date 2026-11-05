@@ -31,7 +31,7 @@
   --f-display:"Literata",Georgia,"Times New Roman",serif;
   --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --f-hand:"Caveat","Segoe Print","Comic Sans MS",cursive;
-  --r:16px; --r-s:12px; --nav-h:56px;
+  --r:16px; --r-s:12px; --nav-h:56px; --ol:#1d2340;
   --c-rus:#2f45c8; --c-mathp:#c8322a; --c-mathb:#c45a1c; --c-phys:#1b6f8c; --c-chem:#1d8048; --c-inf:#5b3fc4; --c-bio:#3d7f1c; --c-hist:#8f5600; --c-soc:#a3325f; --c-geo:#0d746f; --c-lit:#8a3fa6; --c-eng:#b0283f; --c-deu:#4a4a5e; --c-fra:#2a5bd7; --c-spa:#b4400e; --c-chi:#b01c1c; --lg-b:#a5622f; --lg-s:#6f7a8c; --lg-g:#b58300; --lg-p:#16857a; --lg-d:#3d63e0; --on-c:#ffffff;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
@@ -40,8 +40,8 @@
   --red:#ff6f63; --red-2:#3a1e23; --ok:#5ad08f; --ok-2:#15301f; --warn:#f2b24c; --warn-2:#33270f;
   --s1:#93a5ff; --s2:#d68fec; --s3:#5ccaac;
   --hero:#1c256c; --hero-line:rgba(255,255,255,.06);
-  --shadow:0 0 0 1px var(--line); --navbg:rgba(23,27,44,.9); --scrim:rgba(0,0,0,.55); --c-rus:#93a5ff; --c-mathp:#ff7a6e; --c-mathb:#ff9a66; --c-phys:#5cc3e6; --c-chem:#5ad08f; --c-inf:#a993ff; --c-bio:#8ed05c; --c-hist:#f2b24c; --c-soc:#f08ab5; --c-geo:#4fd1c9; --c-lit:#d68fec; --c-eng:#ff7d92; --c-deu:#b9b9cc; --c-fra:#88a8ff; --c-spa:#fb923c; --c-chi:#f87171; --lg-b:#d9955f; --lg-s:#b4bdcc; --lg-g:#f2c94c; --lg-p:#4fd1c0; --lg-d:#8fb0ff; --on-c:#0e1120; color-scheme:dark}}
-:root[data-theme="dark"]{
+  --shadow:0 0 0 1px var(--line); --navbg:rgba(23,27,44,.9); --scrim:rgba(0,0,0,.55); --c-rus:#93a5ff; --c-mathp:#ff7a6e; --c-mathb:#ff9a66; --c-phys:#5cc3e6; --c-chem:#5ad08f; --c-inf:#a993ff; --c-bio:#8ed05c; --c-hist:#f2b24c; --c-soc:#f08ab5; --c-geo:#4fd1c9; --c-lit:#d68fec; --c-eng:#ff7d92; --c-deu:#b9b9cc; --c-fra:#88a8ff; --c-spa:#fb923c; --c-chi:#f87171; --lg-b:#d9955f; --lg-s:#b4bdcc; --lg-g:#f2c94c; --lg-p:#4fd1c0; --lg-d:#8fb0ff; --on-c:#0e1120; --ol:#cdd3ea; color-scheme:dark}}
+:root[data-theme="dark"]{ --ol:#cdd3ea;
   --bg:#0e1120; --surface:#171b2c; --surface-2:#1f2438; --fg:#e9ebf5; --muted:#9ba2c0; --line:#283050;
   --ink:#93a5ff; --ink-2:#232a4b; --on-ink:#0e1120;
   --red:#ff6f63; --red-2:#3a1e23; --ok:#5ad08f; --ok-2:#15301f; --warn:#f2b24c; --warn-2:#33270f;
@@ -376,6 +376,32 @@ nav.tabs a[aria-current="page"] .pi{background:var(--ink-2);color:var(--ink)}
 .recog{white-space:pre-wrap;font-family:var(--f-display);font-size:14.5px;line-height:1.6;background:var(--surface-2);border-radius:var(--r-s);padding:10px 12px;max-height:320px;overflow:auto}
 @media (min-width:600px){.hero{padding:18px 20px 10px 34px}.hero::before{left:20px}.lesson-title{font-size:24px}}
 
+/* 2D-иллюстрации */
+.art{display:block;flex:none;overflow:visible}
+.art .o,.owl .o{stroke:var(--ol);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
+.owl{display:block;flex:none;overflow:visible}
+.lvlb{position:relative;display:grid;place-items:center;width:54px;height:54px;flex:none}
+.lvlb .art{position:absolute;inset:0}
+.lvlb b{position:relative;font-family:var(--f-display);font-size:22px;color:#1d2340;margin-top:-4px}
+.lvl>b{display:none}
+.hero-stats .art{width:18px;height:18px}
+.qi .art{width:30px;height:30px}
+.qi{background:var(--surface-2)!important;width:44px;height:44px;border-radius:13px}
+.srow{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;width:100%}
+.shead-top{align-items:center}
+.onb{display:block}
+.onb-owl{float:right;margin:-4px -2px 0 8px}
+.qcard .fb{flex-direction:row;align-items:flex-start;gap:10px}
+.fbt{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.result .owl{margin-bottom:2px}
+.ai{background:transparent;width:auto;height:auto}
+.ach:not(.on) .art{filter:grayscale(1);opacity:.45}
+.ava2{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--surface-2)}
+.phead{display:flex;align-items:center;gap:12px;padding-top:6px}
+.phead .apphead{padding:0}
+.league .art{margin:-2px 0}
+.empty .owl{align-self:center}
+nav.tabs a .ic2{width:22px;height:22px}
 /* ===== ЕГЭ ===== */
 body.quizmode nav.tabs{display:none}
 .back{align-self:flex-start;padding:2px 0;font-size:14px}
@@ -507,10 +533,10 @@ body.quizmode nav.tabs{display:none}
 <div class="typebar" id="typebar" aria-live="polite"><span class="w num" id="tbWords">0 слов</span><span class="num" id="tbTimer"></span><button class="btn sm soft" id="tbDone">Готово</button></div>
 
 <nav class="tabs" aria-label="Разделы">
-  <a href="#home" data-tab="home"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></span>Главная</a>
-  <a href="#subjects" data-tab="subjects"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></span>Предметы</a>
-  <a href="#rating" data-tab="rating"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9 17h6"/></svg></span>Рейтинг</a>
-  <a href="#profile" data-tab="profile"><span class="pi"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></span>Профиль</a>
+  <a href="#home" data-tab="home"><span class="pi"><svg class="ic2" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 10.2V20h13v-9.8L12 4.8z" fill="currentColor" opacity=".28"/><path d="M3 11.5L12 4l9 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="10" y="13.5" width="4" height="6.5" rx="1.2" fill="currentColor"/></svg></span>Главная</a>
+  <a href="#subjects" data-tab="subjects"><span class="pi"><svg class="ic2" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="2" fill="currentColor"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="2" fill="currentColor" opacity=".35"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="2" fill="currentColor" opacity=".35"/><rect x="13" y="13" width="7.5" height="7.5" rx="2" fill="currentColor"/></svg></span>Предметы</a>
+  <a href="#rating" data-tab="rating"><span class="pi"><svg class="ic2" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h10v5.5a5 5 0 0 1-10 0z" fill="currentColor"/><path d="M7 5H4.5a3.5 3.5 0 0 0 3.5 4.5M17 5h2.5A3.5 3.5 0 0 1 16 9.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M10.5 14h3v3.5h-3z" fill="currentColor" opacity=".45"/><rect x="7" y="17.5" width="10" height="3.5" rx="1.2" fill="currentColor" opacity=".45"/></svg></span>Рейтинг</a>
+  <a href="#profile" data-tab="profile"><span class="pi"><svg class="ic2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2" fill="currentColor"/><path d="M4 21c.8-4.6 4-7 8-7s7.2 2.4 8 7z" fill="currentColor" opacity=".35"/></svg></span>Профиль</a>
 </nav>
 
 <script>
@@ -1242,6 +1268,84 @@ const SUBJ_CARDS={rus:RUS_CARDS,mathp:MATH_CARDS,mathb:MATH_CARDS,phys:PHYS_CARD
  hist:HIST_DATES.map(([y,e])=>[y,e]),soc:SOC_TERMS,geo:[['Естественный прирост','рождаемость − смертность (в ‰ — на 1000 жителей)'],['Миграционный прирост','въехавшие − выехавшие'],['Плотность населения','население / площадь'],['Масштаб','1 : 100 000 — в 1 см 1 км']],
  lit:LIT_TERMS,eng:LANG_CARDS.eng,deu:LANG_CARDS.deu,fra:LANG_CARDS.fra,spa:LANG_CARDS.spa,chi:LANG_CARDS.chi};
 
+/* ===================== 2D-ИЛЛЮСТРАЦИИ ===================== */
+/* Плоские картинки 64×64: контур — класс .o (цвет берётся из темы), заливки — свои у каждой детали. */
+const ART={
+ /* предметы */
+ rus:`<g class="o"><path d="M5 17h54v35H5z" fill="#3b55d9"/><path d="M9 14c8-3 16-3 23 3v33c-7-5-15-5-23-2z" fill="#fff"/><path d="M55 14c-8-3-16-3-23 3v33c7-5 15-5 23-2z" fill="#e9edff"/><path d="M26 14v13l3-2 3 2V15" fill="#e5484d"/></g><g stroke="#b6c0ec" stroke-width="2" stroke-linecap="round"><path d="M14 31h11M14 37h11M14 43h7M38 25h11M38 31h11M38 37h8"/></g>`,
+ mathp:`<g class="o"><rect x="7" y="9" width="42" height="46" rx="4" fill="#fff"/></g><g stroke="#dfe4f5" stroke-width="1.5"><path d="M7 20h42M7 31h42M7 42h42M18 9v46M29 9v46M40 9v46"/></g><path d="M11 18c6 30 14 30 20 6s12-10 16 4" fill="none" stroke="#e5484d" stroke-width="3" stroke-linecap="round"/><g class="o"><rect x="7" y="9" width="42" height="46" rx="4" fill="none"/><path d="M42 50l14-30 5 2-14 30-6 4z" fill="#ffc531"/><path d="M56 20l2-5 5 2-2 5z" fill="#ff8fa3"/><path d="M42 50l-1 5 4-3z" fill="#1d2340"/></g>`,
+ mathb:`<g class="o"><rect x="12" y="5" width="40" height="54" rx="6" fill="#ff8a3d"/><rect x="18" y="11" width="28" height="12" rx="2" fill="#d6f5e3"/><rect x="18" y="28" width="8" height="7" rx="2" fill="#fff"/><rect x="28" y="28" width="8" height="7" rx="2" fill="#fff"/><rect x="38" y="28" width="8" height="7" rx="2" fill="#ffd166"/><rect x="18" y="38" width="8" height="7" rx="2" fill="#fff"/><rect x="28" y="38" width="8" height="7" rx="2" fill="#fff"/><rect x="38" y="38" width="8" height="16" rx="2" fill="#3b55d9"/><rect x="18" y="48" width="18" height="6" rx="2" fill="#fff"/></g><path d="M36 17h7" stroke="#1d7a4c" stroke-width="2.5" stroke-linecap="round"/>`,
+ phys:`<g class="o" fill="none"><ellipse cx="32" cy="32" rx="27" ry="10" stroke-width="2.6"/><ellipse cx="32" cy="32" rx="27" ry="10" transform="rotate(60 32 32)"/><ellipse cx="32" cy="32" rx="27" ry="10" transform="rotate(-60 32 32)"/></g><g class="o"><circle cx="32" cy="32" r="7" fill="#e5484d"/><circle cx="58" cy="32" r="4" fill="#ffc531"/><circle cx="18" cy="9" r="4" fill="#4cc9f0"/><circle cx="18" cy="55" r="4" fill="#7ad37a"/></g>`,
+ chem:`<g class="o"><path d="M24 6h16M27 6v16L11 50a5 5 0 0 0 4 8h34a5 5 0 0 0 4-8L37 22V6" fill="#eaf7ff"/><path d="M17 40h30l6 10a5 5 0 0 1-4 8H15a5 5 0 0 1-4-8z" fill="#3ecf8e"/><circle cx="27" cy="48" r="3" fill="#bff3da"/><circle cx="37" cy="44" r="2.5" fill="#bff3da"/><circle cx="34" cy="32" r="2" fill="#fff"/><circle cx="30" cy="25" r="1.6" fill="#fff"/></g>`,
+ inf:`<g class="o"><rect x="9" y="11" width="46" height="31" rx="3" fill="#1f2a5a"/><path d="M4 46h56l-4 7H8z" fill="#c8cee6"/></g><path d="M18 21l-4 5 4 5M46 21l4 5-4 5" fill="none" stroke="#7ad37a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 23h10M22 28h18M22 33h8" stroke="#4cc9f0" stroke-width="2.6" stroke-linecap="round"/><path d="M35 23h7" stroke="#ffc531" stroke-width="2.6" stroke-linecap="round"/>`,
+ bio:`<path d="M20 6c0 13 24 13 24 26S20 45 20 58M44 6c0 13-24 13-24 26s24 13 24 26" fill="none" stroke="#1d2340" stroke-width="7" stroke-linecap="round" class="ol-s"/><path d="M20 6c0 13 24 13 24 26S20 45 20 58" fill="none" stroke="#3ecf8e" stroke-width="4" stroke-linecap="round"/><path d="M44 6c0 13-24 13-24 26s24 13 24 26" fill="none" stroke="#ff7aa2" stroke-width="4" stroke-linecap="round"/><g stroke-width="3" stroke-linecap="round"><path d="M24 12h16" stroke="#ffc531"/><path d="M28 19h8" stroke="#4cc9f0"/><path d="M24 26h16" stroke="#ffc531"/><path d="M24 38h16" stroke="#4cc9f0"/><path d="M28 45h8" stroke="#ffc531"/><path d="M24 52h16" stroke="#4cc9f0"/></g>`,
+ hist:`<g class="o"><path d="M14 10h36a6 6 0 0 1 0 12H14z" fill="#e8c98a"/><path d="M14 10a6 6 0 0 0 0 12h4v32h36V22" fill="#f6e3b4"/><path d="M50 22v32a6 6 0 0 0 0-12" fill="none"/><circle cx="44" cy="46" r="7" fill="#d93a3a"/></g><path d="M24 30h20M24 36h16M24 42h10" stroke="#c7a466" stroke-width="2.4" stroke-linecap="round"/><path d="M41 46l2 2 4-4" fill="none" stroke="#ffd7d7" stroke-width="2" stroke-linecap="round"/>`,
+ soc:`<g class="o"><path d="M32 8v44M18 56h28" fill="none"/><path d="M12 18h40" fill="none"/><circle cx="32" cy="9" r="3" fill="#f5c542"/><path d="M4 36h16l-8-16z" fill="#fff4cc"/><path d="M44 36h16l-8-16z" fill="#fff4cc"/><path d="M3 36a9 6 0 0 0 18 0z" fill="#f5c542"/><path d="M43 36a9 6 0 0 0 18 0z" fill="#f5c542"/><path d="M24 52h16l2 4H22z" fill="#f5c542"/></g>`,
+ geo:`<g class="o"><path d="M14 30a18 18 0 1 0 36 0" fill="none"/><path d="M32 48v8M22 58h20" fill="none"/><circle cx="32" cy="28" r="16" fill="#4cc9f0"/><path d="M24 17c4 2 3 6 7 7s3 6-1 8-2 7-6 5-2-8-5-10 1-7 5-10zM38 30c3-2 7 0 7 4s-4 6-6 4 0-5-1-8z" fill="#7ad37a"/></g>`,
+ lit:`<g class="o"><path d="M14 40h22v14a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4z" fill="#2b3a8c"/><rect x="18" y="36" width="14" height="5" rx="1.5" fill="#1d2340"/><path d="M27 37C30 22 42 10 58 5c-2 12-12 26-27 33z" fill="#b48cf2"/><path d="M27 37L50 13" fill="none"/></g>`,
+ eng:`<g class="o"><path d="M8 10h40a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6H24l-10 9v-9H8a6 6 0 0 1-6-6V16a6 6 0 0 1 6-6z" fill="#fff"/><rect x="34" y="34" width="26" height="18" rx="2" fill="#1f3c9c"/></g><path d="M35 35l24 16M59 35L35 51" stroke="#fff" stroke-width="4"/><path d="M47 35v16M35 43h24" stroke="#fff" stroke-width="6"/><path d="M47 35v16M35 43h24" stroke="#d93a3a" stroke-width="3"/><g class="o"><rect x="34" y="34" width="26" height="18" rx="2" fill="none"/></g><g fill="#3b55d9"><circle cx="16" cy="25" r="3"/><circle cx="26" cy="25" r="3"/><circle cx="36" cy="25" r="3"/></g>`,
+ deu:`<g class="o"><path d="M8 10h40a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6H24l-10 9v-9H8a6 6 0 0 1-6-6V16a6 6 0 0 1 6-6z" fill="#fff"/></g><rect x="34" y="34" width="26" height="6" fill="#222"/><rect x="34" y="40" width="26" height="6" fill="#d93a3a"/><rect x="34" y="46" width="26" height="6" fill="#ffcc00"/><g class="o"><rect x="34" y="34" width="26" height="18" rx="1" fill="none"/></g><g fill="#3b55d9"><circle cx="16" cy="25" r="3"/><circle cx="26" cy="25" r="3"/><circle cx="36" cy="25" r="3"/></g>`,
+ fra:`<g class="o"><path d="M8 10h40a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6H24l-10 9v-9H8a6 6 0 0 1-6-6V16a6 6 0 0 1 6-6z" fill="#fff"/></g><rect x="34" y="34" width="9" height="18" fill="#2a5bd7"/><rect x="43" y="34" width="8" height="18" fill="#fff"/><rect x="51" y="34" width="9" height="18" fill="#d93a3a"/><g class="o"><rect x="34" y="34" width="26" height="18" rx="1" fill="none"/></g><g fill="#3b55d9"><circle cx="16" cy="25" r="3"/><circle cx="26" cy="25" r="3"/><circle cx="36" cy="25" r="3"/></g>`,
+ spa:`<g class="o"><path d="M8 10h40a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6H24l-10 9v-9H8a6 6 0 0 1-6-6V16a6 6 0 0 1 6-6z" fill="#fff"/></g><rect x="34" y="34" width="26" height="18" fill="#d93a3a"/><rect x="34" y="39" width="26" height="8" fill="#ffcc00"/><g class="o"><rect x="34" y="34" width="26" height="18" rx="1" fill="none"/></g><g fill="#3b55d9"><circle cx="16" cy="25" r="3"/><circle cx="26" cy="25" r="3"/><circle cx="36" cy="25" r="3"/></g>`,
+ chi:`<g class="o"><path d="M8 10h40a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6H24l-10 9v-9H8a6 6 0 0 1-6-6V16a6 6 0 0 1 6-6z" fill="#fff"/><rect x="34" y="34" width="26" height="18" rx="1" fill="#de2910"/></g><path d="M40 37l1.2 3.4h3.6l-2.9 2.1 1.1 3.5-3-2.2-3 2.2 1.1-3.5-2.9-2.1h3.6z" fill="#ffde00"/><g fill="#3b55d9"><circle cx="16" cy="25" r="3"/><circle cx="26" cy="25" r="3"/><circle cx="36" cy="25" r="3"/></g>`,
+ /* режимы и действия */
+ target:`<g class="o"><circle cx="28" cy="36" r="22" fill="#fff"/><circle cx="28" cy="36" r="16" fill="#e5484d"/><circle cx="28" cy="36" r="10" fill="#fff"/><circle cx="28" cy="36" r="4.5" fill="#e5484d"/><path d="M28 36L54 10" fill="none"/><path d="M50 6l4 4 6-1-4-4zM54 10l4 4 1-6-4-4z" fill="#ffc531"/></g>`,
+ clip:`<g class="o"><rect x="10" y="9" width="44" height="50" rx="5" fill="#b07a45"/><rect x="15" y="15" width="34" height="40" rx="2" fill="#fff"/><rect x="23" y="5" width="18" height="9" rx="3" fill="#c8cee6"/></g><path d="M20 26l3 3 5-6M20 37l3 3 5-6M20 48l3 3 5-6" fill="none" stroke="#2fb170" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 27h12M32 38h12M32 49h9" stroke="#c8cee6" stroke-width="2.6" stroke-linecap="round"/>`,
+ exam:`<g class="o"><path d="M10 6h30l10 10v42H10z" fill="#fff"/><path d="M40 6v10h10" fill="#e9edff"/><circle cx="46" cy="47" r="13" fill="#ffd166"/><circle cx="46" cy="47" r="9" fill="#fff"/><path d="M46 41v6l4 3" fill="none"/><path d="M43 31h6" fill="none"/></g><path d="M16 20h18M16 27h22M16 34h14M16 41h10" stroke="#c8cee6" stroke-width="2.6" stroke-linecap="round"/>`,
+ bolt:`<g class="o"><path d="M36 3L10 37h18l-6 24 28-36H32z" fill="#ffc531"/></g><path d="M30 12L18 30h8" fill="none" stroke="#fff3c0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`,
+ cards:`<g class="o"><rect x="22" y="6" width="32" height="42" rx="5" transform="rotate(12 38 27)" fill="#ffd166"/><rect x="14" y="10" width="32" height="42" rx="5" transform="rotate(-4 30 31)" fill="#4cc9f0"/><rect x="10" y="16" width="32" height="42" rx="5" fill="#fff"/></g><path d="M18 28h16M18 35h12" stroke="#3b55d9" stroke-width="3" stroke-linecap="round"/><circle cx="26" cy="47" r="4" fill="#e5484d"/>`,
+ eraser:`<g class="o"><path d="M8 40L30 18l20 20-14 14H20z" fill="#ff8fa3"/><path d="M8 40l12 12h16L22 26z" fill="#ffd6de"/><path d="M14 58h40" fill="none"/></g><path d="M40 10l2 4M50 14l-3 3M52 24l-4 0" stroke="#e5484d" stroke-width="2.6" stroke-linecap="round"/>`,
+ trophy:`<g class="o"><path d="M18 8h28v14a14 14 0 0 1-28 0z" fill="#ffc531"/><path d="M18 12H9a9 9 0 0 0 10 12M46 12h9a9 9 0 0 1-10 12" fill="none"/><path d="M28 35h8v9h-8z" fill="#f2a900"/><rect x="18" y="44" width="28" height="7" rx="2" fill="#b07a45"/><rect x="14" y="51" width="36" height="7" rx="2" fill="#8a5a2b"/></g><path d="M25 13v9" stroke="#fff3c0" stroke-width="3" stroke-linecap="round"/>`,
+ flame:`<g class="o"><path d="M32 4c4 12 18 17 18 33a18 18 0 0 1-36 0c0-8 5-13 8-16 0 6 3 9 6 9-1-10 0-18 4-26z" fill="#ff8a3d"/><path d="M32 30c3 6 9 8 9 15a9 9 0 0 1-18 0c0-4 3-7 4-8 1 3 2 4 4 4 0-4 0-7 1-11z" fill="#ffd166"/></g>`,
+ hourglass:`<g class="o"><rect x="12" y="4" width="40" height="7" rx="2" fill="#b07a45"/><rect x="12" y="53" width="40" height="7" rx="2" fill="#b07a45"/><path d="M17 11h30c0 12-11 15-11 21s11 9 11 21H17c0-12 11-15 11-21s-11-9-11-21z" fill="#e9f6ff"/><path d="M22 53c2-7 8-8 10-8s8 1 10 8zM24 18h16c-2 5-6 7-8 9-2-2-6-4-8-9z" fill="#ffc531"/></g>`,
+ notebook:`<g class="o"><rect x="12" y="6" width="38" height="52" rx="4" fill="#3b55d9"/><rect x="17" y="6" width="33" height="52" rx="3" fill="#fff"/><path d="M42 44l14-30 5 2-14 30-6 4z" fill="#ffc531"/></g><path d="M22 6v52" stroke="#e5484d" stroke-width="2"/><path d="M26 18h16M26 25h16M26 32h12M26 39h10" stroke="#c8cee6" stroke-width="2.4" stroke-linecap="round"/>`,
+ books:`<g class="o"><rect x="8" y="44" width="48" height="12" rx="2" fill="#e5484d"/><rect x="12" y="32" width="42" height="12" rx="2" fill="#4cc9f0"/><rect x="6" y="20" width="44" height="12" rx="2" fill="#ffd166"/><rect x="14" y="8" width="36" height="12" rx="2" fill="#7ad37a"/></g><path d="M14 50h28M18 38h24M12 26h26M20 14h20" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".8"/>`,
+ rocket:`<g class="o"><path d="M32 4c10 8 14 20 12 34H20C18 24 22 12 32 4z" fill="#fff"/><path d="M20 38l-8 10 10-2zM44 38l8 10-10-2z" fill="#e5484d"/><circle cx="32" cy="22" r="6" fill="#4cc9f0"/><path d="M24 46h16l-3 8h-10z" fill="#ff8a3d"/></g><path d="M29 54l3 7 3-7" fill="#ffd166"/>`,
+ friends:`<g class="o"><circle cx="22" cy="34" r="16" fill="#ff8a3d"/><circle cx="42" cy="30" r="16" fill="#8b6cf0"/></g><circle cx="16" cy="32" r="2.4" fill="#1d2340"/><circle cx="26" cy="32" r="2.4" fill="#1d2340"/><path d="M17 40c3 3 7 3 10 0" fill="none" stroke="#1d2340" stroke-width="2.4" stroke-linecap="round"/><circle cx="37" cy="28" r="2.4" fill="#1d2340"/><circle cx="47" cy="28" r="2.4" fill="#1d2340"/><path d="M38 36c3 3 7 3 10 0" fill="none" stroke="#1d2340" stroke-width="2.4" stroke-linecap="round"/>`,
+ diamond:`<g class="o"><path d="M14 10h36l10 14-28 34L4 24z" fill="#7cc4ff"/><path d="M4 24h56M14 10l10 14 8-14 8 14 10-14M24 24l8 34 8-34" fill="none"/></g><path d="M18 14l-6 8" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`,
+ user:`<g class="o"><circle cx="32" cy="22" r="12" fill="#ffd8b5"/><path d="M10 58c2-14 11-20 22-20s20 6 22 20z" fill="#3b55d9"/><path d="M20 20c0-10 8-14 14-13 8 1 11 7 10 13-4-4-10-5-24 0z" fill="#5b3a1e"/></g>`
+};
+/* Медали лиг */
+const MEDAL={'lg-b':['#d08a4e','#a5622f'],'lg-s':['#dfe4ee','#a3adbf'],'lg-g':['#ffd24a','#d49b00'],'lg-p':['#7fe3d6','#2aa597']};
+function medalArt(cls){if(cls==='lg-d')return ART.diamond;const [a,b]=MEDAL[cls];
+  return `<g class="o"><path d="M20 4l8 22h-9L11 6zM44 4l-8 22h9l8-20z" fill="#3b55d9"/><circle cx="32" cy="40" r="18" fill="${b}"/><circle cx="32" cy="40" r="13" fill="${a}"/></g><path d="M32 31l2.6 5.4 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z" fill="${b}"/>`}
+/* Щит с числом — для уровней и достижений-уровней */
+const shield=(c1,c2)=>`<g class="o"><path d="M32 4l24 8v16c0 16-10 26-24 32C18 54 8 44 8 28V12z" fill="${c1}"/><path d="M32 10l18 6v12c0 12-7 20-18 25-11-5-18-13-18-25V16z" fill="${c2}"/></g>`;
+const starBadge=(c1,c2,txt)=>`<g class="o"><path d="M32 3l8 15 17 3-12 12 3 17-16-8-16 8 3-17L7 21l17-3z" fill="${c1}"/></g><circle cx="32" cy="28" r="11" fill="${c2}"/><text x="32" y="32.5" text-anchor="middle" font-family="Golos Text,system-ui,sans-serif" font-weight="700" font-size="${txt.length>2?10:13}" fill="#1d2340">${txt}</text>`;
+const numShield=(n,c1,c2)=>shield(c1,c2)+`<text x="32" y="38" text-anchor="middle" font-family="Literata,Georgia,serif" font-weight="700" font-size="${String(n).length>1?17:21}" fill="#1d2340">${n}</text>`;
+const ACH_ART={first:ART.rocket,c100:starBadge('#ffd24a','#fff3c0','100'),c500:starBadge('#ff8a3d','#ffe0c7','500'),goal:ART.target,streak3:ART.flame,
+ streak7:ART.flame+'<circle cx="46" cy="46" r="11" fill="#3b55d9" stroke="#1d2340" stroke-width="2.4"/><text x="46" y="50.5" text-anchor="middle" font-family="Golos Text,system-ui,sans-serif" font-weight="700" font-size="12" fill="#fff">7</text>',
+ mock:ART.exam,mock80:ART.trophy,blitz15:ART.bolt,multi3:ART.books,gold:medalArt('lg-g'),diamond:ART.diamond,lvl5:numShield(5,'#7cc4ff','#e9f6ff'),lvl10:numShield(10,'#b48cf2','#f1e8ff'),friend:ART.friends};
+const MODE_ART={train:'target',test:'clip',mock:'exam',blitz:'bolt',cards:'cards',mist:'eraser'};
+
+/* Сова-выпускница: главный персонаж. mood: happy | ok | sad | think */
+function owl(mood,size){
+  const eyes=mood==='happy'?`<path d="M20 30q5-6 10 0M34 30q5-6 10 0" fill="none" stroke="#1d2340" stroke-width="3" stroke-linecap="round"/>`
+   :`<circle cx="25" cy="30" r="7" fill="#fff" stroke="#1d2340" stroke-width="2.4"/><circle cx="39" cy="30" r="7" fill="#fff" stroke="#1d2340" stroke-width="2.4"/><circle cx="${mood==='think'?27:25}" cy="${mood==='think'?28:31}" r="3.2" fill="#1d2340"/><circle cx="${mood==='think'?41:39}" cy="${mood==='think'?28:31}" r="3.2" fill="#1d2340"/>`;
+  const brows=mood==='sad'?`<path d="M18 21l9 3M46 21l-9 3" stroke="#1d2340" stroke-width="2.6" stroke-linecap="round"/>`:'';
+  const tear=mood==='sad'?`<path d="M19 38c-2 3-2 5 0 6 2-1 2-3 0-6z" fill="#4cc9f0" stroke="#1d2340" stroke-width="1.6"/>`:'';
+  const cheeks=mood==='happy'?`<ellipse cx="17" cy="38" rx="3.5" ry="2.2" fill="#ff8fa3"/><ellipse cx="47" cy="38" rx="3.5" ry="2.2" fill="#ff8fa3"/>`:'';
+  return `<svg class="owl" viewBox="0 0 64 70" width="${size||72}" height="${Math.round((size||72)*70/64)}" aria-hidden="true">
+   <g class="o"><path d="M10 34c0-16 10-24 22-24s22 8 22 24v14c0 12-10 18-22 18S10 60 10 48z" fill="#8b6cf0"/><path d="M18 46c0-6 6-9 14-9s14 3 14 9-6 14-14 14-14-8-14-14z" fill="#e8ddff"/>
+   <path d="M10 40c-6 3-7 12-2 16 3-4 4-9 4-14zM54 40c6 3 7 12 2 16-3-4-4-9-4-14z" fill="#6c4fd6"/><path d="M26 64l-3 4M38 64l3 4" fill="none"/>
+   <path d="M30 37l2 4 2-4z" fill="#ffb02e"/><path d="M12 12l20-8 20 8-20 8z" fill="#1d2340"/><path d="M20 15v6c4 3 8 4 12 4s8-1 12-4v-6l-12 5z" fill="#2b3360"/></g>
+   <path d="M52 12v12" stroke="#ffc531" stroke-width="2.4" stroke-linecap="round"/><circle cx="52" cy="25" r="2.4" fill="#ffc531"/>
+   <path d="M24 49q2 2 4 0M32 52q2 2 4 0M36 46q2 2 4 0" fill="none" stroke="#b9a5f5" stroke-width="1.8" stroke-linecap="round"/>
+   ${brows}${eyes}${cheeks}${tear}</svg>`;
+}
+/* Аватары друзей: мордочки зверей */
+const FACES=[
+ c=>`<circle cx="32" cy="34" r="22" fill="${c}"/><path d="M14 22l-4-14 14 8zM50 22l4-14-14 8z" fill="${c}"/>`, // кот
+ c=>`<circle cx="32" cy="36" r="20" fill="${c}"/><circle cx="15" cy="18" r="8" fill="${c}"/><circle cx="49" cy="18" r="8" fill="${c}"/>`, // медведь
+ c=>`<path d="M10 14l14 10M54 14L40 24" stroke="#1d2340" stroke-width="2.4"/><path d="M8 12l18 12-2 30h16l-2-30 18-12-8 30a16 16 0 0 1-32 0z" fill="${c}"/>`, // лиса
+ c=>`<ellipse cx="22" cy="14" rx="5" ry="12" fill="${c}"/><ellipse cx="42" cy="14" rx="5" ry="12" fill="${c}"/><circle cx="32" cy="38" r="20" fill="${c}"/>`, // заяц
+ c=>`<circle cx="32" cy="35" r="21" fill="${c}"/><path d="M14 18q8-8 18-2 10-6 18 2" fill="${c}"/>` // птица
+];
+function avatar(seed,size){const h=parseInt(hashStr(seed),36);const c=`hsl(${h%360} 70% 68%)`;const f=FACES[h%FACES.length];
+  return `<svg viewBox="0 0 64 64" width="${size||36}" height="${size||36}" aria-hidden="true"><g stroke="#1d2340" stroke-width="2.4" stroke-linejoin="round">${f(c)}</g><circle cx="25" cy="34" r="3" fill="#1d2340"/><circle cx="39" cy="34" r="3" fill="#1d2340"/><path d="M29 42q3 3 6 0" fill="none" stroke="#1d2340" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="20" cy="41" rx="3" ry="2" fill="#ff8fa3" opacity=".7"/><ellipse cx="44" cy="41" rx="3" ry="2" fill="#ff8fa3" opacity=".7"/></svg>`}
+const art=(name,size,cls)=>`<svg class="art ${cls||''}" viewBox="0 0 64 64" width="${size||40}" height="${size||40}" aria-hidden="true">${ART[name]||name}</svg>`;
+const subjArt=(id,size)=>art(ART[id]?id:'books',size);
+const leagueArt=(cls,size)=>art(medalArt(cls),size);
 /* ===================== ТЕМЫ ПО ПРЕДМЕТАМ ===================== */
 /* Формат вопроса: [текст, ответ, объяснение]. Ответ-массив — выбор (первый вариант верный, порядок перемешивается),
    ответ-строка — ввод (несколько верных вариантов через «|»). */
@@ -2229,7 +2333,7 @@ const LEAGUES=[[1250,'Алмаз','lg-d'],[1150,'Платина','lg-p'],[1050,'
 const leagueOf=r=>LEAGUES.find(l=>r>=l[0]);
 const rs=id=>S.r[id]||(S.r[id]={r:1000,n:0,c:0,h:[]});
 const readiness=id=>{const h=rs(id).h;return h.length?Math.round(h.filter(Boolean).length/h.length*100):0};
-function league(r,big){const l=leagueOf(r);return `<span class="league ${l[2]} ${big?'big':''}">${ic('medal')}${l[1]}</span>`}
+function league(r,big){const l=leagueOf(r);return `<span class="league ${l[2]} ${big?'big':''}">${leagueArt(l[2],big?22:18)}${l[1]}</span>`}
 const today=()=>iso(new Date());
 function streak(){let d=new Date(),n=0;if(!S.days[iso(d)])d.setDate(d.getDate()-1);while(S.days[iso(d)]){n++;d.setDate(d.getDate()-1)}return n}
 const todayCount=()=>S.days[today()]||0;
@@ -2276,27 +2380,27 @@ function viewHome(){
   <section class="hero">
     <div class="hero-top">
       <div style="min-width:0"><div class="hero-lbl" style="margin:0"><span>${esc(S.name?'Привет, '+S.name+'!':'Привет!')}</span></div>
-        <div class="lvl"><b class="num">${L}</b><div><div class="lvl-t">${titleOf(L)}</div><div class="hero-lbl" style="margin:0"><span class="num">${S.xp} XP · до ${L+1}-го уровня ${need-cur}</span></div></div></div></div>
+        <div class="lvl"><span class="lvlb">${art(shield('#ffd24a','#fff3c0'),54)}<b class="num">${L}</b></span><div><div class="lvl-t">${titleOf(L)}</div><div class="hero-lbl" style="margin:0"><span class="num">${S.xp} XP · до ${L+1}-го уровня ${need-cur}</span></div></div></div></div>
       ${ringGoal(tc)}
     </div>
     <div class="xpbar"><i style="width:${cur/need*100}%"></i></div>
-    <div class="hero-stats num"><span>${ic('flame')}${st} ${plural(st,'день','дня','дней')} подряд</span><span>${ic('timer')}${dl} ${plural(dl,'день','дня','дней')} до ЕГЭ</span></div>
+    <div class="hero-stats num"><span>${art('flame',18)}${st} ${plural(st,'день','дня','дней')} подряд</span><span>${art('hourglass',18)}${dl} ${plural(dl,'день','дня','дней')} до ЕГЭ</span></div>
   </section>
   <section class="card daily">
-    <div style="flex:1;min-width:0"><div class="eyebrow">Задание дня</div><h2 style="font-size:17px;margin-top:2px">10 задач по твоим предметам</h2><p class="caption">${mine.map(s=>s.short).join(' · ')||'Выбери предметы'}</p></div>
+    ${owl('happy',54)}<div style="flex:1;min-width:0"><div class="eyebrow">Задание дня</div><h2 style="font-size:17px;margin-top:2px">10 задач по твоим предметам</h2><p class="caption">${mine.map(s=>s.short).join(' · ')||'Выбери предметы'}</p></div>
     <button class="btn" data-start="daily-all" ${mine.length?'':'disabled'}>${ic('play','fill')}Начать</button>
   </section>
   <div class="quick">
-    <button class="qa" data-start="blitz-all" ${mine.length?'':'disabled'}><span class="qi" style="--c:var(--warn)">${ic('bolt')}</span><b>Блиц</b><span>60 секунд</span></button>
-    <button class="qa" data-start="mist-all"><span class="qi" style="--c:var(--red)">${ic('redo')}</span><b>Ошибки</b><span class="num">${mist} ${plural(mist,'задача','задачи','задач')}</span></button>
-    <button class="qa" data-nav="rating"><span class="qi" style="--c:var(--ok)">${ic('trophy')}</span><b>Рейтинг</b><span class="num">${S.friends.length} ${plural(S.friends.length,'друг','друга','друзей')}</span></button>
+    <button class="qa" data-start="blitz-all" ${mine.length?'':'disabled'}><span class="qi" style="--c:var(--warn)">${art('bolt',30)}</span><b>Блиц</b><span>60 секунд</span></button>
+    <button class="qa" data-start="mist-all"><span class="qi" style="--c:var(--red)">${art('eraser',30)}</span><b>Ошибки</b><span class="num">${mist} ${plural(mist,'задача','задачи','задач')}</span></button>
+    <button class="qa" data-nav="rating"><span class="qi" style="--c:var(--ok)">${art('trophy',30)}</span><b>Рейтинг</b><span class="num">${S.friends.length} ${plural(S.friends.length,'друг','друга','друзей')}</span></button>
   </div>
   <div class="tasks-head" style="padding:4px 2px 0"><h2>Мои предметы</h2><button class="link" data-nav="subjects">${ic('plus')}Изменить</button></div>
-  <div class="sgrid">${mine.map(s=>subjCard(s)).join('')||`<section class="card empty"><b>Предметы не выбраны</b><button class="btn soft sm" data-nav="subjects">Выбрать предметы</button></section>`}</div>`;
+  <div class="sgrid">${mine.map(s=>subjCard(s)).join('')||`<section class="card empty">${owl('think',60)}<b>Предметы не выбраны</b><button class="btn soft sm" data-nav="subjects">Выбрать предметы</button></section>`}</div>`;
 }
 function ringGoal(tc){const p=Math.min(1,tc/S.goal),r=34,c=2*Math.PI*r;return `<div class="ring" role="img" aria-label="Сегодня ${tc} из ${S.goal}"><svg viewBox="0 0 84 84"><circle class="bgc" cx="42" cy="42" r="${r}"/><circle class="fgc" cx="42" cy="42" r="${r}" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p)}"/></svg><b class="num">${tc}<small>из ${S.goal}</small></b></div>`}
 function subjCard(s){const x=rs(s.id),rd=readiness(s.id);
-  return `<button class="scard" style="--c:${sc(s.id)}" data-nav="s-${s.id}"><span class="sband"></span><span class="sname">${s.name}</span>
+  return `<button class="scard" style="--c:${sc(s.id)}" data-nav="s-${s.id}"><span class="sband"></span><span class="srow"><span class="sname">${s.name}</span>${subjArt(s.id,38)}</span>
   <span class="smeta">${x.n?league(x.r):'<span class="caption">ещё не начат</span>'}</span>
   <span class="sbar2"><i style="width:${rd}%"></i></span><span class="caption num">${x.n?`готовность ${rd}% · ${x.n} ${plural(x.n,'задача','задачи','задач')}`:'нажми, чтобы начать'}</span></button>`}
 
@@ -2304,10 +2408,10 @@ function subjCard(s){const x=rs(s.id),rd=readiness(s.id);
 function viewSubjects(first){
   return `${first?'':head('Предметы',`${SUBJ.length} предметов · ${totalT()} тем · ${totalQ()} вопросов и генераторы задач`)}
   <div class="pick-list">${SUBJ.map(s=>{const on=S.subjects.includes(s.id);return `<button class="pickrow ${on?'on':''}" style="--c:${sc(s.id)}" data-toggle="${s.id}" aria-pressed="${on}">
-    <span class="dotc"></span><span class="pn"><b>${s.name}</b><span class="caption">${s.req===1?'обязательный · ':s.req===2?'обязательна база или профиль · ':''}${s.time}</span></span><span class="tick">${on?ic('check'):''}</span></button>`}).join('')}</div>`;
+    ${subjArt(s.id,34)}<span class="pn"><b>${s.name}</b><span class="caption">${s.req===1?'обязательный · ':s.req===2?'обязательна база или профиль · ':''}${s.time}</span></span><span class="tick">${on?ic('check'):''}</span></button>`}).join('')}</div>`;
 }
 function viewOnboard(){
-  return `<section class="hero onb"><div class="mark" style="color:var(--pen);font-size:34px">Зачёт</div><h1 style="font-size:26px;margin-top:6px">Подготовка к ЕГЭ</h1>
+  return `<section class="hero onb"><div class="onb-owl">${owl('happy',84)}</div><div class="mark" style="color:var(--pen);font-size:34px">Зачёт</div><h1 style="font-size:26px;margin-top:6px">Подготовка к ЕГЭ</h1>
     <p class="hero-lbl" style="font-weight:400"><span>Тренировки, тесты и пробные варианты по всем предметам. Уровни, лиги и рейтинг с друзьями.</span></p></section>
   <section class="card" style="display:flex;flex-direction:column;gap:8px"><label class="eyebrow" for="nameIn">Как тебя зовут?</label><input class="field" id="nameIn" maxlength="24" placeholder="Имя для рейтинга" value="${esc(S.name)}"></section>
   <div class="tasks-head" style="padding:0 2px"><h2>Какие предметы сдаёшь?</h2><span class="count num" id="selCount">${S.subjects.length}</span></div>
@@ -2327,14 +2431,14 @@ function viewSubject(id){
    ['cards','Карточки',`${cards} ${plural(cards,'карточка','карточки','карточек')}`,'cards'],['mist','Ошибки',mist?`${mist} к повторению`:'пока нет','redo']];
   return `${backBar('home','Главная')}
   <section class="card shead" style="--c:${sc(id)}">
-    <div class="shead-top"><div style="min-width:0"><div class="eyebrow" style="color:var(--c)">ЕГЭ</div><h1 style="font-size:23px">${s.name}</h1></div>
+    <div class="shead-top">${subjArt(id,56)}<div style="min-width:0;flex:1"><div class="eyebrow" style="color:var(--c)">ЕГЭ</div><h1 style="font-size:23px">${s.name}</h1></div>
       <div class="rnum"><b class="num">${Math.round(x.r)}</b><span class="caption">рейтинг</span></div></div>
     <div class="row2">${league(x.r,true)}<span class="caption num">готовность ${rd}% · темы ${done}/${tops.length}</span></div>
     <div class="sbar2"><i style="width:${tops.length?done/tops.length*100:0}%"></i></div>
     <div class="facts"><span><b>${s.time}</b>длительность</span><span><b>${s.min}</b>мин. балл (2026)</span>${s.tasks?`<span><b>${s.tasks}</b>заданий</span>`:''}</div>
   </section>
-  ${(s.extra||[]).map(e=>`<button class="mode" data-nav="${e.go}" style="--c:${sc(id)}"><span class="qi">${ic(e.ic)}</span><span class="mt"><b>${e.label}</b></span>${ic('right')}</button>`).join('')}
-  <div class="mgrid">${modes.map(([m,t,d,i])=>`<button class="mtile" data-start="${m}-${id}" ${m==='mist'&&!mist?'disabled':''} style="--c:${sc(id)}"><span class="qi">${ic(i)}</span><b>${t}</b><span class="caption">${d}</span></button>`).join('')}</div>
+  ${(s.extra||[]).map(e=>`<button class="mode" data-nav="${e.go}" style="--c:${sc(id)}"><span class="qi">${art(e.ic==='pen'?'notebook':'books',32)}</span><span class="mt"><b>${e.label}</b></span>${ic('right')}</button>`).join('')}
+  <div class="mgrid">${modes.map(([m,t,d,i])=>`<button class="mtile" data-start="${m}-${id}" ${m==='mist'&&!mist?'disabled':''} style="--c:${sc(id)}"><span class="qi">${art(MODE_ART[m],32)}</span><b>${t}</b><span class="caption">${d}</span></button>`).join('')}</div>
   <div class="tasks-head" style="padding:4px 2px 0"><h2>Темы</h2><span class="count num">${tops.length}</span></div>
   <section class="card tight"><div class="tlist">${tops.map((t,i)=>{const st=tpStat(id,i),acc=st.n?Math.round(st.c/st.n*100):0;
     return `<button class="trow" data-nav="t-${id}-${i}" style="--c:${sc(id)}"><span class="tk num">${kShort(t,i)}</span><span class="tb"><b>${t.n}</b><span class="caption num">${st.n?`верно ${acc}% · решено ${st.n}`:'не начата'}</span>${st.n?`<span class="sbar2"><i style="width:${acc}%"></i></span>`:''}</span>${ic('right')}</button>`}).join('')}</div></section>
@@ -2352,8 +2456,8 @@ function viewTopic(id,i){
     <p class="caption">${[t.qs.length?`${t.qs.length} ${plural(t.qs.length,'вопрос','вопроса','вопросов')} с разбором`:'',t.g.length?'генератор: каждый раз новые задачи':''].filter(Boolean).join(' · ')}</p>
   </section>
   <div class="actions"><button class="btn wide" data-start="train-${id}" data-topic-i="${i}">${ic('target')}Тренировка</button><button class="btn ghost wide" data-start="test-${id}" data-topic-i="${i}">${ic('list')}Тест по теме</button></div>
-  ${id==='rus'&&/Сочинение/.test(t.n)?`<button class="mode" data-nav="write" style="--c:${sc(id)}"><span class="qi">${ic('pen')}</span><span class="mt"><b>Тренажёр сочинения</b><span class="caption">таймер, счётчик слов, проверка из тетради</span></span>${ic('right')}</button>`:''}
-  ${id==='lit'&&/Произведения/.test(t.n)?`<button class="mode" data-nav="books" style="--c:${sc(id)}"><span class="qi">${ic('book')}</span><span class="mt"><b>Карточки произведений</b></span>${ic('right')}</button>`:''}
+  ${id==='rus'&&/Сочинение/.test(t.n)?`<button class="mode" data-nav="write" style="--c:${sc(id)}"><span class="qi">${art('notebook',32)}</span><span class="mt"><b>Тренажёр сочинения</b><span class="caption">таймер, счётчик слов, проверка из тетради</span></span>${ic('right')}</button>`:''}
+  ${id==='lit'&&/Произведения/.test(t.n)?`<button class="mode" data-nav="books" style="--c:${sc(id)}"><span class="qi">${art('books',32)}</span><span class="mt"><b>Карточки произведений</b></span>${ic('right')}</button>`:''}
   <div class="daynav">${i>0?`<button class="btn ghost sm" data-nav="t-${id}-${i-1}">${ic('left')}${esc(cut(tops[i-1].n))}</button>`:'<span></span>'}${i<tops.length-1?`<button class="btn ghost sm" data-nav="t-${id}-${i+1}">${esc(cut(tops[i+1].n))}${ic('right')}</button>`:''}</div>`;
 }
 
@@ -2397,7 +2501,7 @@ function viewQuiz(){
     ${q.o?`<div class="opts">${q.o.map((o,k)=>{let c='';if(Q.checked&&instant()){if(k===q.a)c='right';else if(k===Q.picked)c='wrong'}else if(Q.picked===k)c='sel';
       return `<button class="qopt ${c}" data-pick="${k}" ${Q.checked?'disabled':''}><span class="lt">${'АБВГДЕ'[k]}</span><span>${o}</span></button>`}).join('')}</div>`
     :`<div class="ansrow"><input class="field ans" id="ansIn" autocomplete="off" inputmode="${/^-?[\d.,]+$/.test(String(q.a))?'decimal':'text'}" placeholder="Ответ" value="${Q.picked!=null?esc(Q.picked):''}" ${Q.checked?'disabled':''}>${Q.checked?'':`<button class="btn" id="ansBtn">Ответить</button>`}</div>`}
-    ${Q.checked&&instant()?`<div class="fb ${right?'ok':'bad'}"><b>${right?'Верно!':'Неверно'}</b>${right?'':`<span>Правильный ответ: <b>${q.o?q.o[q.a]:esc(q.a)}</b></span>`}${Q.mode!=='blitz'&&q.e?`<p>${q.e}</p>`:''}</div>`:''}
+    ${Q.checked&&instant()?`<div class="fb ${right?'ok':'bad'}">${Q.mode==='blitz'?'':owl(right?'happy':'sad',46)}<div class="fbt"><b>${right?'Верно!':'Неверно'}</b>${right?'':`<span>Правильный ответ: <b>${q.o?q.o[q.a]:esc(q.a)}</b></span>`}${Q.mode!=='blitz'&&q.e?`<p>${q.e}</p>`:''}</div></div>`:''}
   </section>
   <div class="qnav">${instant()?(Q.checked?`<button class="btn wide" id="nextQ">${Q.i<Q.n-1||Q.mode==='blitz'?'Дальше':'Результат'}${ic('arrow')}</button>`:(q.o?'':''))
     :`${Q.i>0?`<button class="btn ghost" id="prevQ">${ic('left')}</button>`:''}<button class="btn wide" id="nextQ">${Q.i<Q.n-1?'Дальше':'Завершить'}${ic('arrow')}</button>`}</div>`;
@@ -2447,11 +2551,12 @@ function viewResult(){
   const wrong=Q.list.map((q,i)=>({q,r:Q.res[i]})).filter(x=>x.r&&!x.r.ok).slice(0,30);
   const mark=Q.mode==='blitz'?`${Q.ok}`:`${Q.pct}%`;
   return `<section class="card result">
+    ${owl(Q.mode==='blitz'?'happy':Q.pct>=80?'happy':Q.pct>=50?'think':'sad',92)}
     <span class="bigmark">${Q.mode==='blitz'?'блиц':Q.pct>=80?'отлично':Q.pct>=50?'хорошо':'ещё раз'}</span>
     <div class="rbig num">${mark}</div><p class="caption num">${Q.mode==='blitz'?`верных ответов за 60 секунд · рекорд ${S.stat.blitzBest}`:`верно ${Q.ok} из ${Q.tot}`}${Q.best>=3?` · лучшая серия ${Q.best}`:''}</p>
     <div class="rstats"><span class="rs"><b class="num">+${Q.xp}</b>XP</span>${rch.map(x=>`<span class="rs" style="--c:${sc(x.id)}"><b class="num ${x.d>=0?'up':'down'}">${x.d>=0?'+':''}${x.d}</b>${SUB[x.id].short}</span>`).join('')}</div>
-    ${L>lvlBefore?`<div class="levelup">${ic('star')}Новый уровень: ${L} — ${titleOf(L)}</div>`:''}
-    ${Q.ach.length?`<div class="levelup ach-up">${ic('trophy')}${Q.ach.join(', ')}</div>`:''}
+    ${L>lvlBefore?`<div class="levelup">${art(numShield(L,'#ffd24a','#fff3c0'),30)}Новый уровень: ${L} — ${titleOf(L)}</div>`:''}
+    ${Q.ach.length?`<div class="levelup ach-up">${art('trophy',30)}${Q.ach.join(', ')}</div>`:''}
   </section>
   ${wrong.length?`<section class="card" style="display:flex;flex-direction:column;gap:4px"><div class="tasks-head"><h2>Разбор ошибок</h2><span class="count num">${wrong.length}</span></div>
     <div class="errs">${wrong.map(({q,r})=>`<div class="err"><div class="qtext sm">${q.q}</div><div class="fx">${r.ans!=null&&r.ans!==''?`<s>${q.o?q.o[r.ans]:esc(r.ans)}</s><span class="caption">→</span>`:'<span class="caption">нет ответа →</span>'}<ins>${q.o?q.o[q.a]:esc(q.a)}</ins></div>${q.e?`<div class="why">${q.e}</div>`:''}</div>`).join('')}</div>
@@ -2459,7 +2564,7 @@ function viewResult(){
   <div class="actions"><button class="btn ghost wide" id="quitQ">Готово</button><button class="btn wide" id="againQ">${ic('redo')}Ещё раз</button></div>`;
 }
 function viewCards(){
-  const c=Q.list[Q.i];if(!c||Q.done){return `<section class="card result"><span class="bigmark">готово</span><div class="rbig num">${Q.known}/${Q.list.length}</div><p class="caption">карточек ты знаешь</p></section><div class="actions"><button class="btn ghost wide" id="quitQ">Готово</button><button class="btn wide" id="againQ">${ic('redo')}Ещё раз</button></div>`}
+  const c=Q.list[Q.i];if(!c||Q.done){return `<section class="card result">${owl('happy',84)}<span class="bigmark">готово</span><div class="rbig num">${Q.known}/${Q.list.length}</div><p class="caption">карточек ты знаешь</p></section><div class="actions"><button class="btn ghost wide" id="quitQ">Готово</button><button class="btn wide" id="againQ">${ic('redo')}Ещё раз</button></div>`}
   return `<div class="qtop"><button class="iconbtn" id="quitQ" aria-label="Выйти">${ic('close')}</button><div class="qtop-mid"><b>Карточки · ${SUB[Q.subj].short}</b><span class="caption num">${Q.i+1} из ${Q.list.length}</span></div><span class="qxp num">знаю ${Q.known}</span></div>
   <div class="qprog2"><i style="width:${Q.i/Q.list.length*100}%"></i></div>
   <button class="card fcard ${Q.flip?'flip':''}" id="flipCard" style="--c:${sc(Q.subj)}"><span class="eyebrow">${Q.flip?'ответ':'вспомни'}</span><span class="ff">${esc(Q.flip?c.b:c.f).replace(/\n/g,'<br>')}</span>${Q.flip?'':'<span class="caption">нажми, чтобы перевернуть</span>'}</button>
@@ -2476,24 +2581,24 @@ function viewRating(){
   const ach=ACH.map(([id,n,d])=>({id,n,d,on:!!S.ach[id]}));
   return `${head('Рейтинг',`Уровень ${L} · ${titleOf(L)} · ${S.xp} XP`)}
   <section class="card tight"><div class="tasks-head" style="padding:12px 0 4px"><h2>Лиги по предметам</h2></div>
-    <div class="rows">${S.subjects.filter(id=>SUB[id]).map(id=>{const x=rs(id);return `<button class="lrow" data-nav="s-${id}" style="--c:${sc(id)}"><span class="dotc"></span><span class="pn"><b>${SUB[id].name}</b><span class="caption num">рейтинг ${Math.round(x.r)} · решено ${x.n}</span></span>${x.n?league(x.r):'<span class="caption">—</span>'}</button>`}).join('')||'<p class="caption" style="padding:10px 0">Выбери предметы, чтобы попасть в лиги.</p>'}</div>
+    <div class="rows">${S.subjects.filter(id=>SUB[id]).map(id=>{const x=rs(id);return `<button class="lrow" data-nav="s-${id}" style="--c:${sc(id)}">${subjArt(id,32)}<span class="pn"><b>${SUB[id].name}</b><span class="caption num">рейтинг ${Math.round(x.r)} · решено ${x.n}</span></span>${x.n?league(x.r):'<span class="caption">—</span>'}</button>`}).join('')||'<p class="caption" style="padding:10px 0">Выбери предметы, чтобы попасть в лиги.</p>'}</div>
     <p class="caption" style="padding:8px 0 12px">Лиги: Бронза → Серебро (950) → Золото (1050) → Платина (1150) → Алмаз (1250). Рейтинг растёт за верные ответы и сильнее — за трудные задачи.</p></section>
   <section class="card" style="display:flex;flex-direction:column;gap:10px">
     <div class="tasks-head"><h2>Друзья</h2><span class="count num">${S.friends.length}</span></div>
     <div class="scroller"><button class="fchip" aria-pressed="${lbSubj==='all'}" data-lb="all">По XP</button>${subjOpts.map(id=>`<button class="fchip" aria-pressed="${lbSubj===id}" data-lb="${id}">${SUB[id].short}</button>`).join('')}</div>
-    <div class="lb">${rows.map((f,i)=>`<div class="lbrow ${f.me?'me':''}"><span class="pos num">${i+1}</span><span class="ava" style="--h:${parseInt(hashStr(f.u),36)%360}">${esc((f.n||'?')[0].toUpperCase())}</span><span class="pn"><b>${esc(f.n)}${f.me?' (ты)':''}</b><span class="caption num">ур. ${levelOf(f.x)}${f.st?` · ${f.st} ${plural(f.st,'день','дня','дней')} подряд`:''}${!f.me&&f.d?` · обновлено ${f.d.split('-').reverse().slice(0,2).join('.')}`:''}</span></span><b class="num sc">${lbSubj==='all'?f.score+' XP':Math.round(f.score)}</b>${f.me?'':`<button class="iconbtn sm" data-unfriend="${esc(f.u)}" aria-label="Убрать ${esc(f.n)}">${ic('close')}</button>`}</div>`).join('')}</div>
+    <div class="lb">${rows.map((f,i)=>`<div class="lbrow ${f.me?'me':''}"><span class="pos num">${i+1}</span><span class="ava2">${avatar(f.u,38)}</span><span class="pn"><b>${esc(f.n)}${f.me?' (ты)':''}</b><span class="caption num">ур. ${levelOf(f.x)}${f.st?` · ${f.st} ${plural(f.st,'день','дня','дней')} подряд`:''}${!f.me&&f.d?` · обновлено ${f.d.split('-').reverse().slice(0,2).join('.')}`:''}</span></span><b class="num sc">${lbSubj==='all'?f.score+' XP':Math.round(f.score)}</b>${f.me?'':`<button class="iconbtn sm" data-unfriend="${esc(f.u)}" aria-label="Убрать ${esc(f.n)}">${ic('close')}</button>`}</div>`).join('')}</div>
     <div class="actions"><button class="btn wide" id="shareCode">${ic('share')}Поделиться своим кодом</button></div>
     <div class="topicrow"><input class="field" id="friendIn" placeholder="Вставь код друга (ZCH1…)" autocomplete="off"><button class="btn soft" id="addFriend">Добавить</button></div>
     <p class="caption">Рейтинг работает без интернета: обменивайтесь кодами в мессенджере. Код — снимок твоих результатов; чтобы обновить место в таблице, поделись им снова.</p>
   </section>
   <section class="card" style="display:flex;flex-direction:column;gap:10px"><div class="tasks-head"><h2>Достижения</h2><span class="count num">${ach.filter(a=>a.on).length} из ${ach.length}</span></div>
-    <div class="achs">${ach.map(a=>`<div class="ach ${a.on?'on':''}"><span class="ai">${ic(a.on?'trophy':'star')}</span><b>${a.n}</b><span>${a.d}</span></div>`).join('')}</div></section>`;
+    <div class="achs">${ach.map(a=>`<div class="ach ${a.on?'on':''}"><span class="ai">${art(ACH_ART[a.id],42)}</span><b>${a.n}</b><span>${a.d}</span></div>`).join('')}</div></section>`;
 }
 
 /* ===================== ПРОФИЛЬ ===================== */
 function viewProfile(){
   const tot=S.stat.answered,acc=tot?Math.round(S.stat.correct/tot*100):0;
-  return `${head('Профиль','Настройки и статистика')}
+  return `<div class="phead">${avatar(S.uid,64)}<div>${head(esc(S.name||'Профиль'),`Уровень ${levelOf(S.xp)} · ${titleOf(levelOf(S.xp))}`)}</div></div>
   <section class="card" style="display:flex;flex-direction:column;gap:10px">
     <label class="eyebrow" for="nameIn">Имя в рейтинге</label><input class="field" id="nameIn" maxlength="24" value="${esc(S.name)}" placeholder="Твоё имя">
     <label class="eyebrow" for="examIn">Дата первого экзамена</label><input class="field" type="date" id="examIn" value="${S.examDate}">
@@ -2750,7 +2855,7 @@ function resultView(c){
 function renderStats(){
   const ta=document.activeElement&&document.activeElement.classList.contains('paper')?document.activeElement:null;
   const tbt=ta?ta.value:S.draft.text, tw=words(tbt);
-  const tb=$('#tbWords'); if(tb) tb.textContent=`${tw} ${plural(tw,'слово','слова','слов')}${tw<250?' · минимум 250':tw<350?' · цель 350':' ✓'}`;
+  const tb=$('#tbWords'); if(tb) tb.textContent=`${tw} ${plural(tw,'слово','слова','слов')}${tw<250?' · минимум 250':tw<350?' · цель 350':' · норма'}`;
   const ps=$('#paperStats'); if(ps) ps.innerHTML=statTiles(S.paper,`<div class="stat"><b>${Math.floor(words(S.paper)*5/100)}</b><span>ошибок макс.</span></div>`);
   const box=$('#statsBox'); if(!box) return;
   const t=S.draft.text, w=words(t), paras=paragraphs(t);
@@ -2844,7 +2949,7 @@ document.addEventListener('input',e=>{
 document.addEventListener('focusin',e=>{if(e.target.classList&&e.target.classList.contains('paper')){document.body.classList.add('typing');renderStats();tick()}});
 document.addEventListener('focusout',e=>{if(e.target.classList&&e.target.classList.contains('paper'))document.body.classList.remove('typing')});
 function tick(){
-  const s=timerLeft();const t=$('#timer');if(t&&S.timer.end){t.textContent=fmtT(s);t.classList.toggle('over',s<0)}const tb=$('#tbTimer');if(tb)tb.textContent=S.timer.end?'⏱ '+fmtT(s):'';
+  const s=timerLeft();const t=$('#timer');if(t&&S.timer.end){t.textContent=fmtT(s);t.classList.toggle('over',s<0)}const tb=$('#tbTimer');if(tb)tb.textContent=S.timer.end?'Таймер '+fmtT(s):'';
   if(Q&&Q.end&&!Q.done&&route()==='quiz'){const left=Math.round((Q.end-Date.now())/1000);const qt=$('#qtimer');if(qt){qt.textContent=fmtT(Math.max(0,left));qt.classList.toggle('low',left<=10)}if(left<=0)finish()}
 }
 setInterval(tick,1000);
