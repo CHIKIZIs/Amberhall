@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
-        <item name="android:statusBarColor">#11141f</item>
-        <item name="android:navigationBarColor">#191d2c</item>
+        <item name="android:statusBarColor">#0e1120</item>
+        <item name="android:navigationBarColor">#0e1120</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowBackground">@color/paper</item>
     </style>
-    <color name="paper">#11141f</color>
+    <color name="paper">#0e1120</color>
 </resources>
