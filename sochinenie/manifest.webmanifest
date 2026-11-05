@@ -1,0 +1,12 @@
+{
+  "name": "Зачёт за 21 день",
+  "short_name": "Зачёт",
+  "description": "Подготовка к итоговому сочинению за 3 недели",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fafbff",
+  "theme_color": "#fafbff",
+  "icons": [{"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]
+}
