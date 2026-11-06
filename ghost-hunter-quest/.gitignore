@@ -6,3 +6,4 @@ build/*.idx
 *.tmp
 build/*.png
 build/*.log
+build/*.import
