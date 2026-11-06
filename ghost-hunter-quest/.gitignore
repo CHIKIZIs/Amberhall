@@ -1,0 +1,8 @@
+.godot/
+android/
+addons/
+build/*.idx
+*.keystore
+*.tmp
+build/*.png
+build/*.log
