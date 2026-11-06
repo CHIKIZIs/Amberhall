@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="theme-color" content="#050408">
+<title>Призраки Эмберхолла — VR</title>
+<style>
+:root{--bg:#050408;--panel:rgba(14,10,22,.9);--fg:#ece6f7;--dim:#a99fbd;--accent:#7fe3ff;--danger:#ff6b6b;--warn:#ffd36b}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+canvas{display:block}
+#overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at center,rgba(5,4,8,.5),rgba(5,4,8,.93));z-index:10;overflow:auto}
+#overlay[hidden]{display:none}
+.panel{max-width:640px;width:100%;margin:auto;background:var(--panel);border:1px solid rgba(127,227,255,.2);border-radius:14px;padding:24px;box-shadow:0 0 70px rgba(127,227,255,.08)}
+h1{margin:0;font-size:28px;letter-spacing:.02em}
+.sub{margin:2px 0 14px;color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.16em}
+p{margin:0 0 12px}
+#result{font-size:18px;font-weight:600}
+#result:empty{display:none}
+#result.win{color:var(--accent)}#result.lose{color:var(--danger)}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 8px}
+button{font:inherit;font-weight:600;padding:12px 18px;border-radius:10px;border:1px solid rgba(127,227,255,.45);background:rgba(127,227,255,.1);color:var(--fg);cursor:pointer;flex:1 1 180px}
+button.primary{background:var(--accent);color:#06111a;border-color:var(--accent)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.note{color:var(--dim);font-size:13px}
+.note:empty{display:none}
+label.opt{display:flex;gap:8px;align-items:center;color:var(--dim);font-size:14px;cursor:pointer}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);font-size:13px;color:var(--dim)}
+.controls h3{margin:0 0 4px;font-size:13px;color:var(--fg)}
+.controls ul{margin:0;padding-left:16px}
+@media (max-width:540px){.controls{grid-template-columns:1fr}.panel{padding:18px}}
+#hud{position:fixed;left:12px;top:12px;z-index:5;background:rgba(8,6,14,.72);border:1px solid rgba(127,227,255,.18);border-radius:10px;padding:10px 12px;font-size:14px;min-width:210px;pointer-events:none}
+#hud[hidden],#cross[hidden]{display:none}
+#hud .row{margin-bottom:4px}
+#hud b{color:var(--accent)}
+.bar{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--dim)}
+.bar span{width:58px}
+.bar i{flex:1;height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+.bar em{display:block;height:100%;width:0}
+#hFear{background:var(--danger)}#hBat{background:var(--warn)}
+#leds{display:flex;gap:4px;margin-top:8px}
+#leds i{width:14px;height:8px;border-radius:2px;background:rgba(255,255,255,.12)}
+#hNoise{color:var(--dim);font-size:12px;margin-top:6px;min-height:1em}
+#cross{position:fixed;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border:2px solid rgba(127,227,255,.5);border-radius:50%;z-index:5;pointer-events:none}
+#cap{position:fixed;left:50%;top:calc(50% + 22px);width:120px;height:6px;margin-left:-60px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden;z-index:5;pointer-events:none;opacity:0;transition:opacity .2s}
+#cap em{display:block;height:100%;width:0;background:var(--accent)}
+#msg{position:fixed;left:50%;top:18%;transform:translateX(-50%);max-width:min(92vw,620px);text-align:center;z-index:6;font-size:18px;font-weight:600;text-shadow:0 2px 12px #000;white-space:pre-line;pointer-events:none;opacity:0;transition:opacity .4s}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}
+</script>
+</head>
+<body>
+<div id="overlay">
+  <div class="panel">
+    <h1>Призраки Эмберхолла</h1>
+    <div class="sub">VR-охота на привидений</div>
+    <p id="result"></p>
+    <p id="intro">Ночь в заброшенном особняке Эмберхолл. В доме бродят призраки, и до рассвета их нужно поймать.
+      Детектор пищит, когда призрак рядом. Свет фонаря проявляет призраков и оглушает их, а ловушка затягивает оглушённого призрака.
+      Призраки слышат шум и ваш голос, гасят свечи и подкрадываются в темноте. Если страх дойдёт до предела, вы сбежите из дома.</p>
+    <label class="opt"><input type="checkbox" id="mic"> Микрофон: призраки идут на ваш голос (можно подманивать)</label>
+    <div class="btns">
+      <button id="btnVR" class="primary" disabled>Войти в VR</button>
+      <button id="btnPC">Играть на ПК</button>
+    </div>
+    <p class="note" id="vrNote">Проверяю поддержку VR…</p>
+    <div class="controls">
+      <div><h3>VR (Quest и другие)</h3><ul>
+        <li>Левый стик: идти, правый стик: поворот</li>
+        <li>Левый курок: фонарь вкл./выкл.</li>
+        <li>Правый курок: луч ловушки</li>
+        <li>X: хлопок, подманить призраков</li>
+        <li>A: начать заново после финала</li>
+      </ul></div>
+      <div><h3>ПК</h3><ul>
+        <li>WASD: идти, Shift: бежать (шумно), мышь: смотреть</li>
+        <li>F: фонарь, ЛКМ (держать): луч ловушки</li>
+        <li>E: хлопок, Esc: пауза</li>
+      </ul></div>
+    </div>
+  </div>
+</div>
+<div id="hud" hidden>
+  <div class="row"><b id="hCaught">0/0</b> пойманы</div>
+  <div class="row">Рассвет через <b id="hTime">9:00</b></div>
+  <div class="bar"><span>Страх</span><i><em id="hFear"></em></i></div>
+  <div class="bar"><span>Батарея</span><i><em id="hBat"></em></i></div>
+  <div id="leds"><i></i><i></i><i></i><i></i><i></i></div>
+  <div id="hNoise"></div>
+</div>
+<div id="cross" hidden></div>
+<div id="cap"><em></em></div>
+<div id="msg"></div>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ───────────── Карта особняка: # стена, W шкаф, T стол, B кровать, C свеча, G призрак, P старт
+const CS = 1.5, WALL_H = 3, DAWN = 9 * 60;
+const MAP = [
+  '########################',
+  '#C.....#.....#........C#',
+  '#..W...#..T..#...B.....#',
+  '#......#.....#.........#',
+  '#..G........G.....G....#',
+  '#......#.....#.........#',
+  '###.####.....######.####',
+  '#......###.###.........#',
+  '#..G...#.....#....T....#',
+  '#......#..P..#.........#',
+  '#..T.......C........G..#',
+  '#......#.....#.........#',
+  '#####.##.....###.#######',
+  '#C.....#.....#.........#',
+  '#...W......G......T...C#',
+  '#......#.....#.........#',
+  '########################',
+];
+const ROWS = MAP.length, COLS = MAP[0].length;
+const cellAt = (x, z) => { const c = Math.floor(x / CS), r = Math.floor(z / CS); return (r < 0 || r >= ROWS || c < 0 || c >= COLS) ? '#' : MAP[r][c]; };
+const isWall = (x, z) => cellAt(x, z) === '#';
+const isSolid = (x, z) => '#WTB'.includes(cellAt(x, z));
+const floorCells = [], ghostCells = [], candleCells = [], wallCells = [];
+let startCell = [1, 1];
+MAP.forEach((row, r) => [...row].forEach((ch, c) => {
+  if (ch === '#') wallCells.push([r, c]);
+  if (!'#WTB'.includes(ch)) floorCells.push([r, c]);
+  if (ch === 'P') startCell = [r, c];
+  if (ch === 'G') ghostCells.push([r, c]);
+  if (ch === 'C') candleCells.push([r, c]);
+}));
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const $ = id => document.getElementById(id);
+
+// ───────────── Рендер и сцена
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.xr.enabled = true;
+renderer.xr.setReferenceSpaceType('local-floor');
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x050408);
+scene.fog = new THREE.FogExp2(0x050408, 0.08);
+const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.05, 60);
+camera.rotation.order = 'YXZ';
+camera.position.set(0, 1.6, 0);
+const player = new THREE.Group();
+player.add(camera);
+scene.add(player);
+
+scene.add(new THREE.HemisphereLight(0x4a5680, 0x140c08, 0.8));
+
+// ───────────── Процедурные текстуры
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4;
+  return t;
+}
+const wallTex = canvasTex(256, 512, (x, w, h) => {
+  x.fillStyle = '#4a2630'; x.fillRect(0, 0, w, h);
+  for (let i = 0; i < w; i += 32) { x.fillStyle = 'rgba(255,220,200,.04)'; x.fillRect(i, 0, 14, h); }
+  x.fillStyle = 'rgba(255,210,160,.08)';
+  for (let yy = 20; yy < h * .68; yy += 48) for (let xx = (yy / 48 % 2) * 32 + 16; xx < w; xx += 64) {
+    x.beginPath(); x.moveTo(xx, yy - 14); x.lineTo(xx + 9, yy); x.lineTo(xx, yy + 14); x.lineTo(xx - 9, yy); x.fill();
+  }
+  for (let i = 0; i < 9; i++) { // пятна сырости
+    const g = x.createRadialGradient(rand(0, w), rand(0, h * .7), 0, rand(0, w), rand(0, h * .7), rand(20, 70));
+    g.addColorStop(0, 'rgba(0,0,0,.35)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  }
+  x.fillStyle = '#2a1a12'; x.fillRect(0, h * .7, w, h * .3); // деревянная панель
+  x.fillStyle = '#4a3020'; x.fillRect(0, h * .7, w, 10);
+  for (let i = 0; i < w; i += 64) { x.strokeStyle = 'rgba(0,0,0,.45)'; x.lineWidth = 3; x.strokeRect(i + 8, h * .74, 48, h * .22); }
+});
+const floorTex = canvasTex(256, 256, (x, w, h) => {
+  for (let yy = 0; yy < h; yy += 32) {
+    x.fillStyle = `hsl(25,35%,${rand(11, 17)}%)`; x.fillRect(0, yy, w, 32);
+    x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(0, yy, w, 2);
+    const off = rand(0, w); x.fillRect(off, yy, 2, 32);
+    for (let k = 0; k < 6; k++) { x.fillStyle = 'rgba(0,0,0,.12)'; x.fillRect(0, yy + rand(4, 30), w, 1); }
+  }
+});
+floorTex.repeat.set(COLS * CS / 2, ROWS * CS / 2);
+const ceilTex = canvasTex(256, 256, (x, w, h) => {
+  x.fillStyle = '#1d1a1f'; x.fillRect(0, 0, w, h);
+  x.strokeStyle = 'rgba(0,0,0,.6)';
+  for (let i = 0; i < 6; i++) { x.beginPath(); let px = rand(0, w), py = rand(0, h); x.moveTo(px, py); for (let k = 0; k < 6; k++) { px += rand(-30, 30); py += rand(-30, 30); x.lineTo(px, py); } x.stroke(); }
+});
+ceilTex.repeat.set(COLS * CS / 3, ROWS * CS / 3);
+const woodTex = canvasTex(128, 128, (x, w, h) => {
+  x.fillStyle = '#3a2416'; x.fillRect(0, 0, w, h);
+  for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(0,0,0,${rand(.05, .2)})`; x.fillRect(0, rand(0, h), w, rand(1, 3)); }
+});
+const radialTex = (stops) => canvasTex(128, 128, (x, w, h) => {
+  const g = x.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+  stops.forEach(([o, c]) => g.addColorStop(o, c)); x.fillStyle = g; x.fillRect(0, 0, w, h);
+});
+const glowTex = radialTex([[0, 'rgba(255,255,255,1)'], [.35, 'rgba(255,255,255,.35)'], [1, 'rgba(255,255,255,0)']]);
+const flameTex = radialTex([[0, 'rgba(255,240,200,1)'], [.3, 'rgba(255,160,60,.8)'], [1, 'rgba(255,90,0,0)']]);
+const vignetteTex = radialTex([[0, 'rgba(255,255,255,0)'], [.45, 'rgba(255,255,255,0)'], [.85, 'rgba(255,255,255,.9)'], [1, 'rgba(255,255,255,1)']]);
+const fadeTex = canvasTex(4, 64, (x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#fff'); g.addColorStop(1, '#000'); x.fillStyle = g; x.fillRect(0, 0, w, h); });
+
+// ───────────── Особняк
+const wallMat = new THREE.MeshLambertMaterial({ map: wallTex });
+const woodMat = new THREE.MeshLambertMaterial({ map: woodTex });
+const clothMat = new THREE.MeshLambertMaterial({ color: 0x8c8378 });
+{
+  const walls = new THREE.InstancedMesh(new THREE.BoxGeometry(CS, WALL_H, CS), wallMat, wallCells.length);
+  const m4 = new THREE.Matrix4();
+  wallCells.forEach(([r, c], i) => { m4.makeTranslation((c + .5) * CS, WALL_H / 2, (r + .5) * CS); walls.setMatrixAt(i, m4); });
+  scene.add(walls);
+  const fl = new THREE.Mesh(new THREE.PlaneGeometry(COLS * CS, ROWS * CS), new THREE.MeshLambertMaterial({ map: floorTex }));
+  fl.rotation.x = -Math.PI / 2; fl.position.set(COLS * CS / 2, 0, ROWS * CS / 2); scene.add(fl);
+  const ce = new THREE.Mesh(new THREE.PlaneGeometry(COLS * CS, ROWS * CS), new THREE.MeshLambertMaterial({ map: ceilTex }));
+  ce.rotation.x = Math.PI / 2; ce.position.set(COLS * CS / 2, WALL_H, ROWS * CS / 2); scene.add(ce);
+}
+function box(w, h, d, x, y, z, mat, parent = scene) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); parent.add(m); return m;
+}
+MAP.forEach((row, r) => [...row].forEach((ch, c) => {
+  const x = (c + .5) * CS, z = (r + .5) * CS;
+  if (ch === 'T') {
+    box(1.25, .06, .85, x, .76, z, woodMat);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(.06, .73, .06, x + sx * .55, .365, z + sz * .36, woodMat);
+    box(.18, .05, .24, x + .2, .81, z - .1, new THREE.MeshLambertMaterial({ color: 0x5a1f1f })); // книга
+  } else if (ch === 'W') {
+    box(1.3, 2.2, .7, x, 1.1, z, woodMat);
+    box(.02, 1.9, .02, x, 1.1, z + .36, new THREE.MeshLambertMaterial({ color: 0x0c0806 }));
+  } else if (ch === 'B') {
+    box(1.3, .45, 1.45, x, .225, z, woodMat);
+    box(1.24, .14, 1.1, x, .5, z + .14, clothMat);
+    box(.9, .12, .3, x, .55, z - .5, clothMat);
+    box(1.3, 1.1, .08, x, .55, z - .7, woodMat);
+  }
+}));
+// Пыль в воздухе
+{
+  const n = 900, pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { const [r, c] = floorCells[(Math.random() * floorCells.length) | 0]; pos.set([(c + Math.random()) * CS, rand(.2, WALL_H - .1), (r + Math.random()) * CS], i * 3); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0x9a9080, size: .018, transparent: true, opacity: .45, depthWrite: false })));
+}
+// Свечи
+const candles = candleCells.map(([r, c]) => {
+  const x = (c + .5) * CS, z = (r + .5) * CS;
+  const stand = new THREE.Mesh(new THREE.CylinderGeometry(.05, .12, 1, 10), new THREE.MeshLambertMaterial({ color: 0x2a2420 }));
+  stand.position.set(x, .5, z); scene.add(stand);
+  const wax = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, .16, 8), new THREE.MeshLambertMaterial({ color: 0xe8dcc0 }));
+  wax.position.set(x, 1.08, z); scene.add(wax);
+  const flame = new THREE.Sprite(new THREE.SpriteMaterial({ map: flameTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+  flame.scale.set(.12, .2, 1); flame.position.set(x, 1.22, z); scene.add(flame);
+  const light = new THREE.PointLight(0xff9a40, 5, 8, 2); light.position.set(x, 1.3, z); scene.add(light);
+  return { pos: new THREE.Vector3(x, 1.2, z), flame, light, out: 0, seed: Math.random() * 100 };
+});
+
+// ───────────── Инструменты: фонарь (левая рука) и ловушка-детектор (правая)
+const metal = new THREE.MeshLambertMaterial({ color: 0x34343a });
+function cyl(rt, rb, h, mat, seg = 16) { const g = new THREE.CylinderGeometry(rt, rb, h, seg); g.rotateX(Math.PI / 2); return new THREE.Mesh(g, mat); }
+
+const flashTool = new THREE.Group();
+{ const b = cyl(.022, .022, .2, metal); b.position.z = -.02; flashTool.add(b);
+  const h = cyl(.036, .026, .06, metal); h.position.z = -.14; flashTool.add(h); }
+const lensMat = new THREE.MeshBasicMaterial({ color: 0xfff3d0 });
+{ const l = cyl(.032, .032, .006, lensMat); l.position.z = -.172; flashTool.add(l); }
+const spot = new THREE.SpotLight(0xfff0d0, 70, 20, 0.36, 0.5, 1.6);
+spot.position.set(0, 0, -.17); flashTool.add(spot);
+spot.target.position.set(0, 0, -2); flashTool.add(spot.target);
+const beamCone = (() => {
+  const len = 5, g = new THREE.ConeGeometry(Math.tan(.34) * len, len, 24, 1, true);
+  g.rotateX(Math.PI / 2); g.translate(0, 0, -len / 2);
+  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xfff2d0, alphaMap: fadeTex, transparent: true, opacity: .07, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  m.position.z = -.17; flashTool.add(m); return m;
+})();
+
+const trapTool = new THREE.Group();
+box(.075, .08, .22, 0, 0, -.03, new THREE.MeshLambertMaterial({ color: 0x3b4236 }), trapTool);
+box(.035, .11, .05, 0, -.075, .04, metal, trapTool).rotation.x = .35;
+const ringMat = new THREE.MeshBasicMaterial({ color: 0x1f5560 });
+{ const r = cyl(.052, .045, .04, ringMat); r.position.z = -.155; trapTool.add(r); }
+const muzzle = new THREE.Object3D(); muzzle.position.z = -.18; trapTool.add(muzzle);
+const ledMats = [];
+for (let i = 0; i < 5; i++) {
+  const m = new THREE.MeshBasicMaterial({ color: 0x111111 }); ledMats.push(m);
+  box(.016, .012, .016, 0, .046, .05 - i * .028, m, trapTool);
+}
+const LED_ON = [0x3dff6a, 0x9dff3d, 0xffe23d, 0xff9a3d, 0xff3d3d].map(c => new THREE.Color(c));
+const beamMat = new THREE.MeshBasicMaterial({ color: 0x7fe3ff, transparent: true, opacity: .5, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+const beam = (() => {
+  const g = new THREE.CylinderGeometry(.09, .012, 1, 10, 1, true); g.rotateX(Math.PI / 2); g.translate(0, 0, .5);
+  const m = new THREE.Mesh(g, beamMat); m.visible = false; muzzle.add(m); return m;
+})();
+
+// Табличка на запястье (VR) и всплывающие сообщения перед глазами (VR)
+function makeCanvasPlane(cw, ch, w, h) {
+  const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
+  return { c, ctx: c.getContext('2d'), tex, mesh };
+}
+const wrist = makeCanvasPlane(512, 256, .16, .08);
+wrist.mesh.position.set(0, .055, .03); wrist.mesh.rotation.x = -.9; wrist.mesh.visible = false;
+flashTool.add(wrist.mesh);
+const toast = makeCanvasPlane(1024, 256, 1.0, .25);
+toast.mesh.position.set(0, .12, -1.2); toast.mesh.material.depthTest = false; toast.mesh.renderOrder = 1000; toast.mesh.visible = false;
+camera.add(toast.mesh);
+// Виньетка страха и затемнение, если голова ушла в стену
+const vignette = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: vignetteTex, color: 0x300000, transparent: true, opacity: 0, depthTest: false, depthWrite: false }));
+vignette.position.z = -.15; vignette.renderOrder = 998; camera.add(vignette);
+const blackout = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0, transparent: true, opacity: 0, depthTest: false, depthWrite: false }));
+blackout.position.z = -.14; blackout.renderOrder = 999; blackout.scale.set(3, 3, 1); camera.add(blackout);
+function sizeVignette() {
+  if (renderer.xr.isPresenting) { vignette.scale.set(.42, .42, 1); return; }
+  const h = 2 * .15 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.15;
+  vignette.scale.set(h * camera.aspect, h, 1);
+}
+sizeVignette();
+
+function attachDesktopTools() {
+  camera.add(flashTool); flashTool.position.set(-.26, -.27, -.6); flashTool.rotation.set(.045, -.04, 0);
+  camera.add(trapTool); trapTool.position.set(.26, -.28, -.62); trapTool.rotation.set(.045, .04, 0);
+  wrist.mesh.visible = false;
+}
+attachDesktopTools();
+
+// ───────────── Звук (всё синтезируется на лету, файлов нет)
+let AC = null, listener = null, master = null, hum = null, micAnalyser = null, micData = null;
+const SFX = { whispers: [] };
+function noiseBuf(c, d) { const b = c.createBuffer(1, Math.ceil(c.sampleRate * d), c.sampleRate); const a = b.getChannelData(0); for (let i = 0; i < a.length; i++) a[i] = Math.random() * 2 - 1; return b; }
+function offline(d, build) {
+  const c = new OfflineAudioContext(1, Math.ceil(AC.sampleRate * d), AC.sampleRate);
+  build(c, c.destination, d); return c.startRendering();
+}
+function envGain(c, peak, attack, end) {
+  const g = c.createGain(); g.gain.setValueAtTime(0, 0); g.gain.linearRampToValueAtTime(peak, attack); g.gain.exponentialRampToValueAtTime(.0005, end); return g;
+}
+async function buildSfx() {
+  for (let k = 0; k < 3; k++) SFX.whispers.push(await offline(1.6, (c, dst, d) => {
+    const src = c.createBufferSource(); src.buffer = noiseBuf(c, d);
+    const env = c.createGain(), n = 200, e = new Float32Array(n), syl = rand(5, 9);
+    for (let i = 0; i < n; i++) { const x = i / (n - 1); e[i] = Math.pow(Math.max(0, Math.sin(x * Math.PI * syl)), 1.5) * Math.sin(x * Math.PI) * 1.4; }
+    env.gain.setValueCurveAtTime(e, 0, d);
+    for (const [lo, hi, q] of [[500, 1200, 6], [1600, 3000, 9]]) {
+      const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = q;
+      bp.frequency.setValueCurveAtTime(new Float32Array(24).map(() => rand(lo, hi)), 0, d);
+      src.connect(bp).connect(env);
+    }
+    env.connect(dst); src.start();
+  }));
+  SFX.scream = await offline(1.0, (c, dst, d) => {
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200;
+    for (const mul of [1, 1.49]) {
+      const o = c.createOscillator(); o.type = 'sawtooth';
+      o.frequency.setValueAtTime(900 * mul, 0); o.frequency.exponentialRampToValueAtTime(240 * mul, d);
+      const vib = c.createOscillator(); vib.frequency.value = 26; const vg = c.createGain(); vg.gain.value = 50 * mul;
+      vib.connect(vg).connect(o.frequency); o.connect(lp); o.start(); vib.start();
+    }
+    const ns = c.createBufferSource(); ns.buffer = noiseBuf(c, d); const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1500;
+    const ng = c.createGain(); ng.gain.value = .5; ns.connect(hp).connect(ng).connect(lp); ns.start();
+    lp.connect(envGain(c, .45, .03, d)).connect(dst);
+  });
+  SFX.stun = await offline(1.6, (c, dst, d) => {
+    [740, 1109, 1480, 1975].forEach((f, i) => {
+      const o = c.createOscillator(); o.frequency.setValueAtTime(f, 0); o.frequency.linearRampToValueAtTime(f * .96, d);
+      o.connect(envGain(c, .22 / (i + 1), .01, d * (.6 + i * .1))).connect(dst); o.start();
+    });
+  });
+  SFX.capture = await offline(1.2, (c, dst, d) => {
+    const ns = c.createBufferSource(); ns.buffer = noiseBuf(c, d);
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(6000, 0); lp.frequency.exponentialRampToValueAtTime(150, d);
+    ns.connect(lp).connect(envGain(c, .6, .05, d)).connect(dst); ns.start();
+    const o = c.createOscillator(); o.frequency.setValueAtTime(1000, 0); o.frequency.exponentialRampToValueAtTime(60, d * .9);
+    o.connect(envGain(c, .3, .02, d)).connect(dst); o.start();
+  });
+  SFX.clap = await offline(.25, (c, dst, d) => {
+    const ns = c.createBufferSource(); ns.buffer = noiseBuf(c, d);
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = .8;
+    ns.connect(bp).connect(envGain(c, 1, .002, .14)).connect(dst); ns.start();
+  });
+  SFX.puff = await offline(.5, (c, dst, d) => {
+    const ns = c.createBufferSource(); ns.buffer = noiseBuf(c, d);
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500;
+    ns.connect(lp).connect(envGain(c, .5, .05, d)).connect(dst); ns.start();
+  });
+}
+function startAmbience() {
+  const g = AC.createGain(); g.gain.value = 0; g.connect(master); g.gain.linearRampToValueAtTime(.2, AC.currentTime + 3);
+  [[55, 'triangle', .35], [55.6, 'triangle', .35], [82.4, 'sine', .12]].forEach(([f, type, v]) => {
+    const o = AC.createOscillator(); o.type = type; o.frequency.value = f; const og = AC.createGain(); og.gain.value = v; o.connect(og).connect(g); o.start();
+  });
+  const n = AC.createBufferSource(); n.buffer = noiseBuf(AC, 4); n.loop = true;
+  const bp = AC.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 420; bp.Q.value = .7;
+  const lfo = AC.createOscillator(); lfo.frequency.value = .07; const lg = AC.createGain(); lg.gain.value = 260;
+  lfo.connect(lg).connect(bp.frequency);
+  const ng = AC.createGain(); ng.gain.value = .22; n.connect(bp).connect(ng).connect(g); n.start(); lfo.start();
+  const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 90;
+  const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 700;
+  const hg = AC.createGain(); hg.gain.value = 0; o.connect(f).connect(hg).connect(master); o.start();
+  hum = { o, g: hg };
+}
+function initAudio() {
+  if (listener) { AC.resume(); return; }
+  listener = new THREE.AudioListener(); camera.add(listener);
+  AC = listener.context; master = listener.getInput(); AC.resume();
+  startAmbience(); buildSfx().catch(e => console.warn('sfx', e));
+}
+function play2D(buf, vol = 1, rate = 1) {
+  if (!AC || !buf) return;
+  const s = AC.createBufferSource(); s.buffer = buf; s.playbackRate.value = rate;
+  const g = AC.createGain(); g.gain.value = vol; s.connect(g).connect(master); s.start();
+}
+function tone(freq, dur, vol, type = 'square', when = 0) {
+  if (!AC) return;
+  const t = AC.currentTime + when, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.value = freq; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(master); o.start(t); o.stop(t + dur + .02);
+}
+function heartbeat(v) { tone(58, .16, .5 * v, 'sine'); tone(52, .18, .4 * v, 'sine', .2); }
+function setHum(on, prog = 0) {
+  if (!hum) return;
+  hum.g.gain.setTargetAtTime(on ? .1 : 0, AC.currentTime, .05);
+  hum.o.frequency.setTargetAtTime(90 + prog * 170, AC.currentTime, .05);
+}
+function playGhost(g, buf, vol = 1) {
+  if (!g.snd || !buf) return;
+  if (g.snd.isPlaying) g.snd.stop();
+  g.snd.setBuffer(buf); g.snd.setVolume(vol); g.snd.setPlaybackRate(rand(.8, 1.15)); g.snd.play();
+}
+async function initMic() {
+  if (micAnalyser || !AC) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    micAnalyser = AC.createAnalyser(); micAnalyser.fftSize = 1024; micData = new Float32Array(micAnalyser.fftSize);
+    AC.createMediaStreamSource(stream).connect(micAnalyser);
+    showMessage('Микрофон включён: призраки слышат ваш голос', 3);
+  } catch (e) { showMessage('Микрофон недоступен', 3); }
+}
+function micLevel() {
+  if (!micAnalyser) return 0;
+  micAnalyser.getFloatTimeDomainData(micData);
+  let s = 0; for (const v of micData) s += v * v; return Math.sqrt(s / micData.length);
+}
+
+// ───────────── Контроллеры VR
+const hands = { left: null, right: null };
+for (let i = 0; i < 2; i++) {
+  const grip = renderer.xr.getControllerGrip(i); player.add(grip);
+  grip.addEventListener('connected', e => {
+    const src = e.data; if (src.hand) return;
+    const side = src.handedness === 'left' ? 'left' : 'right';
+    hands[side] = { src, grip, prev: [] };
+    const tool = side === 'left' ? flashTool : trapTool;
+    grip.add(tool); tool.position.set(0, 0, 0); tool.rotation.set(0, 0, 0);
+    if (side === 'left') wrist.mesh.visible = true;
+  });
+  grip.addEventListener('disconnected', () => { for (const s of ['left', 'right']) if (hands[s]?.grip === grip) hands[s] = null; });
+}
+function haptic(side, v, ms) {
+  const a = hands[side]?.src.gamepad?.hapticActuators?.[0];
+  if (a?.pulse) try { a.pulse(v, ms); } catch (e) { }
+}
+function edge(h, i) { const p = !!h.src.gamepad?.buttons[i]?.pressed, was = h.prev[i]; h.prev[i] = p; return p && !was; }
+const dead = v => Math.abs(v) < .15 ? 0 : v;
+
+// ───────────── Состояние игры
+const G = { running: false, paused: false, over: false, vr: false, time: 0, fear: 0, battery: 1, flashOn: true,
+  caught: 0, total: 0, beaming: false, beepT: 0, heartT: 0, noiseT: 0, clapCD: 0, flash: 0, hudT: 0, hadLock: false, hint: 0 };
+let ghosts = [];
+let yaw = 0, pitch = 0, snapLatch = false;
+const keys = new Set(); let mouseBeam = false;
+const input = { mx: 0, mz: 0, beam: false, flash: false, clap: false, run: false, restart: false };
+
+const GHOST_TYPES = [
+  { name: 'Шептун', color: 0xa8ecff, speed: .8, flee: 1.7, charge: 0, stunNeed: 1.3, scare: 16, aggro: .10, blink: false },
+  { name: 'Злыдень', color: 0xff8f8f, speed: 1.0, flee: 0, charge: 2.0, stunNeed: .9, scare: 26, aggro: .17, blink: false },
+  { name: 'Тень', color: 0xc8acff, speed: 1.2, flee: 2.6, charge: 0, stunNeed: 1.8, scare: 12, aggro: .08, blink: true },
+];
+const ghostGeo = new THREE.LatheGeometry(
+  [[.34, 0], [.33, .15], [.3, .35], [.27, .55], [.26, .7], [.25, .8], [.22, .9], [.16, .97], [.08, 1.0], [0, 1.01]].map(([x, y]) => new THREE.Vector2(x, y)), 24);
+const ghostVS = `varying vec3 vN; varying vec3 vV;
+void main(){ vec4 mv = modelViewMatrix * vec4(position,1.0); vN = normalize(normalMatrix*normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`;
+const ghostFS = `uniform vec3 color; uniform float opacity; varying vec3 vN; varying vec3 vV;
+void main(){ float rim = 1.0 - abs(dot(normalize(vN), normalize(vV))); float a = (0.3 + pow(rim,2.0)*0.9) * opacity; gl_FragColor = vec4(color*(0.65+rim*0.8), a); }`;
+
+function randomFloorPoint() { const [r, c] = floorCells[(Math.random() * floorCells.length) | 0]; return new THREE.Vector3((c + .5) * CS, 1.45, (r + .5) * CS); }
+function makeGhost(type, r, c) {
+  const grp = new THREE.Group();
+  const geo = ghostGeo.clone();
+  const mat = new THREE.ShaderMaterial({ uniforms: { color: { value: new THREE.Color(type.color) }, opacity: { value: 0 } },
+    vertexShader: ghostVS, fragmentShader: ghostFS, transparent: true, depthWrite: false, side: THREE.DoubleSide });
+  const body = new THREE.Mesh(geo, mat); body.position.y = -.55; grp.add(body);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false });
+  const eyeGeo = new THREE.SphereGeometry(1, 12, 8);
+  for (const sx of [-1, 1]) { const e = new THREE.Mesh(eyeGeo, eyeMat); e.position.set(sx * .085, .32, .225); e.scale.set(.045, .065, .03); e.renderOrder = 2; grp.add(e); }
+  const mouth = new THREE.Mesh(eyeGeo, eyeMat.clone()); mouth.position.set(0, .17, .245); mouth.scale.set(.05, .02, .02); mouth.renderOrder = 2; grp.add(mouth);
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: type.color, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+  glow.scale.set(1.8, 1.8, 1); grp.add(glow);
+  grp.position.set((c + .5) * CS, 1.45, (r + .5) * CS);
+  let snd = null;
+  if (listener) { snd = new THREE.PositionalAudio(listener); snd.setRefDistance(2); snd.setRolloffFactor(1.3); grp.add(snd); }
+  scene.add(grp);
+  return { type, grp, body, mat, eyeMat, mouth, glow, geo, base: geo.attributes.position.array.slice(), snd,
+    state: 'wander', target: randomFloorPoint(), stateT: 0, reveal: 0, exposure: 0, stun: 0, cap: 0,
+    captured: false, capAnim: 0, phase: rand(0, 10), whisperT: rand(4, 12), scareCD: 3 };
+}
+function setState(g, s, t) { g.state = s; g.stateT = t; }
+
+// ───────────── Запуск и конец игры
+function startGame() {
+  for (const g of ghosts) { scene.remove(g.grp); g.geo.dispose(); g.mat.dispose(); if (g.snd?.isPlaying) g.snd.stop(); }
+  const order = [...GHOST_TYPES, ...GHOST_TYPES].sort(() => Math.random() - .5);
+  ghosts = ghostCells.map(([r, c], i) => makeGhost(order[i % order.length], r, c));
+  Object.assign(G, { running: true, paused: false, over: false, time: 0, fear: 0, battery: 1, flashOn: true, caught: 0, total: ghosts.length, beaming: false, flash: 0, hint: 0 });
+  for (const cd of candles) cd.out = 0;
+  player.position.set((startCell[1] + .5) * CS, 0, (startCell[0] + .5) * CS);
+  player.rotation.set(0, 0, 0); yaw = 0; pitch = 0;
+  showMessage(`Поймайте всех призраков (${G.total}) до рассвета.\nСвет оглушает их, ловушка затягивает.`, 6);
+}
+function endGame(win, reason) {
+  G.over = true; G.beaming = false; setHum(false); beam.visible = false;
+  const txt = win ? `Особняк очищен! Все ${G.total} призраков пойманы за ${fmt(G.time)}.` : reason;
+  if (win) { play2D(SFX.stun, 1, .7); } else { play2D(SFX.scream, .8, .6); }
+  if (G.vr) showMessage(txt + '\nНажмите A, чтобы сыграть ещё раз', 9999);
+  else { if (document.pointerLockElement) document.exitPointerLock(); showOverlay('end', txt, win); }
+}
+
+// ───────────── Интерфейс
+let overlayMode = 'menu';
+function showOverlay(mode, text = '', win = false) {
+  overlayMode = mode;
+  $('overlay').hidden = false; $('hud').hidden = true; $('cross').hidden = true;
+  $('result').textContent = mode === 'pause' ? 'Пауза' : text;
+  $('result').className = mode === 'end' ? (win ? 'win' : 'lose') : '';
+  $('intro').hidden = mode !== 'menu';
+  $('btnPC').textContent = mode === 'pause' ? 'Продолжить' : mode === 'end' ? 'Играть снова' : 'Играть на ПК';
+}
+function hideOverlay() { $('overlay').hidden = true; if (!G.vr) { $('hud').hidden = false; $('cross').hidden = false; } }
+let msgTimer = 0;
+function showMessage(text, dur = 3) {
+  msgTimer = dur;
+  $('msg').textContent = text; $('msg').style.opacity = 1;
+  const { ctx, c, tex } = toast;
+  ctx.clearRect(0, 0, c.width, c.height);
+  ctx.fillStyle = 'rgba(8,6,14,.78)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(8, 8, c.width - 16, c.height - 16, 28) : ctx.rect(8, 8, c.width - 16, c.height - 16); ctx.fill();
+  ctx.fillStyle = '#ece6f7'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const lines = text.split('\n'); ctx.font = `600 ${lines.length > 2 ? 40 : 46}px system-ui,sans-serif`;
+  lines.forEach((l, i) => ctx.fillText(l, c.width / 2, c.height / 2 + (i - (lines.length - 1) / 2) * 56, c.width - 60));
+  tex.needsUpdate = true; toast.mesh.visible = G.vr; toast.mesh.material.opacity = 1;
+}
+function drawWrist() {
+  const { ctx, c, tex } = wrist;
+  ctx.clearRect(0, 0, c.width, c.height);
+  ctx.fillStyle = 'rgba(8,6,14,.85)'; ctx.strokeStyle = 'rgba(127,227,255,.5)'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(4, 4, 504, 248, 24) : ctx.rect(4, 4, 504, 248); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#7fe3ff'; ctx.font = 'bold 46px system-ui,sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText(`Пойманы ${G.caught}/${G.total}`, 28, 64);
+  ctx.fillStyle = '#ece6f7'; ctx.font = '36px system-ui,sans-serif';
+  ctx.fillText(`Рассвет через ${fmt(DAWN - G.time)}`, 28, 116);
+  [['Страх', G.fear / 100, '#ff6b6b', 168], ['Свет', G.battery, '#ffd36b', 222]].forEach(([l, v, col, y]) => {
+    ctx.fillStyle = '#a99fbd'; ctx.font = '30px system-ui,sans-serif'; ctx.fillText(l, 28, y);
+    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(150, y - 26, 330, 26);
+    ctx.fillStyle = col; ctx.fillRect(150, y - 26, 330 * clamp(v, 0, 1), 26);
+  });
+  tex.needsUpdate = true;
+}
+function updateDomHud(level, noiseTxt) {
+  $('hCaught').textContent = `${G.caught}/${G.total}`;
+  $('hTime').textContent = fmt(DAWN - G.time);
+  $('hFear').style.width = G.fear + '%';
+  $('hBat').style.width = G.battery * 100 + '%';
+  [...$('leds').children].forEach((el, i) => el.style.background = i < level ? '#' + LED_ON[i].getHexString() : '');
+  $('hNoise').textContent = noiseTxt;
+}
+
+// ───────────── Ввод ПК
+addEventListener('keydown', e => {
+  keys.add(e.code);
+  if (e.code === 'KeyF') input.flash = true;
+  if (e.code === 'KeyE') input.clap = true;
+});
+addEventListener('keyup', e => keys.delete(e.code));
+renderer.domElement.addEventListener('mousedown', e => {
+  if (e.button === 0) mouseBeam = true;
+  if (G.running && !G.over && !G.vr && !document.pointerLockElement) requestLock();
+});
+addEventListener('mouseup', e => { if (e.button === 0) mouseBeam = false; });
+addEventListener('mousemove', e => {
+  if (G.vr || !G.running) return;
+  if (document.pointerLockElement || (e.buttons & 1)) {
+    yaw -= e.movementX * .0022; pitch = clamp(pitch - e.movementY * .0022, -1.4, 1.4);
+  }
+});
+function requestLock() { try { const p = renderer.domElement.requestPointerLock(); p?.catch?.(() => { }); } catch (e) { } }
+document.addEventListener('pointerlockchange', () => {
+  if (document.pointerLockElement) { G.hadLock = true; G.paused = false; hideOverlay(); }
+  else if (G.running && !G.over && !G.vr && G.hadLock) { G.paused = true; mouseBeam = false; setHum(false); showOverlay('pause'); }
+});
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); sizeVignette();
+});
+
+$('btnPC').addEventListener('click', () => {
+  initAudio(); if ($('mic').checked) initMic();
+  if (overlayMode !== 'pause') startGame();
+  G.paused = false; hideOverlay(); requestLock();
+});
+$('mic').addEventListener('change', () => { if ($('mic').checked && AC) initMic(); });
+$('btnVR').addEventListener('click', async () => {
+  initAudio(); if ($('mic').checked) initMic();
+  try {
+    const session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor'] });
+    await renderer.xr.setSession(session);
+  } catch (e) { $('vrNote').textContent = 'Не удалось войти в VR: ' + e.message; }
+});
+if (navigator.xr?.isSessionSupported) {
+  navigator.xr.isSessionSupported('immersive-vr').then(ok => {
+    $('btnVR').disabled = !ok;
+    $('vrNote').textContent = ok ? '' : 'VR недоступен в этом браузере. Откройте страницу по https в браузере шлема (например, Meta Quest Browser).';
+  }).catch(() => { $('vrNote').textContent = 'VR недоступен в этом браузере.'; });
+} else $('vrNote').textContent = 'WebXR не поддерживается этим браузером. Откройте страницу по https в браузере VR-шлема.';
+
+renderer.xr.addEventListener('sessionstart', () => {
+  G.vr = true; if (document.pointerLockElement) document.exitPointerLock();
+  $('overlay').hidden = true; $('hud').hidden = true; $('cross').hidden = true; $('cap').style.opacity = 0;
+  if (!G.running || G.over) startGame(); G.paused = false;
+  sizeVignette(); toast.mesh.visible = true;
+});
+renderer.xr.addEventListener('sessionend', () => {
+  G.vr = false; attachDesktopTools(); camera.position.set(0, 1.6, 0); toast.mesh.visible = false;
+  for (const s of ['left', 'right']) hands[s] = null;
+  sizeVignette(); setHum(false);
+  if (G.running && !G.over) { G.paused = true; showOverlay('pause'); }
+  else showOverlay(G.over ? 'end' : 'menu', $('result').textContent, $('result').className === 'win');
+});
+
+// ───────────── Вспомогательная геометрия
+const head = new THREE.Vector3(), tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
+const F = new THREE.Vector3(), FD = new THREE.Vector3(), M = new THREE.Vector3(), MD = new THREE.Vector3();
+function wallBetween(a, b) {
+  const dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz), n = Math.ceil(d / .15);
+  for (let i = 1; i < n; i++) if (isWall(a.x + dx * i / n, a.z + dz * i / n)) return true;
+  return false;
+}
+function collides(x, z, r = .25) { return isSolid(x - r, z - r) || isSolid(x + r, z - r) || isSolid(x - r, z + r) || isSolid(x + r, z + r); }
+function movePlayer(dx, dz) {
+  camera.getWorldPosition(head);
+  if (!collides(head.x + dx, head.z)) { player.position.x += dx; head.x += dx; }
+  if (!collides(head.x, head.z + dz)) player.position.z += dz;
+}
+function snapTurn(a) {
+  camera.getWorldPosition(tmp);
+  player.rotation.y += a; player.updateMatrixWorld(true);
+  camera.getWorldPosition(tmp2);
+  player.position.x += tmp.x - tmp2.x; player.position.z += tmp.z - tmp2.z;
+}
+function inFlashlight(p) {
+  if (!G.flashOn) return false;
+  tmp.subVectors(p, F); const d = tmp.length();
+  if (d > 6 + 9 * Math.min(1, G.battery * 2)) return false;
+  const ang = Math.acos(clamp(tmp.dot(FD) / d, -1, 1));
+  return ang < .36 + Math.atan(.3 / d) && !wallBetween(F, p);
+}
+function noiseEvent(strength) {
+  camera.getWorldPosition(head);
+  for (const g of ghosts) {
+    if (g.captured || g.stun > 0) continue;
+    if (g.grp.position.distanceTo(head) > 14 * strength) continue;
+    if (g.state === 'wander' || g.state === 'lured') {
+      if (g.type.charge && Math.random() < .5) setState(g, 'stalk', 6);
+      else { setState(g, 'lured', 9); g.target.set(head.x + rand(-1, 1), 1.45, head.z + rand(-1, 1)); }
+    }
+  }
+}
+function teleportAway(g) {
+  for (let k = 0; k < 30; k++) { const p = randomFloorPoint(); if (p.distanceTo(head) > 8) { g.grp.position.copy(p); return; } }
+}
+
+// ───────────── Призраки
+function scare(g) {
+  G.fear += g.type.scare; G.flash = 1; g.scareCD = 5;
+  playGhost(g, SFX.scream, 1.2); haptic('left', 1, 300); haptic('right', 1, 300);
+  setState(g, 'flee', 3);
+}
+function updateGhost(g, dt, t, beamTarget) {
+  const p = g.grp.position, ty = g.type;
+  if (g.captured) {
+    g.capAnim += dt / .7;
+    muzzle.getWorldPosition(tmp); p.lerp(tmp, Math.min(1, dt * 8));
+    const s = Math.max(.02, 1 - g.capAnim); g.grp.scale.setScalar(s);
+    g.mat.uniforms.opacity.value = 1; g.grp.rotation.y += dt * 20;
+    if (g.capAnim >= 1) g.grp.visible = false;
+    return;
+  }
+  const dx = head.x - p.x, dz = head.z - p.z, dxz = Math.hypot(dx, dz) || .001, dist = p.distanceTo(head);
+  const lit = inFlashlight(p);
+  const beamed = beamTarget === g;
+  let speed = 0, dirX = 0, dirZ = 0, targetY = 1.45 + Math.sin(t * 1.3 + g.phase) * .15;
+  g.scareCD -= dt;
+
+  if (g.stun > 0) {
+    if (!beamed) g.stun -= dt;
+    g.exposure = 0;
+    if (beamed) { muzzle.getWorldPosition(tmp); p.lerp(tmp, dt * .25); p.x += rand(-.02, .02); p.z += rand(-.02, .02); }
+    if (g.stun <= 0) { g.cap = 0; if (ty.blink) teleportAway(g); setState(g, 'flee', 3); }
+  } else {
+    if (lit) {
+      g.exposure += dt;
+      if (g.exposure >= ty.stunNeed) {
+        g.stun = 4.5; playGhost(g, SFX.stun, 1); haptic('left', .5, 120);
+        if (G.hint < 1) { G.hint = 1; showMessage('Призрак оглушён!\nЛовите его лучом ловушки', 3); }
+      } else if (ty.charge) { if (g.state !== 'charge') setState(g, 'charge', 4); }
+      else if (g.state !== 'flee') setState(g, 'flee', 2.5); else g.stateT = Math.max(g.stateT, 1.2);
+    } else g.exposure = Math.max(0, g.exposure - dt * .25);
+
+    g.stateT -= dt;
+    const aggro = ty.aggro * (1 + G.time / 240) * (G.flashOn ? 1 : 1.8);
+    switch (g.state) {
+      case 'wander':
+        tmp.subVectors(g.target, p); tmp.y = 0;
+        if (tmp.length() < .5) g.target = randomFloorPoint();
+        tmp.normalize(); dirX = tmp.x; dirZ = tmp.z; speed = ty.speed * .6;
+        if (dxz < 9 && Math.random() < aggro * dt) setState(g, 'stalk', 7);
+        break;
+      case 'lured':
+        tmp.subVectors(g.target, p); tmp.y = 0;
+        if (tmp.length() > .4) { tmp.normalize(); dirX = tmp.x; dirZ = tmp.z; speed = ty.speed; }
+        if (g.stateT <= 0) setState(g, 'wander', 0);
+        break;
+      case 'stalk':
+        dirX = dx / dxz; dirZ = dz / dxz; speed = ty.speed * .9; targetY = head.y - .15;
+        if (g.stateT <= 0) setState(g, 'wander', 0);
+        break;
+      case 'charge':
+        dirX = dx / dxz; dirZ = dz / dxz; speed = ty.charge; targetY = head.y - .1;
+        if (g.stateT <= 0) setState(g, 'wander', 0);
+        break;
+      case 'flee':
+        dirX = -dx / dxz + Math.sin(t * 2 + g.phase) * .5 * dz / dxz; dirZ = -dz / dxz - Math.sin(t * 2 + g.phase) * .5 * dx / dxz;
+        speed = ty.flee || ty.speed;
+        if (g.stateT <= 0) { setState(g, 'wander', 0); g.target = randomFloorPoint(); }
+        break;
+    }
+    p.x += dirX * speed * dt; p.z += dirZ * speed * dt;
+    if (dist < .75 && g.scareCD <= 0) scare(g);
+  }
+  p.x = clamp(p.x, CS, (COLS - 1) * CS); p.z = clamp(p.z, CS, (ROWS - 1) * CS);
+  p.y += (targetY - p.y) * Math.min(1, dt * 2);
+
+  // Шёпот, чтобы призрака можно было найти на слух
+  g.whisperT -= dt;
+  if (g.whisperT <= 0) { g.whisperT = rand(5, 13); if (dist < 14 && g.stun <= 0) playGhost(g, SFX.whispers[(Math.random() * 3) | 0], .9); }
+  // Призрак гасит свечи, пролетая рядом
+  for (const cd of candles) if (cd.out <= 0 && cd.pos.distanceTo(p) < 1.3) { cd.out = 14; play2D(SFX.puff, .5 * clamp(1 - cd.pos.distanceTo(head) / 14, 0, 1)); }
+
+  // Видимость
+  let want = 0;
+  if (lit) want = 1; else if (g.stun > 0) want = .85;
+  else if ((g.state === 'stalk' || g.state === 'charge') && dist < 2.5) want = .4;
+  else if (dist < 3) want = ty.blink ? .05 : .13;
+  g.reveal += (want - g.reveal) * Math.min(1, dt * 4);
+  const vis = g.reveal;
+  g.grp.visible = vis > .01;
+  g.mat.uniforms.opacity.value = vis * .8;
+  g.eyeMat.opacity = vis; g.mouth.material.opacity = vis;
+  g.glow.material.opacity = vis * .35;
+  const col = g.mat.uniforms.color.value.set(ty.color);
+  if (g.stun > 0) col.lerp(new THREE.Color(0xffffff), .5 + .5 * Math.sin(t * 22));
+  g.eyeMat.color.set(g.state === 'charge' && g.stun <= 0 ? 0xff2020 : 0x000000);
+  g.mouth.scale.y = (g.state === 'stalk' || g.state === 'charge') ? .07 : .02;
+  if (g.stun > 0) g.grp.rotation.y += dt * 6; else g.grp.rotation.y = Math.atan2(dx, dz);
+  // Колышущийся подол
+  const pos = g.geo.attributes.position.array;
+  for (let i = 0; i < pos.length; i += 3) {
+    const by = g.base[i + 1]; if (by > .35) continue;
+    const k = 1 - by / .35, a = Math.atan2(g.base[i + 2], g.base[i]);
+    pos[i + 1] = by + Math.sin(a * 6 + t * 3.5 + g.phase) * .06 * k;
+  }
+  g.geo.attributes.position.needsUpdate = true;
+}
+
+// ───────────── Главный цикл
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(tick);
+function tick() {
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+  if (!G.vr) { camera.position.set(0, 1.6, 0); camera.rotation.set(pitch, yaw, 0); }
+
+  // Свечи мерцают всегда
+  for (const cd of candles) {
+    if (cd.out > 0) { cd.out -= dt; cd.light.intensity = 0; cd.flame.visible = false; continue; }
+    const f = .8 + .15 * Math.sin(t * 13 + cd.seed) + .1 * Math.sin(t * 29 + cd.seed * 2);
+    cd.light.intensity = 5 * f; cd.flame.visible = true; cd.flame.scale.set(.12, .2 * f, 1);
+  }
+
+  // Ввод
+  input.mx = input.mz = 0; input.beam = false; input.run = false;
+  if (G.vr) {
+    const L = hands.left, R = hands.right;
+    if (L?.src.gamepad) {
+      const a = L.src.gamepad.axes; input.mx = dead(a[2] ?? a[0] ?? 0); input.mz = dead(a[3] ?? a[1] ?? 0);
+      if (edge(L, 0)) input.flash = true;
+      if (edge(L, 4)) input.clap = true;
+      if (edge(L, 5) && G.over) input.restart = true;
+    }
+    if (R?.src.gamepad) {
+      const a = R.src.gamepad.axes, rx = dead(a[2] ?? a[0] ?? 0);
+      if (Math.abs(rx) > .6 && !snapLatch) { snapLatch = true; snapTurn(-Math.sign(rx) * Math.PI / 6); }
+      if (Math.abs(rx) < .3) snapLatch = false;
+      input.beam = !!R.src.gamepad.buttons[0]?.pressed;
+      if (edge(R, 4) && G.over) input.restart = true;
+    }
+  } else {
+    input.mx = (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0);
+    input.mz = (keys.has('KeyS') || keys.has('ArrowDown') ? 1 : 0) - (keys.has('KeyW') || keys.has('ArrowUp') ? 1 : 0);
+    input.run = keys.has('ShiftLeft') || keys.has('ShiftRight');
+    input.beam = mouseBeam;
+  }
+  if (input.restart) { input.restart = false; startGame(); }
+
+  const active = G.running && !G.paused && !G.over;
+  if (active) update(dt, t);
+  input.flash = input.clap = false;
+
+  // Сообщения
+  if (msgTimer > 0) {
+    msgTimer -= dt;
+    const o = clamp(msgTimer / .6, 0, 1);
+    $('msg').style.opacity = G.vr ? 0 : o;
+    toast.mesh.material.opacity = o; toast.mesh.visible = G.vr && o > 0;
+  }
+  // Голова в стене: затемняем
+  camera.getWorldPosition(head);
+  blackout.material.opacity = (G.vr && isSolid(head.x, head.z) && cellAt(head.x, head.z) === '#') ? 1 : 0;
+  renderer.render(scene, camera);
+}
+
+function update(dt, t) {
+  G.time += dt;
+  scene.updateMatrixWorld();
+  camera.getWorldPosition(head);
+
+  // Движение
+  if (input.mx || input.mz) {
+    camera.getWorldDirection(tmp); tmp.y = 0; tmp.normalize();
+    const rx = -tmp.z, rz = tmp.x;
+    let mx = tmp.x * -input.mz + rx * input.mx, mz = tmp.z * -input.mz + rz * input.mx;
+    const len = Math.hypot(mx, mz); if (len > 1) { mx /= len; mz /= len; }
+    const sp = input.run ? 3.6 : 2.1;
+    movePlayer(mx * sp * dt, mz * sp * dt);
+    if (input.run) { G.noiseT -= dt; if (G.noiseT <= 0) { G.noiseT = .7; noiseEvent(.35); } }
+    scene.updateMatrixWorld(); camera.getWorldPosition(head);
+  }
+
+  // Фонарь и батарея
+  if (input.flash) {
+    if (!G.flashOn && G.battery < .05) showMessage('Батарея разряжена, подождите', 2);
+    else { G.flashOn = !G.flashOn; tone(G.flashOn ? 1800 : 1200, .03, .15); }
+  }
+  if (G.flashOn) { G.battery -= dt / 110; if (G.battery <= 0) { G.battery = 0; G.flashOn = false; showMessage('Фонарь погас: села батарея.\nВыключенный фонарь заряжается.', 3); } }
+  else G.battery = Math.min(1, G.battery + dt / 25);
+  const flick = G.flashOn && G.battery < .15 && Math.random() < .25;
+  spot.intensity = G.flashOn && !flick ? 70 * (.6 + .4 * Math.min(1, G.battery * 3)) : 0;
+  spot.distance = 8 + 12 * Math.min(1, G.battery * 2);
+  beamCone.visible = spot.intensity > 0; lensMat.color.set(spot.intensity > 0 ? 0xfff3d0 : 0x333333);
+  spot.getWorldPosition(F); flashTool.getWorldDirection(FD).negate();
+
+  // Хлопок и голос
+  G.clapCD -= dt;
+  if (input.clap && G.clapCD <= 0) { G.clapCD = 1; play2D(SFX.clap, .9); noiseEvent(1); haptic('left', .6, 40); }
+  let noiseTxt = '';
+  const ml = micLevel();
+  if (ml > .06) { noiseTxt = 'Призраки слышат ваш голос'; G.noiseT -= dt; if (G.noiseT <= 0) { G.noiseT = .5; noiseEvent(clamp(ml * 8, .4, 1.2)); } }
+  else if (input.run && (input.mx || input.mz)) noiseTxt = 'Бег шумит';
+
+  // Луч ловушки
+  muzzle.getWorldPosition(M); muzzle.getWorldDirection(MD).negate();
+  G.beaming = input.beam;
+  let beamTarget = null;
+  if (G.beaming) {
+    let best = 1e9;
+    for (const g of ghosts) {
+      if (g.captured) continue;
+      tmp.subVectors(g.grp.position, M); const d = tmp.length(); if (d > 8) continue;
+      const ang = Math.acos(clamp(tmp.dot(MD) / d, -1, 1));
+      if (ang < .2 + Math.atan(.35 / d) && ang < best && !wallBetween(M, g.grp.position)) { best = ang; beamTarget = g; }
+    }
+  }
+  for (const g of ghosts) if (g !== beamTarget || !(g.stun > 0)) g.cap = Math.max(0, g.cap - dt * .4);
+  if (beamTarget) {
+    if (beamTarget.stun > 0) {
+      beamTarget.cap += dt / 2.2;
+      haptic('right', .25 + beamTarget.cap * .5, 30);
+      if (beamTarget.cap >= 1) {
+        beamTarget.captured = true; G.caught++;
+        play2D(SFX.capture, 1); haptic('right', 1, 250);
+        showMessage(`Пойман: ${beamTarget.type.name} (${G.caught}/${G.total})`, 2.5);
+        if (G.caught >= G.total) setTimeout(() => endGame(true), 900);
+      }
+    } else if (beamTarget.reveal > .3) {
+      if (beamTarget.type.charge) { if (beamTarget.state !== 'charge') setState(beamTarget, 'charge', 3); }
+      else if (beamTarget.state !== 'flee') setState(beamTarget, 'flee', 2);
+      if (G.hint < 2 && msgTimer <= 0) { G.hint = 2; showMessage('Сначала оглушите призрака\nсветом фонаря!', 2.5); }
+    }
+  }
+  beam.visible = G.beaming;
+  if (G.beaming) {
+    if (beamTarget) { beam.lookAt(beamTarget.grp.position); beam.scale.z = M.distanceTo(beamTarget.grp.position); }
+    else { tmp.copy(M).addScaledVector(MD, 6); beam.lookAt(tmp); beam.scale.z = 6; }
+    beamMat.opacity = .3 + Math.random() * .3;
+    beamMat.color.set(beamTarget?.stun > 0 ? 0x7fffe0 : 0x6aa8c0);
+  }
+  const prog = beamTarget?.stun > 0 ? beamTarget.cap : 0;
+  setHum(G.beaming, prog);
+  ringMat.color.set(0x1f5560).lerp(new THREE.Color(0x7fffe0), G.beaming ? .4 + prog * .6 : 0);
+  $('cap').style.opacity = prog > 0 && !G.vr ? 1 : 0; $('cap').firstChild.style.width = prog * 100 + '%';
+
+  // Призраки
+  let nearest = 1e9, close = false;
+  for (const g of ghosts) {
+    updateGhost(g, dt, t, beamTarget);
+    if (!g.captured) { const d = g.grp.position.distanceTo(head); nearest = Math.min(nearest, d); if (d < 4) close = true; }
+  }
+
+  // Детектор
+  const level = nearest < 2 ? 5 : nearest < 4 ? 4 : nearest < 6 ? 3 : nearest < 9 ? 2 : nearest < 13 ? 1 : 0;
+  ledMats.forEach((m, i) => m.color.copy(i < level ? LED_ON[i] : new THREE.Color(0x111111)));
+  G.beepT -= dt;
+  if (level > 0 && G.beepT <= 0) { G.beepT = [0, 1.3, .9, .55, .3, .15][level]; tone(1100 + level * 180, .05, .05); haptic('right', .04 * level, 15); }
+
+  // Страх
+  if (!G.flashOn) G.fear += dt * .6;
+  if (close) G.fear += dt * .8; else if (G.flashOn) G.fear -= dt * 1.5;
+  G.fear = clamp(G.fear, 0, 100);
+  G.heartT -= dt;
+  if (G.fear > 35 && G.heartT <= 0) { G.heartT = 1.4 - G.fear / 100; heartbeat(G.fear / 100); haptic('left', .15, 60); }
+  G.flash = Math.max(0, G.flash - dt * 2);
+  vignette.material.opacity = clamp(G.fear / 100 * .9 + G.flash * .6, 0, 1);
+  vignette.material.color.set(0x300000).lerp(new THREE.Color(0xb00000), G.flash);
+
+  // Интерфейс
+  G.hudT -= dt;
+  if (G.hudT <= 0) { G.hudT = .2; if (G.vr) drawWrist(); else updateDomHud(level, noiseTxt); }
+
+  // Конец игры
+  if (G.fear >= 100) endGame(false, 'Страх победил: вы с криком выбежали из особняка.');
+  else if (G.time >= DAWN) endGame(false, `Рассвет. В доме остались призраки: ${G.total - G.caught}.`);
+}
+
+// Для отладки и автотестов
+window.__game = { G, get ghosts() { return ghosts; }, startGame, player, camera, M, MD, F, FD, muzzle,
+  look(y = 0, p = 0) { yaw = y; pitch = p; },
+  stunAll() { ghosts.forEach(g => { if (!g.captured) { g.stun = 30; } }); } };
+</script>
+</body>
+</html>
