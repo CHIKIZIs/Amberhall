@@ -1,0 +1,22 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://cp1c3wad42tm8"
+path="res://.godot/imported/rugRound.obj-1fa6e7726d3c27b01d798652a13f85de.mesh"
+
+[deps]
+
+files=["res://.godot/imported/rugRound.obj-1fa6e7726d3c27b01d798652a13f85de.mesh"]
+
+source_file="res://assets/furniture/rugRound.obj"
+dest_files=["res://.godot/imported/rugRound.obj-1fa6e7726d3c27b01d798652a13f85de.mesh", "res://.godot/imported/rugRound.obj-1fa6e7726d3c27b01d798652a13f85de.mesh"]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+optimize_mesh=true
+force_disable_mesh_compression=false
