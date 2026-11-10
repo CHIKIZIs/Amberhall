@@ -1,0 +1,12 @@
+{
+  "name": "raidborn",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/main.js --bundle --minify --format=iife --target=es2019 --outfile=www/game.js",
+    "dev": "esbuild src/main.js --bundle --format=iife --sourcemap --outfile=www/game.js --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "three": "0.170.0"
+  }
+}

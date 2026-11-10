@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#1a1245">
+<title>Raidborn</title>
+<style>
+:root{--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--ink:#140d33;--pan:#27307a;--pan2:#1b2260;--gold:#ffc531}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0}
+html,body{height:100%;overflow:hidden;background:#1a1245;color:#fff;font-family:"Arial Rounded MT Bold","Nunito",system-ui,-apple-system,Roboto,sans-serif;
+  font-weight:900;-webkit-user-select:none;user-select:none;touch-action:none;overscroll-behavior:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#hud{pointer-events:none}
+#vign{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 90px 30px #ff1f3d;opacity:0}
+button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation}
+.sh{text-shadow:0 2px 0 rgba(0,0,0,.55),0 0 2px #000}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 20px;border-radius:14px;border:2.5px solid var(--ink);
+  font-size:17px;text-transform:uppercase;letter-spacing:.3px;background:linear-gradient(#5fa8ff,#2f6fe0);
+  box-shadow:inset 0 -5px 0 rgba(0,0,0,.22),inset 0 2px 0 rgba(255,255,255,.35),0 4px 0 rgba(0,0,0,.35);text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.btn:active{transform:translateY(3px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.22),0 1px 0 rgba(0,0,0,.35)}
+.btn.y{background:linear-gradient(#ffe066,#ffab1a);color:#4a2500;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.btn.g{background:linear-gradient(#7de35a,#35a82c)}
+.btn.r{background:linear-gradient(#ff7a7a,#d93030)}
+.btn.d{background:linear-gradient(#5a6396,#3a4274)}
+.btn[disabled]{filter:grayscale(.9) brightness(.75);pointer-events:none}
+.btn.big{min-height:64px;font-size:24px;width:100%;border-radius:18px}
+.coin{display:inline-block;width:1.05em;height:1.05em;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3a8,#ffc531 55%,#d98a00);
+  box-shadow:0 0 0 2px var(--ink);vertical-align:-.15em;margin-right:.3em}
+
+#menu,#battle{position:fixed;inset:0;display:none;flex-direction:column}
+#menu.on,#battle.on{display:flex}
+#top{display:flex;align-items:center;gap:8px;padding:calc(var(--st) + 10px) 10px 8px}
+.pill{display:flex;align-items:center;height:38px;padding:0 12px;border-radius:19px;background:rgba(10,6,36,.72);border:2px solid var(--ink);font-size:16px}
+#lvl{position:relative;padding-left:44px;min-width:128px}
+#lvl b{position:absolute;left:-4px;top:-5px;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(#6fd1ff,#2f6fe0);border:2.5px solid var(--ink);font-size:19px}
+#lvl i{display:block;width:78px;height:10px;border-radius:5px;background:#0a0624;overflow:hidden}
+#lvl i u{display:block;height:100%;background:linear-gradient(#7de35a,#35a82c)}
+.grow{flex:1}
+#snd{width:38px;padding:0;justify-content:center;font-size:17px}
+#page{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 10px 10px}
+.panel{background:linear-gradient(var(--pan),var(--pan2));border:2.5px solid var(--ink);border-radius:20px;padding:14px;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.14),0 5px 0 rgba(0,0,0,.3)}
+.full{flex:1;min-height:0;display:flex;flex-direction:column}
+.scroll{flex:1;min-height:0;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+h3{font-size:20px;text-transform:uppercase;text-align:center}
+.mut{font-size:13px;font-weight:700;color:#b9c2ff;text-align:center}
+nav{display:flex;padding-bottom:var(--sb);background:#140d33;border-top:3px solid #0a0624}
+nav button{flex:1;height:64px;background:linear-gradient(#2a3382,#1b2260);border-left:2px solid #0a0624;font-size:12px;text-transform:uppercase;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#aab3f5}
+nav button svg{width:26px;height:26px;fill:currentColor}
+nav button.on{background:linear-gradient(#5fa8ff,#2f6fe0);color:#fff;transform:translateY(-6px);border-radius:12px 12px 0 0;height:70px;border:2px solid #0a0624;border-bottom:0}
+nav i{font-style:normal;position:relative}
+nav .dot{position:absolute;top:-4px;right:-12px;width:14px;height:14px;border-radius:50%;background:#ff3b3b;border:2px solid var(--ink)}
+
+/* главная */
+#pow{align-self:center;margin-bottom:10px}
+.locrow{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.locrow h3{flex:1}
+.arr{width:42px;height:42px;min-height:0;padding:0;font-size:20px}
+.lvls{display:flex;justify-content:space-between;margin-bottom:12px}
+.lv{width:56px;height:66px;border-radius:14px;border:2.5px solid var(--ink);background:linear-gradient(#5a6396,#3a4274);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;font-size:22px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25)}
+.lv small{font-size:11px;color:var(--gold);letter-spacing:1px;height:13px}
+.lv.sel{background:linear-gradient(#ffe066,#ffab1a);color:#4a2500;transform:scale(1.1)}
+.lv.sel small{color:#8a4b00}
+.lv.lock{opacity:.5}
+.lv.boss{border-color:#7a0f0f;background:linear-gradient(#ff7a7a,#b82626)}
+.lv.boss.sel{background:linear-gradient(#ffe066,#ff7a1a)}
+.rec{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#b9c2ff;margin-bottom:10px}
+.rec b.bad{color:#ff7a7a}.rec b.ok{color:#7de35a}
+
+/* герой */
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:rgba(10,6,36,.5);border-radius:12px;padding:7px 4px;text-align:center;font-size:17px}
+.stat small{display:block;font-size:10px;color:#b9c2ff;text-transform:uppercase;margin-bottom:2px}
+.eq{display:flex;gap:10px;justify-content:center;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:2px}
+.it{position:relative;aspect-ratio:1;border-radius:12px;border:2.5px solid var(--ink);overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.3)}
+.it img{width:100%;height:100%;display:block}
+.it span{position:absolute;left:0;right:0;bottom:0;font-size:10px;text-align:center;background:rgba(0,0,0,.55);padding:1px 0}
+.it em{position:absolute;top:2px;right:3px;font-size:10px;font-style:normal;background:#35a82c;border-radius:6px;padding:0 4px;border:1.5px solid var(--ink)}
+.it u{position:absolute;top:1px;left:2px;font-size:13px;text-decoration:none;color:#7de35a;text-shadow:0 0 2px #000,0 1px 0 #000}
+.eq .it{width:76px}
+.eq .slot{width:76px;text-align:center;font-size:10px;color:#b9c2ff;text-transform:uppercase}
+.eq .empty{aspect-ratio:1;border-radius:12px;border:2.5px dashed #5a6396;margin-bottom:3px}
+
+/* магазин */
+.chest{display:flex;align-items:center;gap:12px;background:rgba(10,6,36,.45);border-radius:16px;padding:10px;margin-bottom:10px}
+.chest .box{width:64px;height:56px;border-radius:10px 10px 8px 8px;border:2.5px solid var(--ink);position:relative;flex:none;box-shadow:inset 0 -6px 0 rgba(0,0,0,.25)}
+.chest .box:before{content:"";position:absolute;left:-2.5px;right:-2.5px;top:16px;height:7px;background:var(--ink)}
+.chest .box:after{content:"";position:absolute;left:50%;top:12px;width:14px;height:16px;margin-left:-7px;border-radius:3px;background:var(--gold);border:2px solid var(--ink)}
+.chest div.t{flex:1;font-size:15px}
+.chest small{display:block;font-size:11px;font-weight:700;color:#b9c2ff;margin-top:3px}
+.chest .btn{min-width:104px;padding:0 10px;font-size:15px}
+
+/* арена */
+.league{text-align:center;margin-bottom:12px}
+.league b{display:inline-block;font-size:26px;text-transform:uppercase}
+.league .tro{font-size:30px}
+.bar{height:16px;border-radius:8px;background:#0a0624;border:2px solid var(--ink);overflow:hidden;margin:8px 0 4px}
+.bar u{display:block;height:100%;background:linear-gradient(#ffe066,#ffab1a)}
+
+/* бой */
+#bTop{position:relative;z-index:2;display:flex;align-items:flex-start;gap:10px;padding:calc(var(--st) + 10px) 10px 0;pointer-events:none}
+#bTop>*{pointer-events:auto}
+#bPause{width:44px;height:44px;min-height:0;padding:0;font-size:15px}
+#hpWrap{flex:1}
+.hp{position:relative;height:24px;border-radius:12px;background:#0a0624;border:2.5px solid var(--ink);overflow:hidden}
+.hp u{position:absolute;inset:0;right:auto;background:linear-gradient(#7de35a,#35a82c)}
+.hp span{position:absolute;inset:0;text-align:center;font-size:13px;line-height:19px}
+#wave{font-size:13px;margin-top:4px;color:#dfe4ff}
+#foe{position:fixed;left:50%;top:calc(var(--st) + 74px);width:74%;transform:translateX(-50%);display:none;text-align:center;font-size:14px;pointer-events:none}
+#foe .hp u{background:linear-gradient(#ff7a7a,#d93030)}
+#stick{position:fixed;inset:0}
+#joy{position:fixed;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:rgba(255,255,255,.12);border:3px solid rgba(255,255,255,.35);display:none;pointer-events:none}
+#joy i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(255,255,255,.8);border:3px solid var(--ink)}
+.act{position:fixed;border-radius:50%;border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;text-align:center;
+  box-shadow:0 5px 0 rgba(0,0,0,.35),inset 0 -6px 0 rgba(0,0,0,.25);font-size:11px;text-transform:uppercase;line-height:1.05;padding:6px}
+#bSup{right:16px;bottom:calc(var(--sb) + 28px);width:92px;height:92px;background:conic-gradient(#ffd23d calc(var(--p)*1turn),#3a4274 0)}
+#bSup:before{content:"";position:absolute;inset:7px;border-radius:50%;background:linear-gradient(#5a6396,#3a4274)}
+#bSup span{position:relative;font-size:10px;max-width:74px;overflow-wrap:anywhere}
+#bSup.rdy{animation:rdy .5s infinite alternate}
+#bSup.rdy:before{background:linear-gradient(#ffe066,#ff8a1a)}
+#bSup.rdy span{color:#4a2500;font-size:12px}
+@keyframes rdy{to{transform:scale(1.09)}}
+#bDash{right:122px;bottom:calc(var(--sb) + 22px);width:68px;height:68px;background:conic-gradient(#3a4274 calc(var(--p)*1turn),#4fc3ff 0)}
+#bDash:before{content:"";position:absolute;inset:6px;border-radius:50%;background:linear-gradient(#6fd1ff,#2f8fe0)}
+#bDash.cd:before{background:linear-gradient(#5a6396,#3a4274)}
+#bDash span{position:relative}
+.act:active{transform:scale(.93)}
+#tip{position:fixed;left:16px;right:16px;bottom:calc(var(--sb) + 150px);text-align:center;font-size:15px;line-height:1.4;pointer-events:none;display:none}
+
+/* окна */
+#modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(8,4,30,.78)}
+#modal.on{display:flex}
+#modal .panel{width:100%;max-width:360px;text-align:center;animation:pop .22s cubic-bezier(.3,1.5,.6,1)}
+@keyframes pop{from{transform:scale(.7);opacity:0}}
+#modal h3{font-size:26px;margin-bottom:10px}
+.row{display:flex;gap:10px;margin-top:12px}.row .btn{flex:1;padding:0 8px;font-size:15px}
+.col{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.bigit{width:112px;margin:0 auto 10px}
+.lines{font-size:15px;line-height:1.7;font-weight:700}
+.lines b{font-weight:900}.up{color:#7de35a}.dn{color:#ff7a7a}
+.stars{font-size:46px;letter-spacing:6px;color:var(--gold);margin-bottom:6px}.stars s{text-decoration:none;color:#3a4274}
+.rew{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px 0;font-size:19px}
+.rew>div{background:rgba(10,6,36,.5);border-radius:12px;padding:8px 14px}
+.vs{display:flex;align-items:center;justify-content:space-between;font-size:17px;margin:14px 0}
+.vs b{font-size:38px;color:var(--gold)}
+.vs small{display:block;font-size:12px;color:#b9c2ff;font-weight:700}
+.spin{width:54px;height:54px;border-radius:50%;border:6px solid #3a4274;border-top-color:var(--gold);margin:16px auto;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(1turn)}}
+.shake{animation:shk .5s}
+@keyframes shk{20%{transform:rotate(-7deg)}40%{transform:rotate(7deg)}60%{transform:rotate(-5deg)}80%{transform:rotate(5deg)}}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<canvas id="hud"></canvas>
+<div id="vign"></div>
+
+<div id="menu">
+  <div id="top"></div>
+  <div id="page"></div>
+  <nav id="nav"></nav>
+</div>
+
+<div id="battle">
+  <div id="stick"></div>
+  <div id="bTop">
+    <button id="bPause" class="btn d">❚❚</button>
+    <div id="hpWrap"><div class="hp"><u id="hpBar"></u><span id="hpTxt" class="sh"></span></div><div id="wave" class="sh"></div></div>
+  </div>
+  <div id="foe"><div id="foeName" class="sh"></div><div class="hp"><u id="foeBar"></u></div></div>
+  <div id="joy"><i></i></div>
+  <div id="tip" class="sh"></div>
+  <button id="bDash" class="act"><span class="sh"></span></button>
+  <button id="bSup" class="act"><span class="sh"></span></button>
+</div>
+
+<div id="modal"></div>
+<script src="game.js"></script>
+</body>
+</html>
