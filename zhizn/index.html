@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Обычная жизнь</title>
 <style>
-:root{--bg:rgba(13,17,25,.78);--bg2:rgba(22,27,38,.96);--line:rgba(255,255,255,.13);--txt:#eef2f7;--mut:#98a3b5;--acc:#ffc94a;--good:#5fd38a;--bad:#ff6b6b;--blue:#62aefc;--gold:#ffd86b}
+:root{color-scheme:dark;--bg:rgba(13,17,25,.78);--bg2:rgba(22,27,38,.96);--line:rgba(255,255,255,.13);--txt:#eef2f7;--mut:#98a3b5;--acc:#ffc94a;--good:#5fd38a;--bad:#ff6b6b;--blue:#62aefc;--gold:#ffd86b}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;background:#000;color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none}
 #c{position:fixed;inset:0}
@@ -2935,10 +2935,11 @@ const Menu = {
     state = 'menu'; document.body.classList.remove('playing'); closeAll(); $('hud').classList.add('hidden'); $('mob').classList.add('hidden'); $('pause').classList.add('hidden'); $('menu').classList.remove('hidden'); $('lockHint').classList.add('hidden');
     if (document.pointerLockElement) document.exitPointerLock();
     const L = $('menuList'); L.innerHTML = ''; const sv = LS.get(SAVE_KEY); let info = null; try { info = sv && JSON.parse(sv); } catch (e) { }
-    const add = (t, cls, f) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.innerHTML = t; b.onclick = () => { Snd.init(); f(); }; L.appendChild(b); };
+    const add = (t, cls, f) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.innerHTML = t; b.onclick = () => { Snd.init(); f(b); }; L.appendChild(b); };
     if (info && info.G) add(`▶ Продолжить <span class="sub">— ${esc(info.G.name)}, ${DAYS[info.G.day % 7].toLowerCase()} ${dateOf(info.G.day)}, ${fmtT(info.G.min)}</span>`, 'pri', () => this.start(false, true));
-    add('Новая жизнь', info ? '' : 'pri', () => { if (info && !confirm('Начать заново? Сохранение будет перезаписано.')) return; this.start(false); });
-    add('✨ Песочница: способность с первой минуты', '', () => { if (info && !confirm('Начать заново? Сохранение будет перезаписано.')) return; this.start(true); });
+    const sure = (b, f) => { if (!info || b.dataset.sure) return f(); b.dataset.sure = 1; b.innerHTML = 'Точно? Текущее сохранение сотрётся — нажми ещё раз'; setTimeout(() => { if (b.isConnected && state === 'menu') this.show(); }, 4000); };
+    add('Новая жизнь', info ? '' : 'pri', (b) => sure(b, () => this.start(false)));
+    add('✨ Песочница: способность с первой минуты', '', (b) => sure(b, () => this.start(true)));
     if (G) $('nameIn').value = G.name;
   },
   start(sandbox, cont) {
