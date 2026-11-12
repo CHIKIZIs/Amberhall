@@ -216,9 +216,13 @@ table.j td{padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.07)}
 <div id="wishM" class="modal hidden"><div class="card" id="wishCard"><h2>✨ Загадай желание</h2><p class="sub" id="wishSub">Любое. Сколько угодно раз. Просто напиши, чего хочешь.</p><textarea id="wishIn" placeholder="Например: хочу летать и миллион рублей"></textarea><div class="row" style="margin-top:8px"><button class="btn gold" id="wishGo" style="flex:1;text-align:center">Загадать ✨</button><button class="btn" id="wishX">Закрыть</button></div><div id="wishRes"></div><div class="chips" id="wishChips"></div></div></div>
 <div id="quizM" class="modal hidden"><div class="card"><div class="sub" id="qzTop"></div><h2 id="qzT"></h2><p id="qzP"></p><div class="list" id="qzL"></div></div></div>
 <div id="miniM" class="modal hidden"><div class="card" style="text-align:center"><h2 id="mnT"></h2><p class="sub" id="mnP"></p><div class="mini-bar" id="mnBar"><div class="mini-zone" id="mnZone"></div><div class="mini-mark" id="mnMark"></div></div><div id="mnS" style="font-size:15px;min-height:22px"></div><button class="btn pri" id="mnGo" style="width:100%;text-align:center;margin-top:10px;font-size:18px;padding:16px">ЖМИ! (Пробел / E)</button></div></div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 /* =====================================================================
    ОБЫЧНАЯ ЖИЗНЬ — 3D-симулятор жизни подростка
@@ -590,6 +594,9 @@ function makeHuman(o = {}) {
   if (o.longHair) add(head, .3, .38, .09, mats.hair, 0, .1, -.14);
   if (o.scarf) add(head, .3, .1, .3, mat(o.scarf), 0, .34, 0);
   const eye = mat(0x111111); add(head, .045, .04, .01, eye, -.06, .21, .131); add(head, .045, .04, .01, eye, .06, .21, .131);
+  add(head, .055, .018, .01, mats.hair, -.06, .255, .132); add(head, .055, .018, .01, mats.hair, .06, .255, .132); add(head, .08, .02, .01, mat(0x9a5a4a), 0, .12, .131); add(head, .04, .05, .03, mats.skin, 0, .17, .14);
+  if (o.cap) { add(head, .3, .09, .3, mat(o.cap), 0, .37, 0); add(head, .24, .03, .14, mat(o.cap), 0, .33, .2); }
+  if (o.bag) { add(inner, .32, .38, .14, mat(o.bag), 0, hip + .3, -.19); }
   if (o.glasses) { add(head, .24, .02, .01, eye, 0, .23, .135); }
   if (o.beard) add(head, .24, .1, .04, mats.hair, 0, .1, .12);
   return { g, inner, lLeg: legs[0], rLeg: legs[1], lKnee: knees[0], rKnee: knees[1], lArm: arms[0], rArm: arms[1], head, torso, mats, ph: Math.random() * 6, s };
@@ -622,7 +629,7 @@ function animHuman(h, dt, spd, pose, t) {
 // =====================================================================
 //  МИР
 // =====================================================================
-const W = { it: {}, lamps: [], mapRects: [] };
+const W = { it: {}, lamps: [], mapRects: [], lampPos: [] };
 function sm(geo, m, x, y, z, o = {}) {
   const me = new THREE.Mesh(geo, m); me.position.set(x, y, z);
   if (o.rx) me.rotation.x = o.rx; if (o.ry) me.rotation.y = o.ry; if (o.rz) me.rotation.z = o.rz; if (o.s) me.scale.set(o.s[0], o.s[1], o.s[2]);
@@ -712,7 +719,7 @@ function streetLamp(x, z, ax, az) {
   cyl(.07, .1, 7.6, MT.metalD, x, 0, z, { seg: 6 });
   const hx = x + ax * 1.3, hz = z + az * 1.3;
   box(Math.abs(ax) ? 1.4 : .08, .08, Math.abs(az) ? 1.4 : .08, MT.metalD, x + ax * .7, 7.45, z + az * .7, { cast: false });
-  box(.5, .14, .5, MT.lamp, hx, 7.3, hz, { cast: false });
+  box(.5, .14, .5, MT.lamp, hx, 7.3, hz, { cast: false }); W.lampPos.push([hx, 7.3, hz]);
   sm(GEO.circle, MT.pool, hx, .09, hz, { rx: -Math.PI / 2, s: [6.5, 6.5, 1], cast: false });
   addCol(x - .12, x + .12, z - .12, z + .12, 0, 7.6, 't');
 }
@@ -1272,14 +1279,14 @@ const isWeekday = d => (d % 7) < 5;
 function npc(def) {
   const h = makeHuman(def.look); scene.add(h.g); h.g.visible = false;
   const n = Object.assign({ pos: new THREE.Vector3(), ry: 0, spd: 0, pose: 'stand', vis: false, pi: 0, pdir: 1, react: 0, talkT: 0, wait: 0 }, def, { h });
-  n.it = addI(0, -99, 0, () => 'Поговорить: ' + n.name, () => talkTo(n), { cond: () => n.vis && !n.noTalk && P.region === n.region0(), r: 1.9 });
+  n.it = addI(0, -99, 0, () => (n.path && G && Job.active() && n.flyered !== G.day ? 'Дать листовку: ' : 'Поговорить: ') + n.name, () => talkTo(n), { cond: () => n.vis && !n.noTalk && P.region === n.region0(), r: 1.9 });
   n.region0 = () => regionAt(n.pos.x);
   if (n.path) { const k = Math.floor(Math.random() * n.path.length); n.pi = k; n.pos.set(n.path[k][0], 0, n.path[k][1]); }
   if (def.pet) { n.pet = makeAnimal(def.pet, def.petCol || 0x8a6a3a); n.pet.visible = false; }
   NPCS.push(n); return n;
 }
 const LOOK = {
-  teen: () => ({ skin: pick([0xe8b996, 0xf0c8a8, 0xdcae8c]), top: pick([0x2a2a2a, 0x3a5a8a, 0x8a2a2a, 0x5a5a5a, 0x2a4a3a, 0xd8d8d8, 0x6a3a7a]), bottom: pick([0x22242a, 0x2a3a5a, 0x3a3a3a]), hair: pick([0x3b2a1c, 0x1a1a1a, 0x8a6a3a, 0x5a3a20, 0xc8a060]), shoes: pick([0xeeeeee, 0x1a1a1a, 0x8a1a1a]), scale: RR(.9, .98) }),
+  teen: () => ({ skin: pick([0xe8b996, 0xf0c8a8, 0xdcae8c]), top: pick([0x2a2a2a, 0x3a5a8a, 0x8a2a2a, 0x5a5a5a, 0x2a4a3a, 0xd8d8d8, 0x6a3a7a]), bottom: pick([0x22242a, 0x2a3a5a, 0x3a3a3a]), hair: pick([0x3b2a1c, 0x1a1a1a, 0x8a6a3a, 0x5a3a20, 0xc8a060]), shoes: pick([0xeeeeee, 0x1a1a1a, 0x8a1a1a]), scale: RR(.9, .98), cap: R() < .2 ? pick([0x1a1a1a, 0xc02a2a, 0x2a4a8a]) : 0, bag: R() < .5 ? pick([0x24456e, 0x6a2a2a, 0x2a2a2a, 0x3a6a3a]) : 0 }),
   adult: () => ({ skin: pick([0xe8b996, 0xf0c8a8, 0xdcae8c, 0xc89a7a]), top: pick([0x2b3a2b, 0x1a1a1a, 0x4a3a2a, 0x2a3a5a, 0x6a2a2a, 0x5a5a62, 0x7a6a4a]), bottom: pick([0x22242a, 0x2a2a3a, 0x3a3226]), hair: pick([0x3b2a1c, 0x1a1a1a, 0x6a6a6a, 0x5a3a20]), shoes: 0x1a1a1a, scale: RR(.98, 1.06), scarf: R() < .4 ? pick([0x8a2a2a, 0x2a4a8a, 0x6a6a6a]) : 0 })
 };
 const NAMES_M = ['Артём', 'Никита', 'Влад', 'Саша', 'Егор', 'Кирилл', 'Максим', 'Ваня', 'Миша', 'Тимур'];
@@ -1321,6 +1328,11 @@ function buildNPCs() {
     talk: () => Story.dimaTalk()
   });
   const seats = W.seats.filter(s => Math.hypot(s[0] - W.mySeat[0], s[1] - W.mySeat[1]) > .1 && Math.hypot(s[0] - partner[0], s[1] - partner[1]) > .1);
+  { const as = seats.splice(seats.findIndex(s => Math.abs(s[0] - (W.mySeat[0] - 1.8)) < .1 && Math.abs(s[1] - (W.mySeat[1])) < .1), 1)[0] || seats.shift();
+    W.alina = npc({ name: 'Алина', look: { skin: 0xf0c8a8, top: 0x6a8ac8, bottom: 0x2a2a3a, hair: 0x8a5a2a, longHair: true, scale: .93, bag: 0xd86a8a },
+      spot: sched([[500, 845, () => ({ x: as[0], z: as[1], ry: -Math.PI / 2, pose: School.inLesson() ? 'sit' : 'sitphone' }), d => d < 5 && schoolOn()],
+      [900, 960, { x: 15.5, z: 13.2, ry: Math.PI, pose: 'phone' }, WD], [720, 1020, { x: 110.2, z: 52.15, ry: 0, pose: 'sitphone' }, WE]]),
+      talk: () => Story.alinaTalk() }); }
   for (let i = 0; i < 16; i++) {
     const fem = i % 2 === 1, s = seats.splice(Math.floor(R() * seats.length), 1)[0], lk = LOOK.teen();
     if (fem) Object.assign(lk, { longHair: true, top: pick([0x6a3a7a, 0xd8d8d8, 0x8a4a5a, 0x2a2a2a, 0x3a5a8a]) });
@@ -1334,21 +1346,21 @@ function buildNPCs() {
     npc({ name: i % 2 ? pick(NAMES_F) : pick(NAMES_M), look: lk, spot: () => (isWeekday(G.day) && schoolOn() && G.min >= 500 && G.min < 860 && !School.inLesson()) ? { x, z: 2.6, ry: i % 2 ? Math.PI : 0, pose: i % 2 ? 'talk' : 'phone' } : null, talk: () => pick(CLASS_LINES) });
   }
   // ---- ШКОЛА: вахтёр, повар ----
-  npc({ name: 'Охранник Николай Петрович', look: { skin: 0xe0b090, top: 0x1a1a1a, bottom: 0x1a1a1a, hair: 0x5a5a5a, bald: true, scale: 1.04 }, spot: sched([[440, 1080, { x: 1203.0, z: 3.72, ry: Math.PI, pose: 'sit' }, WD]]), talk: () => School.guardTalk() });
+  W.guard = npc({ name: 'Охранник Николай Петрович', look: { skin: 0xe0b090, top: 0x1a1a1a, bottom: 0x1a1a1a, hair: 0x5a5a5a, bald: true, scale: 1.04 }, spot: sched([[440, 1080, { x: 1203.0, z: 3.72, ry: Math.PI, pose: 'sit' }, WD]]), talk: () => School.guardTalk() });
   npc({ name: 'Повариха тётя Галя', look: { skin: 0xf0c8a8, top: 0xf0f0f0, bottom: 0xf0f0f0, hair: 0xf0f0f0, scale: 1.0 }, spot: sched([[480, 930, { x: 1233.5, z: 9, ry: -Math.PI / 2, pose: 'stand' }, WD]]), talk: () => 'Подходи, не стесняйся. Сегодня котлета с пюре и компот.' });
   // ---- СПОРТЗАЛ ----
-  npc({ name: 'Тренер Палыч', look: { skin: 0xd8a080, top: 0x1a3a7a, bottom: 0x1a1a1a, hair: 0x3a3a3a, bald: true, scale: 1.06 }, spot: sched([[480, 1320, { x: 1405.4, z: 6.4, ry: Math.PI / 2, pose: 'stand' }]]), talk: () => Gym.coachTalk() });
+  W.coach = npc({ name: 'Тренер Палыч', look: { skin: 0xd8a080, top: 0x1a3a7a, bottom: 0x1a1a1a, hair: 0x3a3a3a, bald: true, scale: 1.06 }, spot: sched([[480, 1320, { x: 1405.4, z: 6.4, ry: Math.PI / 2, pose: 'stand' }]]), talk: () => Gym.coachTalk() });
   npc({ name: 'Администратор Света', look: { skin: 0xf0c8a8, top: 0xffcc00, bottom: 0x1a1a1a, hair: 0x2a1a10, longHair: true }, spot: sched([[420, 1380, { x: 1403, z: .35, ry: 0, pose: 'stand' }]]), noTalk: true });
   npc({ name: 'Качок', look: { skin: 0xd8a080, top: 0x2a2a2a, bottom: 0x3a3a3a, hair: 0x1a1a1a, scale: 1.08 }, spot: sched([[540, 1260, { x: 1416.2, z: 3, ry: Math.PI / 2, pose: 'run' }]]), talk: () => pick(['*тяжело дышит* ...братан, не сейчас.', 'Белок пей, и будет тебе счастье.', 'Ноги не пропускай.']) });
   npc({ name: 'Девушка', look: { skin: 0xf0c8a8, top: 0xd84a7a, bottom: 0x1a1a1a, hair: 0xc8a060, longHair: true }, spot: sched([[600, 1200, { x: 1405, z: 10.7, ry: Math.PI, pose: 'lift' }]]), talk: () => 'Я тут тренируюсь, вообще-то.' });
   // ---- МАГАЗИН ----
-  npc({ name: 'Кассир Зульфия', look: { skin: 0xd8a880, top: 0x2a7a3a, bottom: 0x2a2a2a, hair: 0x1a1a1a, longHair: true }, spot: () => ({ x: 1602.6, z: 4.95, ry: Math.PI, pose: 'stand' }), talk: () => 'Пакет нужен? Карта магазина есть?' });
+  W.cashier = npc({ name: 'Кассир Зульфия', look: { skin: 0xd8a880, top: 0x2a7a3a, bottom: 0x2a2a2a, hair: 0x1a1a1a, longHair: true }, spot: () => ({ x: 1602.6, z: 4.95, ry: Math.PI, pose: 'stand' }), talk: () => 'Пакет нужен? Карта магазина есть?' });
   // ---- БАБУШКИ У ПОДЪЕЗДА ----
   const gl = [' Здравствуй, внучек! Какой большой стал!', 'Опять без шапки! Уши отморозишь — мать плакать будет.', 'Вот в наше время молодёжь книжки читала...', 'А ты чей будешь? А, Иринин сын! Ну беги, беги.', 'Слыхал? В третьем подъезде опять лифт сломали.', 'Тоже, небось, всё в телефоне своём сидишь.'];
   for (const [x, nm, c] of [[-36.95, 'Баба Валя', 0x6a3a3a], [-36.1, 'Баба Нина', 0x3a3a5a]])
-    npc({ name: nm, look: { skin: 0xe8c0a0, top: c, bottom: 0x2a2a2a, hair: 0x9a9a9a, scale: .9, scarf: 0x9a6a5a }, spot: sched([[570, 1110, { x, z: 29.75, ry: 0, pose: 'sit' }]]), talk: () => G.fx.popular ? 'Ой, звёздочка наша! Дай я тебя пирожком угощу!' : pick(gl) });
+    W[nm === 'Баба Валя' ? 'babaValya' : 'babaNina'] = npc({ name: nm, look: { skin: 0xe8c0a0, top: c, bottom: 0x2a2a2a, hair: 0x9a9a9a, scale: .9, scarf: 0x9a6a5a }, spot: sched([[570, 1110, { x, z: 29.75, ry: 0, pose: 'sit' }]]), talk: () => G.fx.popular ? 'Ой, звёздочка наша! Дай я тебя пирожком угощу!' : pick(gl) });
   // ---- ДЕТИ ----
-  for (const [x, z] of [[-46.5, 48], [-40, 56.5]]) npc({ name: 'Малыш', look: Object.assign(LOOK.teen(), { scale: .58, top: pick([0xe84a3a, 0x3a8ae8, 0xe8c83a]) }), spot: sched([[600, 1080, { x, z, ry: R() * 6, pose: 'stand' }]]), talk: () => pick(['Дядя, а ты умеешь летать?', 'А у меня новая машинка!', 'Мама сказала с незнакомыми не разговаривать.']) });
+  for (const [x, z] of [[-46.5, 48], [-40, 56.5]]) W[x < -46 ? 'kidA' : 'kidB'] = npc({ name: 'Малыш', look: Object.assign(LOOK.teen(), { scale: .58, top: pick([0xe84a3a, 0x3a8ae8, 0xe8c83a]) }), spot: sched([[600, 1080, { x, z, ry: R() * 6, pose: 'stand' }]]), talk: () => pick(['Дядя, а ты умеешь летать?', 'А у меня новая машинка!', 'Мама сказала с незнакомыми не разговаривать.']) });
   // ---- ПРОХОЖИЕ ----
   const paths = [
     [[-200, -6.4], [-60, -6.4], [-31, -6.4], [20, -6.4], [50, -6.4]], [[50, 6.5], [10, 6.5], [-7.5, 6.5], [-60, 6.5], [-180, 6.5]], [[-7.5, 6.5], [-7.5, 31], [-40, 31], [-70, 31]],
@@ -1420,6 +1432,11 @@ function updateNPCs(dt, t) {
 function talkTo(n) {
   if (G.fx.invisible) { bubble(n, pick(['Кто здесь?!', 'Мне показалось, или кто-то дышит?', 'Привидение?!']), 2.5); return; }
   n.talkT = 5; if (n.path) { n.spd = 0; }
+  if (n.path && Job.active() && n.flyered !== G.day) { Job.give(n); return; }
+  const dd = Deeds.forNpc(n); if (dd) { Deeds.talk(n, dd); return; }
+  if (n === W.dima && !G.daily.relD) { G.daily.relD = 1; Rel.add('dima', 2); }
+  if ((n === W.babaValya || n === W.babaNina) && !G.daily.relB) { G.daily.relB = 1; Rel.add('babki', 2); }
+  if (n === W.coach && !G.daily.relC) { G.daily.relC = 1; Rel.add('coach', 2); }
   const r = n.talk ? n.talk(n) : '...';
   if (typeof r === 'string') say(n.name, r); else if (r) say(n.name, r.t, r.o);
 }
@@ -1514,8 +1531,9 @@ function newState(name, sandbox) {
     outfit: 'pajama', jacket: false, bag: false, carry: null, dirty: 1,
     inv: { bread: 8, sausage: 6, eggs: 6, milk: 4, cereal: 4, soup: 3, pelmeni: 3, noodles: 2, apple: 3, choco: 1 },
     wishItems: [], grades: {}, journal: [], lessons: {}, msgs: [], unread: 0, fired: {}, daily: {}, flags: { trashFull: true }, alarm: 6 * 60 + 50, alarmOn: true,
-    hwReady: false, power: !!sandbox, sandbox: !!sandbox, wishes: [], fx: FX0(), spawns: { car: null, pets: [], mansion: false, clone: false },
-    weather: 'cloudy', snow: 0, totalDays: 0, sens: 1, tp: false, shadows: true, sound: true
+    hwReady: false, power: !!sandbox, sandbox: !!sandbox, wishes: [], fx: FX0(), spawns: { car: null, pets: [], mansion: false, clone: false, objs: [] },
+    weather: 'cloudy', snow: 0, totalDays: 0, sens: 1, tp: false, shadows: true, sound: true, hq: !isTouch,
+    rel: { mom: 55, dima: 60, alina: 25, babki: 40, coach: 35 }, deeds: {}, feed: [], feedNew: 0, hype: 0, job: null
   };
 }
 const OUTFITS = {
@@ -1524,9 +1542,9 @@ const OUTFITS = {
   school: { n: 'школьная форма', top: 0x1f2a44, bottom: 0x1f2a44, shoes: 0x111111 },
   sport: { n: 'спортивная форма', top: 0xc62828, bottom: 0x111111, shoes: 0xf0f0f0 }
 };
-const ITEM_NAMES = { bread: 'Хлеб (ломтики)', sausage: 'Колбаса (кружки)', eggs: 'Яйца', milk: 'Молоко (стаканы)', cereal: 'Хлопья (порции)', soup: 'Мамин суп (порции)', pelmeni: 'Пельмени (порции)', noodles: 'Лапша быстрого приготовления', apple: 'Яблоко', choco: 'Шоколадка', chips: 'Чипсы', juice: 'Сок', water: 'Вода', gum: 'Жвачка', bar: 'Протеиновый батончик', pizza: 'Пицца ✨', cake: 'Торт ✨' };
+const ITEM_NAMES = { balloon: 'Воздушный шарик', ointment: 'Мазь согревающая', bread: 'Хлеб (ломтики)', sausage: 'Колбаса (кружки)', eggs: 'Яйца', milk: 'Молоко (стаканы)', cereal: 'Хлопья (порции)', soup: 'Мамин суп (порции)', pelmeni: 'Пельмени (порции)', noodles: 'Лапша быстрого приготовления', apple: 'Яблоко', choco: 'Шоколадка', chips: 'Чипсы', juice: 'Сок', water: 'Вода', gum: 'Жвачка', bar: 'Протеиновый батончик', pizza: 'Пицца ✨', cake: 'Торт ✨' };
 const SNACKS = { apple: { h: 10, m: 2, b: -3 }, choco: { h: 12, m: 8 }, chips: { h: 14, m: 6, b: -4 }, juice: { h: 6, m: 4, b: -15 }, water: { h: 1, m: 1, b: -12 }, gum: { h: 0, m: 2 }, bar: { h: 20, m: 3 }, pizza: { h: 100, m: 20 }, cake: { h: 60, m: 25 } };
-const msgFrom = { mom: 'Мама', dima: 'Димон', cls: 'Марина Сергеевна (классная)', chat: 'Чат 9 «Б»', x: '???', gym: 'Спортзал «Железо»' };
+const msgFrom = { mom: 'Мама', dima: 'Димон', alina: 'Алина', cls: 'Марина Сергеевна (классная)', chat: 'Чат 9 «Б»', x: '???', gym: 'Спортзал «Железо»' };
 
 // ---------- ПОТРЕБНОСТИ ----------
 const Needs = {
@@ -1585,7 +1603,7 @@ function advanceRaw(gm, sleepLike) {
 }
 function newDay() {
   const d = G.daily;
-  G.hwReady = !!d.hw; G.day++; G.totalDays++;
+  G.hwReady = !!d.hw; G.day++; G.totalDays++; Feed.daily();
   G.daily = {}; G.fired = {}; G.dirty = Math.min(G.dirty + 1, 4);
   if (G.day % 2 === 0) G.flags.trashFull = true;
   if (!G.fx.warm && !G.flags.weatherLock) { const r = Math.random(); G.weather = r < .35 ? 'cloudy' : r < .65 ? 'snow' : r < .85 ? 'clear' : 'rain'; }
@@ -2026,8 +2044,8 @@ const Mini = {
 //  МАГАЗИНЫ
 // =====================================================================
 const GOODS = {
-  shop: [['bread', 'Хлеб «Бородинский»', 52, 8], ['sausage', 'Колбаса докторская', 189, 8], ['eggs', 'Яйца, десяток', 109, 10], ['milk', 'Молоко 1 л', 89, 4], ['cereal', 'Хлопья шоколадные', 159, 6], ['pelmeni', 'Пельмени «Сибирские»', 269, 3], ['noodles', 'Лапша быстрого приготовления', 49, 1], ['apple', 'Яблоки, 1 кг', 129, 5], ['chips', 'Чипсы', 119, 1], ['choco', 'Шоколадка', 89, 1], ['juice', 'Сок яблочный', 115, 1], ['water', 'Вода 0,5 л', 45, 1], ['gum', 'Жвачка', 39, 1]],
-  kiosk: [['_shawa', 'Шаурма в лаваше', 249, 0], ['_tea', 'Чай в стаканчике', 50, 0]],
+  shop: [['bread', 'Хлеб «Бородинский»', 52, 8], ['sausage', 'Колбаса докторская', 189, 8], ['eggs', 'Яйца, десяток', 109, 10], ['milk', 'Молоко 1 л', 89, 4], ['cereal', 'Хлопья шоколадные', 159, 6], ['pelmeni', 'Пельмени «Сибирские»', 269, 3], ['noodles', 'Лапша быстрого приготовления', 49, 1], ['apple', 'Яблоки, 1 кг', 129, 5], ['chips', 'Чипсы', 119, 1], ['choco', 'Шоколадка', 89, 1], ['juice', 'Сок яблочный', 115, 1], ['water', 'Вода 0,5 л', 45, 1], ['gum', 'Жвачка', 39, 1], ['ointment', 'Мазь согревающая (аптечная полка)', 199, 1]],
+  kiosk: [['_shawa', 'Шаурма в лаваше', 249, 0], ['_tea', 'Чай в стаканчике', 50, 0], ['balloon', 'Воздушный шарик (красный)', 60, 1]],
   canteen: [['_lunch', 'Комплексный обед (суп, котлета, компот)', 95, 0], ['_bun', 'Булочка с маком и чай', 35, 0]]
 };
 const Shop = {
@@ -2044,6 +2062,7 @@ const Shop = {
         else { give(k, q); if (k === 'bread' && G.flags.breadTask === G.day) G.daily.bread = true; toast('Покупка', n + ' — ' + p + ' ₽. Осталось: ' + fmtMoney(G.money)); Snd.click(); setTimeout(() => Shop.open(kind), 50); }
       }
     }));
+    if (kind === 'shop' && G.min >= 840 && G.min < 1200 && !G.daily.job) opts.unshift({ t: '💼 Подработка: раздать листовки', r: 'до 400 ₽', f: () => Job.start() });
     choose(title, 'У тебя: ' + fmtMoney(G.money), opts);
   }
 };
@@ -2142,13 +2161,14 @@ function flash(s = .8) { const f = $('flash'); f.style.transition = 'none'; f.st
 // =====================================================================
 //  ЭФФЕКТЫ
 // =====================================================================
+const DOT = ctex(32, 32, (g) => { const gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.5, 'rgba(255,255,255,.8)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 32, 32); }, false);
 const Fx = {
   init() {
     // снег
     const n = isTouch ? 1500 : 3000, sp = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) { sp[i * 3] = rand(-40, 40); sp[i * 3 + 1] = rand(0, 30); sp[i * 3 + 2] = rand(-40, 40); }
     const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
-    this.snow = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: .11, transparent: true, opacity: .9, depthWrite: false }));
+    this.snow = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: .14, map: DOT, transparent: true, opacity: .95, depthWrite: false }));
     this.snow.frustumCulled = false; scene.add(this.snow);
     const rn = 1400, rp = new Float32Array(rn * 6);
     for (let i = 0; i < rn; i++) { const x = rand(-35, 35), y = rand(0, 25), z = rand(-35, 35); rp.set([x, y, z, x, y - .6, z], i * 6); }
@@ -2156,14 +2176,14 @@ const Fx = {
     this.rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0x9aaabb, transparent: true, opacity: .45 })); this.rain.frustumCulled = false; scene.add(this.rain);
     // искры
     const kn = 160, kg = new THREE.BufferGeometry(); kg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(kn * 3), 3));
-    this.spark = new THREE.Points(kg, new THREE.PointsMaterial({ color: 0xffd86b, size: .14, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+    this.spark = new THREE.Points(kg, new THREE.PointsMaterial({ color: 0xffd86b, size: .1, map: DOT, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
     this.spark.frustumCulled = false; this.spark.visible = false; scene.add(this.spark); this.sparkV = []; this.sparkT = 0;
     // денежный дождь
     this.cash = new THREE.InstancedMesh(new THREE.PlaneGeometry(.32, .16), new THREE.MeshLambertMaterial({ map: T.money, side: THREE.DoubleSide }), 260);
     this.cash.visible = false; this.cash.frustumCulled = false; scene.add(this.cash); this.cashS = []; this.cashT = 0;
     // фейерверки
     this.fw = []; this.fwT = 0; this.fwNext = 0;
-    for (let b = 0; b < 8; b++) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(150 * 3), 3)); const p = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 1.1, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); p.visible = false; p.frustumCulled = false; scene.add(p); this.fw.push({ p, v: [], t: 9 }); }
+    for (let b = 0; b < 8; b++) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(150 * 3), 3)); const p = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, map: DOT, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); p.visible = false; p.frustumCulled = false; scene.add(p); this.fw.push({ p, v: [], t: 9 }); }
     // радуга
     this.rainbow = new THREE.Group();
     [0xff3b30, 0xff9500, 0xffcc00, 0x34c759, 0x32ade6, 0x3f51b5, 0xaf52de].forEach((c, i) => { const m = new THREE.Mesh(new THREE.TorusGeometry(170 - i * 4, 2, 6, 80, Math.PI), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .32, fog: false, depthWrite: false })); this.rainbow.add(m); });
@@ -2298,10 +2318,10 @@ const Wish = {
   open(first) {
     this.first = !!first; openModal('wishM');
     $('wishX').style.display = first ? 'none' : '';
-    $('wishSub').textContent = first ? 'Звезда гаснет... Загадай желание! Любое.' : 'Любое. Сколько угодно раз. Просто напиши, чего хочешь.';
+    $('wishSub').textContent = (first ? 'Звезда гаснет... Загадай желание! Любое.' : 'Любое. Сколько угодно раз. Просто напиши, чего хочешь.') + (AI.on() ? ' Звезда понимает всё, что ты напишешь — даже самое странное.' : '');
     $('wishRes').innerHTML = ''; $('wishIn').value = '';
     const chips = first ? ['Хочу миллион рублей', 'Хочу уметь летать', 'Хочу быть самым сильным', 'Хочу спорткар', 'Хочу собаку', 'Хочу знать все уроки на пятёрки'] :
-      ['Хочу миллион рублей', 'Хочу летать', 'Хочу суперскорость', 'Останови время', 'Хочу спорткар', 'Хочу быть самым сильным', 'Хочу знать всё на пятёрки', 'Пусть пойдёт снег', 'Хочу особняк', 'Хочу собаку', 'Хочу дракона', 'Хочу стать великаном', 'Хочу быть невидимым', 'Хочу лазерное зрение', 'Хочу каникулы', 'Салют!', 'Сделай ночь', 'Перенеси меня в школу', 'Хочу пиццу', 'Хочу, чтобы меня все любили', 'Пусть все исчезнут', 'Хочу лето', 'Хочу радугу', 'Отмени всё'];
+      ['Хочу миллион рублей', 'Хочу летать', 'Хочу суперскорость', 'Останови время', 'Хочу спорткар', 'Хочу быть самым сильным', 'Хочу знать всё на пятёрки', 'Пусть пойдёт снег', 'Хочу особняк', 'Хочу собаку', 'Хочу дракона', 'Хочу стать великаном', 'Хочу быть невидимым', 'Хочу лазерное зрение', 'Хочу каникулы', 'Салют!', 'Сделай ночь', 'Перенеси меня в школу', 'Хочу пиццу', 'Хочу, чтобы меня все любили', 'Пусть все исчезнут', 'Хочу лето', 'Хочу радугу', 'Хочу снеговика во дворе', 'Хочу НЛО над домом', 'Хочу свою статую у подъезда', 'Пусть Мурзик найдётся', 'Пусть маме дадут отпуск', 'Отмени всё'];
     $('wishChips').innerHTML = ''; chips.forEach(c => { const b = document.createElement('button'); b.className = 'chip'; b.textContent = c; b.onclick = () => { $('wishIn').value = c; this.submit(); }; $('wishChips').appendChild(b); });
     if (!isTouch) setTimeout(() => $('wishIn').focus(), 50);
   },
@@ -2374,15 +2394,15 @@ const WR = [
   { re: /(счаст|радост|настроен|весел)/, f: () => { G.st.mood = 100; return 'Тебе невероятно хорошо!'; } },
   { re: /(раста|убери снег|без снега)/, f: () => { G.snow = 0; G.weather = 'clear'; G.flags.weatherLock = true; return 'Снег растаял.'; } },
   { re: /(лето|летн|тепло|жара|жарко)/, f: () => { G.fx.warm = true; G.weather = 'summer'; G.snow = 0; G.flags.weatherLock = true; return 'Посреди ноября наступило лето! +24°C.'; } },
-  { re: /(снег|снегопад|зим|сугроб)/, not: /(раста|убери снег|без снега)/, f: () => { G.fx.warm = false; G.weather = 'snow'; G.flags.weatherLock = true; G.snow = 1; return 'Пошёл снег, всё вокруг белое.'; } },
+  { re: /(снег(?!ов)|снегопад|зим[аую ]|сугроб)/, not: /(раста|убери снег|без снега)/, f: () => { G.fx.warm = false; G.weather = 'snow'; G.flags.weatherLock = true; G.snow = 1; return 'Пошёл снег, всё вокруг белое.'; } },
   { re: /(дожд|ливень|ливня)/, f: () => { G.weather = 'rain'; G.flags.weatherLock = true; return 'Пошёл дождь.'; } },
   { re: /(солнц|ясн|чистое небо|без облак|звезд на небе)/, f: () => { G.weather = 'clear'; G.flags.weatherLock = true; return 'Небо стало ясным.'; } },
   { re: /(радуг)/, f: () => { G.fx.rainbow = true; return 'Над городом встала радуга.'; } },
   { re: /(салют|фейерверк|праздник)/, f: () => { Fx.fireworks(45); return 'В небе грохочет салют! (лучше видно на улице вечером)'; } },
   { re: /(невидим)/, not: /(перестат|снова видим|не быть невидим|стать видим|стань видим)/, f: () => { G.fx.invisible = true; return 'Ты невидимка. Тебя никто не замечает.'; } },
   { re: /(снова видим|стать видимым|стань видимым|перестать быть невидим|не быть невидим)/, f: () => { G.fx.invisible = false; return 'Тебя снова видно.'; } },
-  { re: /(велик[аио]н|огромн|гигант|высоким|высокий|двадцать метров|большим|большой ростом)/, f: () => { if (P.region !== 'ext') { const D = DOORS[P.region]; teleport(D.out[0], D.out[1], D.out[2]); } P.setScale(4.5); return 'Ты стал великаном! (В помещения теперь не влезть.)'; } },
-  { re: /(маленьк|крошечн|муравь|мелким|гном)/, f: () => { P.setScale(.25); return 'Ты стал крошечным, как игрушка.'; } },
+  { re: /(великан|гигантом|двадцать метров|большой ростом|(стать|быть|сделай меня|стал|вырасти|хочу быть) .{0,14}(огромн|гигант|высок|больш|велик))/, f: () => { if (P.region !== 'ext') { const D = DOORS[P.region]; teleport(D.out[0], D.out[1], D.out[2]); } P.setScale(4.5); return 'Ты стал великаном! (В помещения теперь не влезть.)'; } },
+  { re: /(размером с муравь|гномом|(стать|быть|сделай меня|стал|хочу быть) .{0,14}(маленьк|крошечн|мелк|муравь))/, f: () => { P.setScale(.25); return 'Ты стал крошечным, как игрушка.'; } },
   { re: /(нормальн.{0,6}(рост|размер)|обычн.{0,6}(рост|размер)|прежн)/, f: () => { P.setScale(1); return 'Ты снова обычного роста.'; } },
   { re: /(популяр|любил|любят|знаменит|звездой|блогер|подписчик|лайк|уважал|крутым|девушк|подруг|друз)/, f: () => { G.fx.popular = true; G.pop = 100; setTimeout(() => { msg('chat', 'Ребят, ' + G.name + ' — легенда школы, это факт 🔥'); msg('dima', 'Бро, у тебя в соцсетях +100 тысяч подписчиков за час. ЧТО ПРОИСХОДИТ?!'); }, 1500); return 'Тебя все обожают. Люди машут тебе на улице.'; } },
   { re: /(лазер|суперсил|огонь из|файербол|из глаз|супергеро|гиперзрение)/, f: () => { G.fx.laser = true; return 'Лазерное зрение! Жми F' + (isTouch ? ' (или 🔥)' : '') + ', чтобы стрелять. Машины подлетают, люди не страдают.'; } },
@@ -2721,7 +2741,7 @@ const UI = {
     const f = G.fx, ef = [];
     if (f.fly) ef.push('🕊 полёт'); if (f.speed > 1) ef.push('⚡ скорость'); if (f.frozen) ef.push('⏸ время стоит'); if (f.timeMul !== 1) ef.push('⏩ время ×' + f.timeMul);
     if (f.invisible) ef.push('👻 невидимка'); if (P.scale !== 1) ef.push(P.scale > 1 ? '🗿 великан' : '🐜 крошка'); if (f.laser) ef.push('🔥 лазер (F)'); if (f.smart) ef.push('🧠 гений'); if (f.popular) ef.push('⭐ звезда');
-    if (f.strongBody) ef.push('💪 сила'); if (f.lowG) ef.push('🌙 гравитация'); if (f.empty) ef.push('🏙 пустой город'); if (G.carry === 'trash') ef.push('🗑 пакет с мусором');
+    if (f.strongBody) ef.push('💪 сила'); if (f.lowG) ef.push('🌙 гравитация'); if (f.empty) ef.push('🏙 пустой город'); if (G.carry === 'trash') ef.push('🗑 пакет с мусором'); if (G.carry === 'cat') ef.push('🐈 Мурзик на руках'); if (Job.active()) ef.push('📄 листовки: ' + G.job.left); if (G.power || Deeds.karma()) ef.push('💛 добрых дел: ' + Deeds.karma());
     $('effects').textContent = ef.join(' · ');
     const w = []; if (s.hunger < 20) w.push('🍔 Ты голоден'); if (s.energy < 15) w.push('😴 Валишься с ног'); if (s.bladder < 20) w.push('🚽 Срочно в туалет!'); if (s.hygiene < 20) w.push('🦨 Пора в душ'); if (s.health < 40) w.push('🤒 Плохо себя чувствуешь');
     $('warn').innerHTML = w.map(x => '<div>' + x + '</div>').join('');
@@ -2864,7 +2884,7 @@ function updateBeacon(t) {
 // ---------- ТЕЛЕФОН ----------
 const Phone = {
   tab: 'msgs',
-  tabs() { const t = [['msgs', '💬 Чаты'], ['tasks', '✅ Дела'], ['diary', '📒 Дневник'], ['sched', '🗓 Уроки'], ['inv', '🎒 Вещи'], ['map', '🗺 Карта']]; if (G.power) t.push(['wish', '✨ Желания']); t.push(['set', '⚙️']); return t; },
+  tabs() { const t = [['msgs', '💬 Чаты'], ['tasks', '✅ Дела'], ['diary', '📒 Дневник'], ['sched', '🗓 Уроки'], ['inv', '🎒 Вещи'], ['map', '🗺 Карта']]; if (G.power) t.push(['wish', '✨ Желания']); t.push(['set', '⚙️']); return PlusPhone.tabs(t); },
   open(tab) {
     if (tab) this.tab = tab; openModal('phoneM'); this.render();
   },
@@ -2902,16 +2922,16 @@ const Phone = {
       h = '<button class="btn gold" id="phWish" style="width:100%;text-align:center">✨ Загадать желание</button><h3>Исполненные желания</h3>' + (G.wishes.map(w => `<div class="task">✨ ${esc(w.text)} <span class="sub" style="margin-left:auto">${DAYS_S[w.d % 7]} ${fmtT(w.m)}</span></div>`).join('') || '<p class="sub">Пока ничего.</p>');
     } else if (this.tab === 'set') {
       h = `<h3>Управление</h3><div class="sub">Чувствительность камеры</div><input type="range" id="sSens" min=".3" max="2.5" step=".1" value="${G.sens}">
-      <div class="list"><button class="btn" id="sCam">Вид: ${P.tp ? 'от третьего лица' : 'от первого лица'} (V)</button><button class="btn" id="sSnd">Звук: ${G.sound ? 'вкл' : 'выкл'}</button><button class="btn" id="sShd">Тени: ${G.shadows ? 'вкл' : 'выкл'}</button><button class="btn" id="sSave">💾 Сохранить игру</button><button class="btn" id="sMenu">🚪 Выйти в главное меню</button></div>
+      <div class="list"><button class="btn" id="sCam">Вид: ${P.tp ? 'от третьего лица' : 'от первого лица'} (V)</button><button class="btn" id="sSnd">Звук: ${G.sound ? 'вкл' : 'выкл'}</button><button class="btn" id="sShd">Тени: ${G.shadows ? 'вкл' : 'выкл'}</button><button class="btn" id="sHq">Графика: ${G.hq ? 'высокая (свечение, фонари)' : 'быстрая'}</button><button class="btn" id="sSave">💾 Сохранить игру</button><button class="btn" id="sMenu">🚪 Выйти в главное меню</button></div>
       <p class="sub">Игра сохраняется автоматически. 1 мин реального времени = 10 мин в игре.</p>`;
     }
-    B.innerHTML = h;
+    h = PlusPhone.render(this.tab, h); B.innerHTML = h; PlusPhone.bind(B);
     B.querySelectorAll('[data-eat]').forEach(b => b.onclick = () => { const k = b.dataset.eat, o = SNACKS[k]; use(k); closeModal(); eat(ITEM_NAMES[k], { h: o.h, m: o.m, b: o.b }, 3); });
     if (this.tab === 'map') this.bigMap();
     const on = (id, f) => { const e = $(id); if (e) e.onclick = f; };
     on('phWish', () => { closeModal(); Wish.open(); });
     on('sCam', () => { P.tp = !P.tp; G.tp = P.tp; this.render(); }); on('sSnd', () => { G.sound = Snd.on = !G.sound; this.render(); });
-    on('sShd', () => { G.shadows = !G.shadows; this.render(); }); on('sSave', () => { save(); toast('Сохранено', 'Игра сохранена.'); });
+    on('sShd', () => { G.shadows = !G.shadows; this.render(); }); on('sHq', () => { G.hq = !G.hq; this.render(); }); on('sSave', () => { save(); toast('Сохранено', 'Игра сохранена.'); });
     on('sMenu', () => { save(); closeModal(); Menu.show(); });
     const sl = $('sSens'); if (sl) sl.oninput = () => G.sens = +sl.value;
   },
@@ -2952,7 +2972,7 @@ const Menu = {
       setTimeout(() => story(DAYS[0] + ', ' + dateOf(0) + '. 6:50. Звонит будильник...'), 300); setTimeout(() => story(''), 4500);
       setTimeout(() => msg('mom', 'Доброе утро! Каша на столе. Не забудь рюкзак и куртку, на улице −2. Люблю ❤️'), 6000);
     }
-    state = 'play'; document.body.classList.add('playing'); P.tp = G.tp; Snd.on = G.sound; P.applyOutfit(); P.applyFx(); UI.syncPower();
+    Plus.onStart(); state = 'play'; document.body.classList.add('playing'); P.tp = G.tp; Snd.on = G.sound; P.applyOutfit(); P.applyFx(); UI.syncPower();
     W.bagMesh.visible = W.bagMesh2.visible = !G.bag; W.jacketMesh.visible = !G.jacket && !G.flags.cloak;
     $('hud').classList.remove('hidden'); if (isTouch) $('mob').classList.remove('hidden');
     relock();
@@ -2969,7 +2989,7 @@ function resetWorld() {
   P.drive = false; for (const p of Spawn.pets) { scene.remove(p.a); p.it.cond = () => false; } Spawn.pets = [];
   if (Spawn.clone) { scene.remove(Spawn.clone.h.g); Spawn.clone.it.cond = () => false; Spawn.clone = null; }
   W.mansionExt.visible = false; W.mansionCol.on = false; Wish.goldOff && Wish._gold && Wish.goldOff(); P.setScale(1);
-  for (const g of Fx.gifts) scene.remove(g); Fx.gifts = []; Busy.cur = null; $('progress').classList.add('hidden'); $('fade').style.opacity = 0;
+  for (const g of Fx.gifts) scene.remove(g); Fx.gifts = []; for (const L of Objs.live) scene.remove(L.g); Objs.live = []; G && (G.carry = null); Busy.cur = null; $('progress').classList.add('hidden'); $('fade').style.opacity = 0;
 }
 function save() {
   if (!G || state !== 'play' || Cine.active) return;
@@ -2980,7 +3000,7 @@ function load() {
   const s = LS.get(SAVE_KEY); if (!s) return false;
   try {
     const d = JSON.parse(s); resetWorld();
-    G = Object.assign(newState(), d.G); G.fx = Object.assign(FX0(), d.G.fx); G.st = Object.assign(newState().st, d.G.st); G.spawns = Object.assign({ car: null, pets: [], mansion: false, clone: false }, d.G.spawns);
+    G = Object.assign(newState(), d.G); G.fx = Object.assign(FX0(), d.G.fx); G.rel = Object.assign(newState().rel, d.G.rel || {}); G.st = Object.assign(newState().st, d.G.st); G.spawns = Object.assign({ car: null, pets: [], mansion: false, clone: false, objs: [] }, d.G.spawns);
     if (!G.flags.meteor && !G.power && G.min >= 1260) G.min = 1255;
     teleport(d.P.x, d.P.z, d.P.yaw); P.pos.y = d.P.y || 0;
     if (G.spawns.car != null) { P.spawnCar(G.spawns.car); if (d.P.car) { Object.assign(P.car, d.P.car); P.syncCar(); } }
@@ -3046,7 +3066,7 @@ function frame(now) {
   const rdt = Math.min(.25, (now - last) / 1000), dt = Math.min(.05, rdt); last = now; TT0 += dt;
   if (state === 'menu') {
     const a = TT0 * .05; camera.position.set(-40 + Math.cos(a) * 55, 22, 45 + Math.sin(a) * 55); camera.lookAt(-35, 8, 30);
-    P.region = 'ext'; updateEnv('ext'); renderer.render(scene, camera); return;
+    P.region = 'ext'; updateEnv('ext'); Look.update(dt, TT0); renderer.render(scene, camera); return;
   }
   if (state === 'play' && G) {
     const paused = UI.modal === 'pause' || UI.fading;
@@ -3061,32 +3081,508 @@ function frame(now) {
         else if (Busy.stop) Busy.stop = null;
       }
       if (!Cine.active) { School.tick(); updatePlayer(dt); }
-      updateNPCs(dt, TT0); updateTraffic(dt); Spawn.update(dt, TT0); Fx.update(dt, TT0);
+      updateNPCs(dt, TT0); updateTraffic(dt); Spawn.update(dt, TT0); Fx.update(dt, TT0); Plus.update(dt, TT0);
       if (W.bag && W.bag.userData.hit) { W.bag.userData.hit = 0; W.bag.userData.sw = 1; } if (W.bag && W.bag.userData.sw) { W.bag.userData.sw *= .96; W.bag.rotation.x = Math.sin(TT0 * 8) * .3 * W.bag.userData.sw; }
       if (W.swing) W.swing.rotation.x = Math.sin(TT0 * 1.3) * .05;
       W.food.visible = W.plate.visible = !!mealNow();
       if (W.tvScreen) MT.tv.emissiveIntensity = .5 + Math.sin(TT0 * 7) * .15 + Math.sin(TT0 * 2.3) * .1;
     }
-    updateEnv(); Cam.update(dt); updateBubbles(dt); UI.update(dt); Interact.update(); updateBeacon(TT0);
+    updateEnv(); Cam.update(dt); updateBubbles(dt); UI.update(dt); Interact.update(); updateBeacon(TT0); Look.update(dt, TT0);
     mapT -= dt; if (mapT <= 0) { mapT = .05; MapR.draw(); }
     $('lockHint').classList.toggle('hidden', isTouch || locked || !!UI.modal || Cine.active || !!Busy.cur || state !== 'play');
     saveT += dt; if (saveT > 20) { saveT = 0; if (!Busy.cur && !UI.modal) save(); }
   }
-  renderer.render(scene, camera);
+  Post.render();
 }
+
+
+// =====================================================================
+//  ИИ-ЗВЕЗДА: любое желание понимает Claude (когда игра открыта в Claude)
+// =====================================================================
+const AI_PROMPT = `Ты — волшебная падающая звезда в 3D-игре «Обычная жизнь». Игрок — 15-летний подросток по имени {NAME}, живёт в спальном районе российского города (панельки, школа № 17, спортзал «Железо», магазин «Продукты», парк, мама, друг Димон, одноклассница Алина). У него дар: исполняется ЛЮБОЕ желание, сколько угодно раз.
+Твоя задача — исполнить желание буквально, щедро и с юмором, переведя его в операции игрового движка. Если желание может навредить людям — исполни его безобидно и смешно. Невозможное в движке выражай через spawn (предмет в мире), item, message, post и react, чтобы мир заметно отреагировал.
+
+Состояние игры:
+{CTX}
+
+Ответь ТОЛЬКО JSON-объектом вида {"say":"1–2 живых предложения по-русски, во 2-м лице: что произошло","ops":[...]}, не больше 8 операций.
+Операции:
+{"op":"money","add":число} — дать денег (рубли); {"op":"money","infinite":true}
+{"op":"fx","name":"fly|speed|jump|invisible|frozen|laser|lowG|noNeeds|noTired|god|smart|popular|empty|warm|gold|rainbow|strongBody","on":true|false} — fly=полёт, speed=суперскорость, frozen=время стоит, laser=лазер из глаз, lowG=лунная гравитация, noNeeds=не нужно есть/спать, god=бессмертие, smart=знает все уроки, popular=все обожают, empty=город пуст, warm=лето, gold=всё золотое
+{"op":"timeMul","value":0.25..10} — скорость течения времени
+{"op":"time","hour":0-23,"minute":0-59}
+{"op":"weather","value":"clear|cloudy|snow|rain|summer"}
+{"op":"stat","name":"hunger|energy|hygiene|bladder|mood|health","value":0-100} — 100 = полностью сыт/бодр/чист/не хочет в туалет/счастлив/здоров
+{"op":"skill","name":"strength|endurance|knowledge|pop","value":0-100}
+{"op":"scale","value":0.2-5} — рост (1 = обычный)
+{"op":"teleport","to":"home|school|gym|shop|park|roof|mansion|sky"}
+{"op":"pet","kind":"dog|cat|dragon|unicorn"}
+{"op":"car","color":"#rrggbb"} — спорткар, на котором можно ездить
+{"op":"mansion"} {"op":"clone"} {"op":"homework"} {"op":"grades5"} {"op":"reset"}
+{"op":"fireworks","seconds":10-60}
+{"op":"holiday","days":1-14} — школу закрывают
+{"op":"spawn","model":"МОДЕЛЬ","label":"название","color":"#rrggbb","size":0.3-8,"count":1-8,"use":"что происходит, когда игрок подходит и жмёт E (1 предложение)","eat":0-100}
+  МОДЕЛЬ — одна из: gift cake pizza burger icecream chest tree christmasTree snowman statue fountain balloon ufo rocket ball guitar tv computer crown sword bike skateboard tent house pool trophy flowers robot cube sphere. Для еды задай eat>0. Для остального подбери ближайшую модель, цвет и размер.
+{"op":"item","name":"предмет в инвентарь"}
+{"op":"message","from":"mom|dima|alina|cls|chat|x","text":"сообщение игроку в телефон"}
+{"op":"post","author":"имя или паблик","text":"пост в местной соцсети о случившемся"}
+{"op":"react","text":"короткая реплика окружающих"}
+{"op":"deed","id":"id проблемы"} — если желание решает одну из нерешённых проблем людей
+
+Желание игрока: «{WISH}»`;
+const AI = {
+  sample: null, off: false,
+  async init() {
+    try { if (window.claude && window.claude.use) this.sample = await window.claude.use('sample'); } catch (e) { this.sample = null; }
+  },
+  on() { return !!this.sample && !this.off; },
+  context() {
+    const near = NPCS.filter(n => n.h.g.visible && Math.hypot(n.pos.x - P.pos.x, n.pos.z - P.pos.z) < 25).slice(0, 6).map(n => n.name);
+    const fx = Object.entries(G.fx).filter(([, v]) => v === true).map(([k]) => k);
+    const dd = DEEDS.filter(d => Deeds.st(d.id) !== 'done').map(d => `${d.id}: ${d.title}`);
+    return `${DAYS[G.day % 7]}, ${fmtT(G.min)}. Место: ${REGION_INFO[P.region].name}. Деньги: ${fmtMoney(G.money)}. Погода: ${G.weather}. На нём: ${OUTFITS[G.outfit].n}. Рядом: ${near.join(', ') || 'никого'}. Активные эффекты: ${fx.join(', ') || 'нет'}. Сила ${Math.round(G.strength)}, знания ${Math.round(G.knowledge)}, рост ×${P.scale}.\nНерешённые проблемы людей (id: суть): ${dd.join('; ') || 'нет'}.`;
+  },
+  wish(text) {
+    const p = AI_PROMPT.replace('{NAME}', G.name).replace('{CTX}', this.context()).replace('{WISH}', text.slice(0, 400));
+    return this.sample.json(p, { modelTier: 'quick', cache: false });
+  }
+};
+const hexCol = (s, d) => { if (typeof s === 'string' && /^#?[0-9a-f]{6}$/i.test(s)) return parseInt(s.replace('#', ''), 16); return d; };
+const OPS = {
+  money(o) { if (o.infinite) { G.fx.infMoney = true; G.money = 1e15; Fx.moneyRain(); return 'деньги без счёта'; } const v = clamp(+o.add || 0, -G.money, 9e14); G.money += v; if (v > 0) Fx.moneyRain(); return (v >= 0 ? '+' : '') + fmtMoney(v); },
+  fx(o) { const k = String(o.name); if (!(k in FX0()) || typeof FX0()[k] !== 'boolean') return null; G.fx[k] = o.on !== false; if (k === 'warm' && G.fx.warm) { G.weather = 'summer'; G.snow = 0; G.flags.weatherLock = true; } if (k === 'gold') G.fx.gold ? Wish.goldOn() : Wish.goldOff(); if (k === 'strongBody' && G.fx.strongBody) { G.strength = Math.max(G.strength, 100); } if (k === 'smart' && G.fx.smart) { G.knowledge = 100; } return null; },
+  timeMul(o) { G.fx.timeMul = clamp(+o.value || 1, .25, 10); return null; },
+  time(o) { G.min = clamp((+o.hour || 0) * 60 + (+o.minute || 0), 0, 1439); return null; },
+  weather(o) { const w = String(o.value); if (!['clear', 'cloudy', 'snow', 'rain', 'summer'].includes(w)) return null; G.weather = w; G.flags.weatherLock = true; G.fx.warm = w === 'summer'; if (w === 'snow') G.snow = 1; if (w === 'summer') G.snow = 0; return null; },
+  stat(o) { if (o.name in G.st) G.st[o.name] = clamp(+o.value, 0, 100); return null; },
+  skill(o) { if (['strength', 'endurance', 'knowledge', 'pop'].includes(o.name)) G[o.name] = clamp(+o.value, 0, 100); return null; },
+  scale(o) { const s = clamp(+o.value || 1, .2, 5); if (s > 1.4 && P.region !== 'ext') { const D = DOORS[P.region]; teleport(D.out[0], D.out[1], D.out[2]); } P.setScale(s); return null; },
+  teleport(o) { Wish.go(String(o.to)); return null; },
+  pet(o) { const k = String(o.kind); if (!['dog', 'cat', 'dragon', 'unicorn'].includes(k)) return null; G.spawns.pets.push(k); Spawn.pet(k); return null; },
+  car(o) { const c = hexCol(o.color, 0xd01f1f); G.spawns.car = c; P.spawnCar(c); return 'спорткар ждёт' + (P.region !== 'ext' ? ' у подъезда' : ''); },
+  mansion() { G.flags.mansion = true; Wish.showMansion(); return 'особняк у парка'; },
+  clone() { G.spawns.clone = true; Spawn.makeClone(); return null; },
+  homework() { G.daily.hw = true; G.hwReady = true; return null; },
+  grades5() { for (const k in G.grades) G.grades[k] = G.grades[k].map(() => 5); G.journal.forEach(j => { if (j.g !== 'н') j.g = 5; }); return null; },
+  reset() { WR[0].f(); return null; },
+  fireworks(o) { Fx.fireworks(clamp(+o.seconds || 30, 5, 90)); return null; },
+  holiday(o) { G.flags.holidayUntil = G.day + clamp(Math.round(+o.days || 7), 1, 30); return null; },
+  spawn(o) { Objs.spawnMany(o); return null; },
+  item(o) { if (o.name) G.wishItems.push(String(o.name).slice(0, 60)); return null; },
+  message(o) { const f = msgFrom[o.from] ? o.from : 'x'; if (o.text) setTimeout(() => msg(f, String(o.text).slice(0, 300)), 1800); return null; },
+  post(o) { if (o.text) Feed.post(String(o.author || 'Подслушано в районе').slice(0, 40), String(o.text).slice(0, 300), Math.floor(rand(40, 900))); return null; },
+  react(o) { const t = String(o.text || '').slice(0, 80); let k = 0; for (const n of NPCS) if (n.h.g.visible && Math.hypot(n.pos.x - P.pos.x, n.pos.z - P.pos.z) < 30 && k < 4 && Math.random() < .7) { bubble(n, t, 4); npcFace(n, P.pos.x, P.pos.z); k++; } return null; },
+  deed(o) { if (Deeds.def(o.id) && Deeds.st(o.id) !== 'done') { setTimeout(() => Deeds.complete(o.id, true), 1200); } return null; }
+};
+Wish.go = (k) => {
+  if (k === 'school') { tp(W.mySeat[0] - 1, W.mySeat[1] - .9, Math.PI / 2, 'Школа № 17'); return 'школа'; }
+  if (k === 'home') { tp(1002.2, 2.4, 0, 'Дом'); return 'дом'; }
+  if (k === 'gym' || k === 'shop') { const d = DOORS[k].in; tp(d[0], d[1], d[2], DOORS[k].name); return DOORS[k].name; }
+  if (k === 'park') { tp(125, 60, Math.PI, 'Парк'); return 'парк'; }
+  if (k === 'roof') { fadeTo(() => { teleport(-40, 22, Math.PI); P.pos.y = 25.4; }, 'Крыша'); return 'крыша'; }
+  if (k === 'mansion') { G.flags.mansion = true; Wish.showMansion(); const d = DOORS.mansion.in; tp(d[0], d[1], d[2], 'Особняк'); return 'особняк'; }
+  if (k === 'sky') { G.fx.fly = true; fadeTo(() => { if (P.region !== 'ext') teleport(-40, 34, Math.PI); P.pos.y = 260; }, 'Высоко-высоко'); return 'небо'; }
+  return null;
+};
+Wish.applyAI = function (text, r) {
+  if (!r || typeof r !== 'object' || !Array.isArray(r.ops)) return null;
+  G.wishes.unshift({ text, d: G.day, m: Math.floor(G.min), ai: 1 }); if (G.wishes.length > 60) G.wishes.pop();
+  for (const o of r.ops.slice(0, 10)) { try { if (o && OPS[o.op]) OPS[o.op](o); } catch (e) { console.error(e); } }
+  this.fxBurst(); P.applyFx(); Hype.add(8); save();
+  const say = typeof r.say === 'string' && r.say.trim() ? r.say.trim().slice(0, 400) : 'Желание исполнено.';
+  return [say];
+};
+Wish.submit = async function () {
+  const text = $('wishIn').value.trim(); if (!text) { $('wishIn').focus(); return; }
+  if (this.busy) return;
+  $('wishIn').value = '';
+  let res = null;
+  if (AI.on()) {
+    this.busy = true; $('wishGo').disabled = true; $('wishRes').innerHTML = '<span class="sub">✨ Звезда слушает...</span>';
+    try { res = this.applyAI(text, await AI.wish(text)); }
+    catch (e) { const c = e && e.code; if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].includes(c)) AI.off = true; res = null; }
+    this.busy = false; $('wishGo').disabled = false;
+  }
+  if (!res) { res = this.make(text); Hype.add(8); }
+  $('wishRes').innerHTML = res.map(r => '✨ ' + esc(r)).join('<br>');
+  if (this.first) { setTimeout(() => { closeModal(); Cine.afterWish(); }, 2200); this.first = false; }
+};
+
+// =====================================================================
+//  ПРЕДМЕТЫ ИЗ ЖЕЛАНИЙ (библиотека процедурных моделей)
+// =====================================================================
+const MODEL_COL = { gift: 0xe8b830, cake: 0xf2b8c8, pizza: 0xe0a040, burger: 0xc88a3a, icecream: 0xf2d8b0, chest: 0x7a4a22, tree: 0x3a7a3a, christmasTree: 0x1f6a2f, snowman: 0xffffff, statue: 0xe8b830, fountain: 0xb8b8b0, balloon: 0xe02a2a, ufo: 0xb0b8c8, rocket: 0xf2f2f2, ball: 0xe84a2a, guitar: 0xb8602a, tv: 0x1a1a1a, computer: 0x2a2a2a, crown: 0xffc83a, sword: 0xd8dde4, bike: 0x2a6ae0, skateboard: 0x2a2a2a, tent: 0x3a8a4a, house: 0xe8d8b8, pool: 0x3aa8e8, trophy: 0xffc83a, flowers: 0xe84a8a, robot: 0x9aa4b0, cube: 0x8a8af0, sphere: 0x8af0c8 };
+function buildModel(kind, color) {
+  const g = new THREE.Group(), c = mat(color), a = (geo, m, x, y, z, s = [1, 1, 1], r = [0, 0, 0]) => { const me = new THREE.Mesh(geo, m); me.position.set(x, y, z); me.scale.set(s[0], s[1], s[2]); me.rotation.set(r[0], r[1], r[2]); me.castShadow = true; g.add(me); return me; };
+  const B = GEO.cube || (GEO.cube = new THREE.BoxGeometry(1, 1, 1)), S = GEO.sphere, CY = GEO.cylU, CO = GEO.cone, W2 = mat(0xffffff), K = MT.black, Gd = MT.gold;
+  switch (kind) {
+    case 'gift': a(B, c, 0, .3, 0, [.6, .6, .6]); a(B, mat(0xc0202a), 0, .3, 0, [.62, .62, .1]); a(B, mat(0xc0202a), 0, .3, 0, [.1, .62, .62]); break;
+    case 'cake': a(CY, c, 0, .2, 0, [.55, .4, .55]); a(CY, W2, 0, .5, 0, [.4, .25, .4]); for (let i = 0; i < 5; i++) { const an = i / 5 * 6.28; a(CY, mat(0xffe08a, { emissive: 0xffa020 }), Math.cos(an) * .25, .72, Math.sin(an) * .25, [.03, .14, .03]); } break;
+    case 'pizza': a(CY, mat(0xd8a050), 0, .04, 0, [.55, .06, .55]); a(CY, c, 0, .08, 0, [.48, .02, .48]); for (let i = 0; i < 7; i++) a(CY, mat(0xb02a1a), rand(-.3, .3), .1, rand(-.3, .3), [.07, .02, .07]); break;
+    case 'burger': a(S, mat(0xd8902a), 0, .42, 0, [.32, .14, .32]); a(CY, mat(0x5a2a10), 0, .26, 0, [.33, .08, .33]); a(CY, mat(0x5ac83a), 0, .32, 0, [.35, .02, .35]); a(CY, mat(0xd8902a), 0, .14, 0, [.3, .1, .3]); break;
+    case 'icecream': a(CO, mat(0xd8a050), 0, .3, 0, [.15, .6, .15], [Math.PI, 0, 0]); a(S, c, 0, .68, 0, [.18, .18, .18]); break;
+    case 'chest': a(B, c, 0, .25, 0, [.9, .5, .55]); a(B, Gd, 0, .55, 0, [.92, .12, .57]); for (let i = 0; i < 8; i++) a(CY, Gd, rand(-.35, .35), .62 + rand(0, .06), rand(-.2, .2), [.06, .015, .06]); break;
+    case 'tree': a(CY, MT.woodD, 0, .8, 0, [.12, 1.6, .12]); a(GEO.dodec, c, 0, 2.1, 0, [1, 1.2, 1]); break;
+    case 'christmasTree': for (let i = 0; i < 4; i++) a(CO, c, 0, .7 + i * .55, 0, [.9 - i * .18, .9, .9 - i * .18]); a(S, Gd, 0, 2.75, 0, [.12, .12, .12]); for (let i = 0; i < 12; i++) { const an = rand(0, 6.28), h = rand(.4, 2.2), rr = (2.5 - h) * .32; a(S, mat(pick([0xe02a2a, 0x2a6ae0, 0xffd040, 0xe8e8e8]), { emissive: 0x332200 }), Math.cos(an) * rr, h, Math.sin(an) * rr, [.06, .06, .06]); } break;
+    case 'snowman': a(S, c, 0, .4, 0, [.45, .42, .45]); a(S, c, 0, 1.0, 0, [.32, .3, .32]); a(S, c, 0, 1.45, 0, [.22, .22, .22]); a(CO, mat(0xf07a1a), 0, 1.45, .25, [.04, .2, .04], [Math.PI / 2, 0, 0]); a(CY, K, 0, 1.72, 0, [.17, .2, .17]); a(B, K, -.08, 1.52, .2, [.04, .04, .02]); a(B, K, .08, 1.52, .2, [.04, .04, .02]); break;
+    case 'statue': { a(B, mat(0x8a8a86), 0, .4, 0, [1.2, .8, 1.2]); const h = makeHuman({ skin: color, top: color, bottom: color, shoes: color, hair: color, scale: 1.4 }); h.g.position.y = .8; h.rArm.rotation.x = -2.6; g.add(h.g); h.g.traverse(o => { if (o.isMesh) o.material = mat(color, { emissive: 0x3a2a00 }); }); break; }
+    case 'fountain': a(CY, c, 0, .25, 0, [1.4, .5, 1.4]); a(CY, mat(0x5ab8e8, { emissive: 0x0a3a5a }), 0, .46, 0, [1.25, .05, 1.25]); a(CY, c, 0, 1, 0, [.18, 1.5, .18]); a(S, mat(0x8ad0f0, { emissive: 0x1a4a6a, transparent: true, opacity: .7 }), 0, 1.8, 0, [.4, .3, .4]); break;
+    case 'balloon': a(S, mat(color, { emissive: color, emissiveIntensity: .15 }), 0, 2.2, 0, [.35, .45, .35]); a(CY, W2, 0, 1.0, 0, [.006, 2, .006]); g.userData.anim = 'bob'; break;
+    case 'ufo': { const u = new THREE.Group(); g.add(u); const s1 = new THREE.Mesh(CY, new THREE.MeshPhongMaterial({ color, shininess: 80 })); s1.scale.set(1.8, .25, 1.8); u.add(s1); const s2 = new THREE.Mesh(S, mat(0x8ae8ff, { emissive: 0x2a8aaa, transparent: true, opacity: .8 })); s2.scale.set(.7, .5, .7); s2.position.y = .2; u.add(s2); for (let i = 0; i < 8; i++) { const l = new THREE.Mesh(S, mat(0xffffff, { emissive: 0x88ff88 })); l.scale.setScalar(.08); l.position.set(Math.cos(i / 8 * 6.28) * 1.7, -.05, Math.sin(i / 8 * 6.28) * 1.7); u.add(l); } u.position.y = 3.5; g.userData.anim = 'ufo'; g.userData.u = u; break; }
+    case 'rocket': a(CY, c, 0, 1.4, 0, [.4, 2.8, .4]); a(CO, mat(0xd02a2a), 0, 3.2, 0, [.4, .8, .4]); for (let i = 0; i < 3; i++) a(B, mat(0xd02a2a), Math.cos(i * 2.09) * .45, .35, Math.sin(i * 2.09) * .45, [.08, .7, .4], [0, -i * 2.09, 0]); a(S, mat(0x5ab8e8, { emissive: 0x1a4a6a }), 0, 2.2, .37, [.14, .14, .05]); break;
+    case 'ball': a(S, c, 0, .3, 0, [.3, .3, .3]); break;
+    case 'guitar': a(CY, c, 0, .32, 0, [.28, .08, .34], [Math.PI / 2, 0, 0]); a(B, MT.woodD, 0, .9, 0, [.06, .9, .04]); g.rotation.z = .15; break;
+    case 'tv': a(B, K, 0, .9, 0, [1.6, .95, .08]); a(B, mat(0x223355, { emissive: 0x3d7fd9, emissiveIntensity: .9 }), 0, .9, .045, [1.5, .85, .01]); a(B, K, 0, .2, 0, [.5, .4, .3]); break;
+    case 'computer': a(B, MT.woodL, 0, .74, 0, [1.2, .05, .6]); a(B, K, 0, 1.0, -.15, [.6, .38, .04]); a(B, MT.screen, 0, 1.0, -.125, [.55, .32, .01]); for (const x of [-.55, .55]) a(B, MT.metalD, x, .37, 0, [.04, .74, .55]); break;
+    case 'crown': a(CY, c, 0, .12, 0, [.3, .24, .3]); for (let i = 0; i < 6; i++) a(CO, c, Math.cos(i / 6 * 6.28) * .26, .3, Math.sin(i / 6 * 6.28) * .26, [.06, .16, .06]); a(S, mat(0xe02a4a, { emissive: 0x500010 }), 0, .14, .3, [.05, .05, .02]); break;
+    case 'sword': a(B, new THREE.MeshPhongMaterial({ color, shininess: 120 }), 0, .9, 0, [.08, 1.2, .02]); a(B, Gd, 0, .3, 0, [.36, .05, .06]); a(B, MT.woodD, 0, .15, 0, [.05, .26, .05]); break;
+    case 'bike': for (const z of [-.5, .5]) a(new THREE.TorusGeometry(.32, .03, 6, 18), K, 0, .34, z, [1, 1, 1], [0, Math.PI / 2, 0]); a(B, c, 0, .55, 0, [.05, .05, 1]); a(B, c, 0, .7, -.2, [.05, .4, .05]); a(B, K, 0, .9, -.2, [.25, .04, .12]); a(B, c, 0, .85, .45, [.5, .04, .04]); break;
+    case 'skateboard': a(B, c, 0, .1, 0, [.25, .03, .85]); for (const z of [-.3, .3]) for (const x of [-.1, .1]) a(CY, W2, x, .04, z, [.04, .04, .04], [0, 0, Math.PI / 2]); break;
+    case 'tent': a(new THREE.ConeGeometry(1, 1, 4), c, 0, .8, 0, [1.4, 1.6, 1.4], [0, Math.PI / 4, 0]); break;
+    case 'house': a(B, c, 0, 1.2, 0, [3, 2.4, 3]); a(new THREE.ConeGeometry(1, 1, 4), mat(0xa03a2a), 0, 3.0, 0, [2.4, 1.3, 2.4], [0, Math.PI / 4, 0]); a(B, MT.woodD, 0, .9, 1.51, [.8, 1.8, .02]); break;
+    case 'pool': a(B, W2, 0, .2, 0, [4, .4, 2.6]); a(B, mat(color, { emissive: 0x0a4a7a }), 0, .41, 0, [3.6, .02, 2.2]); break;
+    case 'trophy': a(CY, Gd, 0, .1, 0, [.18, .2, .18]); a(CY, Gd, 0, .3, 0, [.04, .25, .04]); a(CO, Gd, 0, .55, 0, [.2, .3, .2], [Math.PI, 0, 0]); break;
+    case 'flowers': for (let i = 0; i < 9; i++) { const x = rand(-.3, .3), z = rand(-.3, .3); a(CY, mat(0x2a8a3a), x, .25, z, [.012, .5, .012]); a(S, mat(pick([color, 0xffe040, 0xffffff, 0xe84a4a])), x, .52, z, [.07, .06, .07]); } a(CY, mat(0xa65a3a), 0, .08, 0, [.32, .16, .32]); break;
+    case 'robot': a(B, c, 0, .6, 0, [.6, .7, .4]); a(B, c, 0, 1.15, 0, [.4, .35, .35]); a(B, mat(0x88ffff, { emissive: 0x44cccc }), -.09, 1.18, .18, [.08, .06, .02]); a(B, mat(0x88ffff, { emissive: 0x44cccc }), .09, 1.18, .18, [.08, .06, .02]); for (const x of [-.4, .4]) a(B, c, x, .65, 0, [.12, .5, .12]); for (const x of [-.15, .15]) a(B, c, x, .15, 0, [.15, .3, .15]); g.userData.anim = 'bob2'; break;
+    case 'sphere': a(S, c, 0, .5, 0, [.5, .5, .5]); break;
+    default: a(B, c, 0, .4, 0, [.8, .8, .8]);
+  }
+  return g;
+}
+const Objs = {
+  live: [],
+  spawnMany(o) {
+    const model = MODEL_COL[o.model] !== undefined ? o.model : 'cube', n = clamp(Math.round(+o.count || 1), 1, 8);
+    const size = clamp(+o.size || 1, .3, 8), col = hexCol(o.color, MODEL_COL[model]);
+    const fw = [-Math.sin(P.yaw), -Math.cos(P.yaw)], rt = [Math.cos(P.yaw), -Math.sin(P.yaw)], dist = 2.4 + size * 1.3;
+    for (let i = 0; i < n; i++) {
+      const off = (i - (n - 1) / 2) * (size * 1.1 + .4);
+      let x = P.pos.x + fw[0] * dist + rt[0] * off, z = P.pos.z + fw[1] * dist + rt[1] * off;
+      const RI = REGION_INFO[P.region]; if (RI.b) { x = clamp(x, RI.b[0] + .5, RI.b[1] - .5); z = clamp(z, RI.b[2] + .5, RI.b[3] - .5); }
+      const d = { model, label: String(o.label || 'Чудо').slice(0, 40), color: col, size, use: String(o.use || '').slice(0, 200), eat: clamp(+o.eat || 0, 0, 100), x, z, y: P.region === 'ext' ? 0 : 0, ry: P.yaw };
+      this.add(d); G.spawns.objs.push(d);
+    }
+    while (G.spawns.objs.length > 70) { const old = G.spawns.objs.shift(); const L = this.live.find(l => l.d === old); if (L) this.remove(L); }
+  },
+  add(d) {
+    const g = buildModel(d.model, d.color); g.scale.setScalar(d.size); g.position.set(d.x, d.y || 0, d.z); g.rotation.y = d.ry || 0; scene.add(g);
+    const L = { d, g }; this.live.push(L);
+    L.it = addI(d.x, Math.min(1.2, .5 * d.size + .3), d.z, () => (d.eat > 0 ? 'Съесть: ' : '') + d.label, () => this.use(L), { r: 1.6 + d.size * .5, cond: () => !!L.g.parent });
+    Fx.sparkle(g.position);
+  },
+  use(L) {
+    const d = L.d;
+    if (d.eat > 0) { eat(d.label, { h: d.eat, m: 12 }, 8); this.remove(L); G.spawns.objs = G.spawns.objs.filter(x => x !== d); return; }
+    if (d.model === 'gift' || d.model === 'chest') { say(d.label, d.use || 'Внутри — именно то, что ты хотел.'); Needs.add({ mood: 5 }); return; }
+    if (d.model === 'ball') { L.vy = 6; L.vx = -Math.sin(P.yaw) * 7; L.vz = -Math.cos(P.yaw) * 7; Snd.pop(); return; }
+    if (d.model === 'guitar') { [262, 330, 392, 523].forEach((f, i) => Snd.tone(f, .6, 'triangle', .1, i * .12)); toast(d.label, d.use || 'Ты бренчишь «Кукушку». Бабушки у подъезда одобряют.'); Needs.add({ mood: 4 }); return; }
+    if (d.model === 'rocket' || d.model === 'ufo') { say(d.label, d.use || 'Взлетаем?', [{ t: 'Полететь!', f: () => { G.fx.fly = true; P.applyFx(); fadeTo(() => { if (P.region !== 'ext') teleport(-40, 34, Math.PI); P.pos.y = 180; }, 'Старт!'); } }, { t: 'Потом', f: () => { } }]); return; }
+    say(d.label, d.use || 'Ты любуешься своим чудом.'); Needs.add({ mood: 2 });
+  },
+  remove(L) { scene.remove(L.g); this.live = this.live.filter(x => x !== L); },
+  restore() { for (const L of this.live) scene.remove(L.g); this.live = []; for (const d of G.spawns.objs || []) this.add(d); },
+  update(dt, t) {
+    for (const L of this.live) {
+      const g = L.g, a = g.userData.anim, vis = regionAt(g.position.x) === P.region; g.visible = vis; if (!vis) continue;
+      if (a === 'bob') g.position.y = (L.d.y || 0) + Math.sin(t * 1.5 + L.d.x) * .15;
+      if (a === 'bob2') g.rotation.y = (L.d.ry || 0) + Math.sin(t * .8) * .4;
+      if (a === 'ufo') { g.userData.u.rotation.y += dt * 1.5; g.userData.u.position.y = 3.5 + Math.sin(t * 1.2) * .3; }
+      if (L.vy !== undefined && !G.fx.frozen) { L.vy -= 15 * dt; g.position.x += L.vx * dt; g.position.z += L.vz * dt; g.position.y += L.vy * dt; if (g.position.y < 0) { g.position.y = 0; L.vy *= -.45; L.vx *= .7; L.vz *= .7; if (Math.abs(L.vy) < .5) { L.vy = undefined; L.d.x = g.position.x; L.d.z = g.position.z; } } L.it.pos.set(g.position.x, .5, g.position.z); }
+    }
+  }
+};
+
+// =====================================================================
+//  ДОБРЫЕ ДЕЛА: у людей вокруг есть проблемы
+// =====================================================================
+const DEEDS = [
+  { id: 'cat', who: 'babki', npc: () => W.babaValya, title: 'Пропал кот бабы Вали', ask: 'Ох, внучек... Мурзик мой третий день домой не приходит. Рыжий такой, наглый. Может, видел где? Он любит в парке по деревьям лазить.', hint: 'Найди рыжего кота в парке и принеси бабе Вале', can: () => G.carry === 'cat', done: () => { G.carry = null; }, thx: 'Мурзик! Нашёлся, паразит! Спасибо тебе, золотой ты мой! На вот, пирожок с капустой.', miracle: 'Мурзик сам примчался к подъезду и запрыгнул бабе Вале на колени.', reward: 0 },
+  { id: 'mom', who: 'mom', npc: () => W.mom, title: 'Мама очень устала', ask: 'Устала я, сынок... На работе завал, дома тоже всё на мне. Хоть бы кто помог.', hint: 'За один день: помой посуду, вынеси мусор, запусти стирку или поужинай с мамой (нужно 3 дела)', prog: () => [G.daily.dishes, G.daily.trash, G.flags.washed === G.day, G.daily.dinner].filter(Boolean).length + ' из 3', can: () => [G.daily.dishes, G.daily.trash, G.flags.washed === G.day, G.daily.dinner].filter(Boolean).length >= 3, thx: 'Ты сегодня у меня просто золото. Я отдохнула впервые за месяц. Спасибо, родной ❤️', miracle: 'Маме дали премию и неделю отпуска, а начальник лично извинился за переработки.', reward: 500 },
+  { id: 'dima', who: 'dima', npc: () => W.dima, title: 'Отца Димона сократили', ask: 'Батю сократили на заводе... Дома все на нервах, мать плачет. Даже в зал идти не хочется, бро.', hint: 'Поддержи друга: потренируйся в зале, пока Димон там (будни, 16:00–18:00), и поговори с ним', can: () => G.daily.gym && P.region === 'gym', thx: 'Спасибо, бро. Реально полегчало. Батя сказал, что прорвёмся.', miracle: 'Отцу Димона позвонили и предложили работу мечты с зарплатой в два раза больше.', reward: 0 },
+  { id: 'kid', who: null, npc: () => W.kidA, title: 'Шарик малыша', ask: 'У меня шарик улетел... Красный... (всхлипывает)', hint: 'Купи воздушный шарик в ларьке «Шаурма» у дороги и подари малышу во дворе', can: () => has('balloon'), done: () => use('balloon'), thx: 'УРА! Шарик! Спасибо, дядя! Ты самый добрый!', miracle: 'Красный шарик сам спустился с неба прямо в руки малышу.', reward: 0 },
+  { id: 'guard', who: null, npc: () => W.guard, title: 'Спина охранника', ask: 'Спина, будь она неладна... Тридцать лет на посту. Ни мазь из поликлиники, ни уколы не помогают.', hint: 'Купи согревающую мазь в «Продуктах» (аптечная полка) и принеси Николаю Петровичу', can: () => has('ointment'), done: () => use('ointment'), thx: 'Ох, хоть немного полегче. Спасибо, сынок, уважил старика. Можешь без сменки ходить, разрешаю.', miracle: 'У Николая Петровича прошла спина. Он впервые за годы сделал зарядку прямо на вахте.', reward: 0 },
+  { id: 'teacher', who: null, npc: () => W.tF, title: 'Проектор в 21-м кабинете', ask: 'Проектор опять сломался, а у меня открытый урок. Завуч меня съест...', hint: 'Подтяни знания до 55 (уроки, книги, домашка) и почини проектор — поговори с учительницей снова', can: () => G.knowledge >= 55, thx: 'Ты гений! Работает! Пять тебе... за находчивость.', miracle: 'В 21-м кабинете появился новый интерактивный проектор, а завуч прислала благодарность.', reward: 0, grade: 1 },
+  { id: 'cashier', who: null, npc: () => W.cashier, title: 'Зульфия скучает по дочке', ask: 'Дочка в Казани учится, полгода не виделись. Билеты дорогие, зарплата маленькая...', hint: 'Подари Зульфие 3 000 ₽ на билет (заработать можно на листовках)', can: () => G.money >= 3000 || G.fx.infMoney, done: () => { if (!G.fx.infMoney) G.money -= 3000; }, thx: 'Ты что... Правда?! Спасибо тебе, дорогой! Я позвоню ей прямо сейчас!', miracle: 'Дочь Зульфии неожиданно приехала в гости и стоит у кассы с цветами.', reward: 0 },
+  { id: 'coach', who: 'coach', npc: () => W.coach, title: 'Мечта Палыча', ask: 'Вот бы зал отремонтировать по-человечески... Ребята на старом железе занимаются. Денег у района нет. Вот если бы кто районные соревнования выиграл — там призовые хорошие.', hint: 'Накачайся до силы 60 и поговори с Палычем — выиграешь районные соревнования', can: () => G.strength >= 60, thx: 'Ты выиграл?! И отдал призовые на зал?! Сынок... у меня нет слов.', miracle: 'Неизвестный спонсор оплатил капитальный ремонт зала «Железо».', reward: 0 },
+  { id: 'alina', who: 'alina', npc: () => W.alina, title: 'Алина и геометрия', ask: 'Я вообще не понимаю подобие треугольников, а в пятницу контрольная. Мама меня убьёт...', hint: 'Подтяни знания до 50 и объясни Алине тему — поговори с ней снова', can: () => G.knowledge >= 50, thx: 'Ой, так вот оно как! Спасибо! Ты объясняешь лучше учительницы 😊', miracle: 'Алина вдруг поняла всю геометрию за девятый класс разом.', reward: 0 },
+  { id: 'park', who: null, npc: null, title: 'Мусор в парке', ask: '', hint: 'Собери 6 пакетов мусора, разбросанных по парку', prog: () => (G.flags.parkTrash || 0) + ' из 6', can: () => (G.flags.parkTrash || 0) >= 6, thx: 'Парк стал чище. Кто-то выложил фото «до/после» — тысяча лайков.', miracle: 'Весь мусор в парке исчез, а на его месте выросли цветы.', reward: 0 }
+];
+const KARMA_GOAL = 7;
+const Deeds = {
+  def: id => DEEDS.find(d => d.id === id),
+  st: id => (G.deeds || {})[id] || 'new',
+  forNpc(n) { return DEEDS.find(d => d.npc && d.npc() === n && this.st(d.id) !== 'done'); },
+  karma: () => Object.values(G.deeds || {}).filter(s => s === 'done').length,
+  talk(n, d) {
+    const st = this.st(d.id), back = { t: 'Поговорить о другом', f: () => { const r = n.talk ? n.talk(n) : '...'; typeof r === 'string' ? say(n.name, r) : say(n.name, r.t, r.o); } };
+    const magic = G.power ? [{ t: '✨ Помочь чудом', f: () => this.complete(d.id, true) }] : [];
+    if (st === 'new') say(n.name, d.ask, [{ t: 'Я помогу!', f: () => { G.deeds[d.id] = 'active'; d.start && d.start(); toast('Доброе дело', d.title + ' — ' + d.hint); Snd.click(); } }, ...magic, back]);
+    else if (d.can()) say(n.name, '(Ты рассказываешь, что сделал.)', [{ t: 'Готово!', f: () => this.complete(d.id, false) }]);
+    else say(n.name, 'Ну что, получается? ' + d.hint + (d.prog ? ' (' + d.prog() + ')' : '') + '.', [...magic, back]);
+  },
+  complete(id, magic) {
+    const d = this.def(id); if (!d || this.st(id) === 'done') return;
+    G.deeds[id] = 'done'; if (!magic && d.done) d.done();
+    if (id === 'cat') { G.carry = null; Lost.cat.visible = false; }
+    if (id === 'park') Lost.trash.forEach(t => t.visible = false);
+    Needs.add({ mood: 12 }); if (d.reward && !magic) G.money += d.reward; if (d.grade) { (G.grades['Алгебра'] = G.grades['Алгебра'] || []).push(5); G.journal.push({ d: G.day, s: 'Алгебра', g: 5, note: 'За помощь учителю' }); }
+    if (d.who) Rel.add(d.who, 18);
+    const n = d.npc && d.npc(); if (n && n.h.g.visible) { bubble(n, magic ? 'Не может быть... Чудо!' : 'Спасибо!', 4); n.waveT = 3; }
+    Fx.sparkle(n && n.h.g.visible ? n.pos : P.pos, true); Snd.chime(); flash(.5);
+    toast(magic ? '✨ Чудо' : 'Доброе дело', magic ? d.miracle : d.thx, 'gold');
+    if (!magic && n) say(n.name, d.thx);
+    Feed.post(pick(['Подслушано в районе', 'Типичный Строителей', 'Добрые новости района']), (magic ? d.miracle : d.title + ': ' + d.thx) + (magic ? ' Очевидцы говорят, что рядом стоял какой-то школьник 🤔' : ''), Math.floor(rand(80, 700)));
+    G.pop = Math.min(100, G.pop + 4);
+    this.milestone();
+    save();
+  },
+  milestone() {
+    const k = this.karma(); if (!G.power) return;
+    const lines = { 1: 'Ты помог. Так начинается настоящая сила. ✨', 3: 'Звезда видит, что ты делаешь для других. Продолжай.', 5: 'Ещё немного — и ты узнаешь, зачем падают звёзды.' };
+    if (lines[k] && !G.flags['km' + k]) { G.flags['km' + k] = 1; setTimeout(() => msg('x', lines[k]), 2500); }
+    if (k >= KARMA_GOAL && !G.flags.finale) { G.flags.finale = 1; setTimeout(() => Story.finale(), 3500); }
+  }
+};
+Story.finale = () => {
+  closeAll(); const seq = [
+    [0, 'Ночное небо вспыхивает. Та самая звезда возвращается...'],
+    [4500, 'Голос: «Я падаю раз в сто лет и даю дар тому, кто его не ждёт. Большинство тратят его на себя».'],
+    [10000, '«Ты — нет. Ты помог ' + Deeds.karma() + ' людям. Значит, дар попал в правильные руки».'],
+    [15500, '«Он остаётся с тобой. Навсегда. Теперь ты — Хранитель Звезды».'],
+    [21000, '']
+  ];
+  G.min = Math.max(G.min, 0); Fx.fireworks(40); Snd.chime(); flash(1.4);
+  seq.forEach(([t, s]) => setTimeout(() => { story(s); if (s) Snd.ding(); }, t));
+  setTimeout(() => { G.flags.keeper = 1; G.pop = 100; toast('🏆 Звание получено', 'Хранитель Звезды. Все добрые дела района — твоих рук дело.', 'gold'); Feed.post('Новости города', 'Районные чудеса: за неделю в спальном районе случилось больше хорошего, чем за весь год. Местные уверены — у района появился ангел-хранитель.', 4200); save(); }, 21000);
+};
+// пропавший кот и мусор в парке
+const Lost = {
+  init() {
+    this.cat = makeAnimal('cat', 0xe8903a); this.catPos = pick([[151, 70], [99, 38], [140, 88], [104, 84]]); this.cat.position.set(this.catPos[0], 0, this.catPos[1]); this.cat.visible = false;
+    addI(0, 0, 0, 'Взять рыжего кота', () => { G.carry = 'cat'; this.cat.visible = false; toast('Мурзик', 'Кот у тебя на руках. Неси бабе Вале к подъезду.'); Snd.tone(700, .2, 'triangle', .1); }, { cond: () => Deeds.st('cat') === 'active' && G.carry !== 'cat' && P.region === 'ext', r: 2.2 }).pos = new THREE.Vector3(this.catPos[0], .3, this.catPos[1]);
+    this.trash = [];
+    [[96, 25], [110, 45], [135, 62], [150, 84], [118, 88], [160, 40]].forEach(([x, z], i) => {
+      const b = new THREE.Mesh(bgeo(.45, .5, .4), mat(0x1a1a1a)); b.position.set(x, .25, z); b.castShadow = true; scene.add(b); this.trash.push(b);
+      addI(x, .4, z, 'Собрать мусор', () => { b.visible = false; G.flags['pt' + i] = 1; G.flags.parkTrash = (G.flags.parkTrash || 0) + 1; if (Deeds.st('park') === 'new') G.deeds.park = 'active'; toast('Чистота', 'Мусор собран: ' + G.flags.parkTrash + ' из 6'); Snd.click(); if (G.flags.parkTrash >= 6) Deeds.complete('park', false); }, { cond: () => b.visible && P.region === 'ext', r: 1.8 });
+    });
+  },
+  sync() {
+    this.cat.visible = Deeds.st('cat') === 'active' && G.carry !== 'cat';
+    this.trash.forEach((b, i) => b.visible = Deeds.st('park') !== 'done' && !G.flags['pt' + i]);
+  },
+  update(dt, t) { if (this.cat.visible) { animAnimal(this.cat, dt, 0, t); this.cat.rotation.y = Math.sin(t * .3) * 2; } }
+};
+// значки «!» над людьми с проблемами
+const Marks = {
+  list: [],
+  init() {
+    const mk = (ch, bg) => new THREE.SpriteMaterial({ map: ctex(64, 64, (g) => { g.fillStyle = bg; g.beginPath(); g.arc(32, 32, 28, 0, 7); g.fill(); g.fillStyle = '#1a1205'; g.font = 'bold 44px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch, 32, 35); }, false), depthTest: false, fog: false });
+    this.mNew = mk('!', '#ffc94a'); this.mOk = mk('✓', '#5fd38a'); this.mAct = mk('…', '#9ad0ff');
+    for (const d of DEEDS) if (d.npc) { const s = new THREE.Sprite(this.mNew); s.scale.set(.45, .45, 1); s.renderOrder = 50; s.visible = false; scene.add(s); this.list.push({ d, s }); }
+  },
+  update(t) {
+    for (const { d, s } of this.list) {
+      const n = d.npc(), st = Deeds.st(d.id);
+      const vis = n && n.h.g.visible && st !== 'done' && regionAt(n.pos.x) === P.region;
+      s.visible = !!vis; if (!vis) continue;
+      s.material = st === 'new' ? this.mNew : d.can() ? this.mOk : this.mAct;
+      s.position.set(n.pos.x, n.pos.y + (n.pose === 'sit' || n.pose === 'sitphone' ? 1.75 : 2.3) * (n.h.s || 1) + Math.sin(t * 3) * .05, n.pos.z);
+    }
+  }
+};
+
+// =====================================================================
+//  ОТНОШЕНИЯ, ЛЕНТА, СЛАВА, ПОДРАБОТКА
+// =====================================================================
+const REL_INFO = { mom: ['Мама', '❤️'], dima: ['Димон', '🤜'], alina: ['Алина', '💬'], babki: ['Бабушки у подъезда', '🧶'], coach: ['Тренер Палыч', '💪'] };
+const Rel = {
+  get(k) { if (k === 'mom') return clamp((G.rel.mom || 55) + (G.flags.momLove || 0) * 2, 0, 100); return clamp(G.rel[k] ?? 30, 0, 100); },
+  add(k, v) { G.rel[k] = clamp((G.rel[k] ?? 30) + v, 0, 100); },
+  label(k) { const v = this.get(k); if (k === 'alina') return v >= 80 ? 'Очень близкая подруга' : v >= 60 ? 'Подруга' : v >= 40 ? 'Хорошая знакомая' : 'Одноклассница'; if (k === 'dima') return v >= 80 ? 'Брат по духу' : v >= 55 ? 'Лучший друг' : 'Друг'; if (k === 'mom') return v >= 80 ? 'Гордится тобой' : v >= 55 ? 'Всё хорошо' : 'Волнуется'; return v >= 70 ? 'Обожают тебя' : v >= 45 ? 'Хорошо относятся' : 'Знакомые'; }
+};
+const FEED_DAILY = [
+  ['Подслушано в 17-й школе', 'Кто-нибудь знает, будет ли завтра контрольная по физике? Андрей Николаевич опять загадочно улыбался 😐'],
+  ['Типичный Строителей', 'В третьем подъезде опять сломали лифт. Жильцы девятого этажа передают привет.'],
+  ['Подслушано в 17-й школе', 'Столовая сегодня: котлета, пюре, компот. Ничего не меняется, и это прекрасно.'],
+  ['Погода района', 'Ночью до −7, днём около нуля. Гололёд, держитесь за бабушек.'],
+  ['Маша', 'Новая аватарка 🌸 оцените'],
+  ['Спортзал «Железо»', 'Акция для школьников: приведи друга — получи протеиновый батончик бесплатно 💪'],
+  ['Магазин «Продукты 24»', 'Свежий хлеб с утра. И да, у нас снова есть та самая шоколадка.'],
+  ['Артём', 'кто в доту вечером'],
+  ['Типичный Строителей', 'Кто паркуется на газоне у 25-го дома — бабушки вас уже переписали.'],
+  ['Подслушано в 17-й школе', 'Признание: я тайно люблю сменку. Она удобная. Всё.']
+];
+const Feed = {
+  post(a, t, l) { G.feed.unshift({ a, t, d: G.day, m: Math.floor(G.min), l: l ?? Math.floor(rand(3, 90)) }); if (G.feed.length > 60) G.feed.pop(); G.feedNew = (G.feedNew || 0) + 1; },
+  daily() { const p = FEED_DAILY[(G.day * 3 + 1) % FEED_DAILY.length], q = FEED_DAILY[(G.day * 7 + 4) % FEED_DAILY.length]; this.post(p[0], p[1]); if (q !== p) this.post(q[0], q[1]); }
+};
+const Hype = {
+  t: 0,
+  add(v) { G.hype = (G.hype || 0) + v; this.check(); },
+  check() {
+    const h = G.hype || 0, f = G.flags;
+    if (h > 15 && !f.hy1) { f.hy1 = 1; Feed.post('Подслушано в районе', 'Народ, мне кажется или в нашем районе творится какая-то дичь? То снег посреди дня, то деньги с неба 😳', 312); }
+    if (h > 40 && !f.hy2) { f.hy2 = 1; Feed.post('Типичный Строителей', 'ВИДЕО: над Строителей, 25 пролетел ПОДРОСТОК. Без всего. Просто летел. Полиция комментариев не даёт.', 2840); setTimeout(() => msg('dima', 'Бро, ты видел ролик про летающего пацана с нашего района?? Он на тебя похож 👀'), 3000); }
+    if (h > 80 && !f.hy3) { f.hy3 = 1; Feed.post('Новости города', 'Учёные приехали изучать «аномальную зону» в спальном районе. Местные бабушки уверены: это всё из-за 5G.', 15400); setTimeout(() => msg('mom', 'По телевизору показывали наш двор! Говорят, у нас какие-то чудеса творятся. Ты ничего не знаешь? 🤨'), 4000); }
+    if (h > 140 && !f.hy4) { f.hy4 = 1; Feed.post('Новости страны', 'Феномен «Чудесного района»: туристы едут смотреть на дом, рядом с которым сам собой вырос особняк.', 98000); }
+  },
+  update(dt) {
+    if (P.region !== 'ext') return; this.t += dt; if (this.t < 1) return; this.t = 0;
+    const pub = (G.fx.fly && P.pos.y > 3) || P.scale > 2 || (P.drive && Math.abs(P.car.v) > 25) || (G.fx.speed > 1 && P.hs > 10);
+    if (!pub || G.fx.invisible) return;
+    if (NPCS.some(n => n.h.g.visible && Math.hypot(n.pos.x - P.pos.x, n.pos.z - P.pos.z) < 35)) this.add(.6);
+  }
+};
+const Job = {
+  start() {
+    G.job = { left: 12, end: G.min + 90, day: G.day }; G.daily.job = true;
+    toast('Подработка', 'Раздай 12 листовок прохожим на улице за полтора часа. Подходи к людям и жми E. Оплата — до 400 ₽.');
+  },
+  active() { return G.job && G.job.day === G.day && G.job.left > 0 && G.min < G.job.end; },
+  give(n) {
+    n.flyered = G.day; G.job.left--; Snd.click(); bubble(n, pick(['Спасибо', 'Давай...', 'Опять реклама?', 'О, скидки? Посмотрю.', 'Не надо мне ничего!']), 2.5);
+    if (G.job.left <= 0) this.finish();
+    else toast('Листовки', 'Осталось раздать: ' + G.job.left);
+  },
+  finish() { const done = 12 - G.job.left, pay = Math.round(done / 12 * 400); G.money += pay; G.job = null; Needs.add({ mood: done >= 12 ? 8 : 0, energy: -5 }); toast('Подработка закончена', `Раздано ${done} из 12. Заработано ${pay} ₽.`, 'gold'); Snd.good(); },
+  update() { if (G.job && G.job.left > 0 && (G.min >= G.job.end || G.job.day !== G.day)) this.finish(); }
+};
+
+// =====================================================================
+//  ГРАФИКА: облака, фонари, свечение, адаптивное качество
+// =====================================================================
+const Look = {
+  init() {
+    const tx = ctex(512, 512, (g, w, h) => { g.clearRect(0, 0, w, h); for (let i = 0; i < 70; i++) { const x = Math.random() * w, y = Math.random() * h, r = rand(30, 90); for (const [dx, dy] of [[0, 0], [w, 0], [-w, 0], [0, h], [0, -h]]) { const gr = g.createRadialGradient(x + dx, y + dy, 0, x + dx, y + dy, r); gr.addColorStop(0, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(x + dx - r, y + dy - r, r * 2, r * 2); } } });
+    this.cloudU = { map: { value: tx }, off: { value: new THREE.Vector2() }, col: { value: new THREE.Color(1, 1, 1) }, op: { value: .8 } };
+    this.clouds = new THREE.Mesh(new THREE.PlaneGeometry(1700, 1700), new THREE.ShaderMaterial({
+      uniforms: this.cloudU, transparent: true, depthWrite: false, fog: false, side: THREE.DoubleSide,
+      vertexShader: 'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+      fragmentShader: 'uniform sampler2D map;uniform vec2 off;uniform vec3 col;uniform float op;varying vec2 vUv;void main(){vec4 t=texture2D(map,vUv*2.5+off);vec4 t2=texture2D(map,vUv*1.3-off*.6+.37);float a=clamp(t.a*.9+t2.a*.7,0.,1.);float d=length(vUv-.5)*2.;a*=op*smoothstep(1.,.45,d);gl_FragColor=vec4(col*(.82+.25*t2.a),a);\n#include <colorspace_fragment>\n}'
+    }));
+    this.clouds.rotation.x = Math.PI / 2; this.clouds.renderOrder = -7; this.clouds.frustumCulled = false; scene.add(this.clouds);
+    this.lights = []; const n = isTouch ? 3 : 6;
+    for (let i = 0; i < n; i++) { const l = new THREE.PointLight(0xffd59a, 0, 26, 1.7); l.castShadow = false; scene.add(l); this.lights.push(l); }
+    this.room = new THREE.PointLight(0xfff0d8, 0, 9, 1.5); scene.add(this.room);
+    this.lt = 0; this.fpsT = 0; this.frames = 0; this.pr = renderer.getPixelRatio();
+  },
+  update(dt, t) {
+    const out = P.region === 'ext' || Cine.active, w = G ? G.weather : 'cloudy', nf = ENV.nf;
+    const cov = { clear: .2, summer: .3, cloudy: .95, snow: 1, rain: 1 }[w] ?? .8;
+    this.clouds.visible = out; this.cloudU.op.value = cov;
+    this.cloudU.off.value.x += dt * .004 * (G && G.fx.frozen ? 0 : 1); this.cloudU.off.value.y += dt * .0015 * (G && G.fx.frozen ? 0 : 1);
+    this.cloudU.col.value.setRGB(lerp(.9, .16, nf), lerp(.92, .14, nf), lerp(.95, .17, nf)); if (w !== 'clear' && w !== 'summer') this.cloudU.col.value.multiplyScalar(.85);
+    this.clouds.position.set(camera.position.x, Math.max(camera.position.y + 60, 210), camera.position.z);
+    this.lt -= dt; if (this.lt <= 0) {
+      this.lt = .5; const hq = !G || G.hq !== false;
+      if (out && nf > .35 && hq) {
+        const px = P.pos.x, pz = P.pos.z, L = W.lampPos.slice().sort((a, b) => (a[0] - px) ** 2 + (a[2] - pz) ** 2 - (b[0] - px) ** 2 - (b[2] - pz) ** 2);
+        this.lights.forEach((l, i) => { const p = L[i]; if (p) { l.position.set(p[0], p[1] - .4, p[2]); l.intensity = 70 * clamp((nf - .35) * 3, 0, 1); } else l.intensity = 0; });
+      } else this.lights.forEach(l => l.intensity = 0);
+      if (!out && hq) { this.room.position.set(P.pos.x, REGION_INFO[P.region].ceil - .25, P.pos.z); this.room.intensity = 3.2; } else this.room.intensity = 0;
+    }
+    Post.bloom && (Post.bloom.strength = .18 + nf * .5);
+    // адаптивное разрешение
+    this.frames++; this.fpsT += dt;
+    if (this.fpsT > 2.5) { const fps = this.frames / this.fpsT; this.frames = 0; this.fpsT = 0; const max = Math.min(devicePixelRatio, isTouch ? 1.4 : 1.75);
+      if (fps < 28 && this.pr > .7) { this.pr = Math.max(.7, this.pr - .2); Post.setPR(this.pr); }
+      else if (fps > 55 && this.pr < max) { this.pr = Math.min(max, this.pr + .1); Post.setPR(this.pr); } }
+  }
+};
+const Post = {
+  comp: null, bloom: null,
+  init() {
+    try {
+      this.comp = new EffectComposer(renderer); this.comp.addPass(new RenderPass(scene, camera));
+      this.bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .35, .5, .8); this.comp.addPass(this.bloom); this.comp.addPass(new OutputPass());
+      addEventListener('resize', () => { this.comp.setSize(innerWidth, innerHeight); });
+    } catch (e) { console.error(e); this.comp = null; }
+  },
+  setPR(pr) { renderer.setPixelRatio(pr); renderer.setSize(innerWidth, innerHeight); if (this.comp) { this.comp.setPixelRatio(pr); this.comp.setSize(innerWidth, innerHeight); } },
+  render() { if (this.comp && G && G.hq) this.comp.render(); else renderer.render(scene, camera); }
+};
+
+// =====================================================================
+//  ТЕЛЕФОН: новые вкладки
+// =====================================================================
+const PlusPhone = {
+  tabs(t) {
+    const i = t.findIndex(x => x[0] === 'tasks'); t.splice(1, 0, ['feed', '📰 Лента' + (G.feedNew ? ' (' + G.feedNew + ')' : '')]); t.splice(i + 2, 0, ['people', '👥 Люди']); return t;
+  },
+  render(tab, h) {
+    if (tab === 'feed') {
+      G.feedNew = 0;
+      return '<h3>Лента района</h3>' + (G.feed.map(p => `<div class="msg"><b>${esc(p.a)}</b><i>${DAYS_S[p.d % 7]} ${fmtT(p.m)}</i><br>${esc(p.t)}<div class="sub" style="margin-top:4px">❤️ ${p.l.toLocaleString('ru-RU')}</div></div>`).join('') || '<p class="sub">Пока тихо.</p>');
+    }
+    if (tab === 'people') {
+      let s = '<h3>Близкие люди</h3>';
+      for (const k in REL_INFO) { const v = Rel.get(k); s += `<div class="task" style="flex-wrap:wrap">${REL_INFO[k][1]} <b>${REL_INFO[k][0]}</b> <span class="sub" style="margin-left:auto">${Rel.label(k)}</span><div style="flex-basis:100%;height:6px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden"><div style="height:100%;width:${v}%;background:var(--good)"></div></div></div>`; }
+      s += '<p class="sub">Отношения растут, когда ты общаешься, помогаешь и проводишь время вместе.</p>';
+      return s;
+    }
+    if (tab === 'tasks') {
+      const k = Deeds.karma();
+      let s = '<div class="row" style="margin-bottom:10px"><span class="sub" style="align-self:center">⏳ Подождать:</span>' + [[15, '15 мин'], [60, '1 час'], [180, '3 часа']].map(([m, t]) => `<button class="btn" style="padding:6px 10px" data-wait="${m}">${t}</button>`).join('') + '</div>';
+      s += `<h3>Добрые дела · ${k} из ${DEEDS.length}${G.flags.keeper ? ' · 🏆 Хранитель Звезды' : ''}</h3>`;
+      const act = DEEDS.filter(d => Deeds.st(d.id) === 'active'), done = DEEDS.filter(d => Deeds.st(d.id) === 'done');
+      s += act.map(d => `<div class="task">${d.can() ? '🟢' : '🔸'} <span><b>${esc(d.title)}</b><br><span class="sub">${esc(d.hint)}${d.prog ? ' (' + d.prog() + ')' : ''}</span></span></div>`).join('');
+      s += done.map(d => `<div class="task ok">✅ ${esc(d.title)}</div>`).join('');
+      if (!act.length && !done.length) s += '<p class="sub">Присмотрись к людям вокруг: у кого над головой «!», тому нужна помощь.</p>';
+      if (k < KARMA_GOAL && G.power) s += `<p class="sub">Звезда ждёт: помоги ${KARMA_GOAL} людям.</p>`;
+      return s + h;
+    }
+    return h;
+  },
+  bind(B) { B.querySelectorAll('[data-wait]').forEach(b => b.onclick = () => { closeModal(); const m = +b.dataset.wait; Busy.start('Ждёшь... ⏳', m, () => { }); }); }
+};
+
+// =====================================================================
+//  ОБЩЕЕ
+// =====================================================================
+const Plus = {
+  init() { Lost.init(); Marks.init(); Look.init(); Post.init(); AI.init(); },
+  onStart() {
+    G.rel = Object.assign({ mom: 55, dima: 60, alina: 25, babki: 40, coach: 35 }, G.rel || {});
+    G.deeds = G.deeds || {}; G.feed = G.feed || []; G.spawns.objs = G.spawns.objs || [];
+    if (!G.feed.length) Feed.daily();
+    Objs.restore(); Lost.sync();
+    $('wishSub').dataset.ai = '';
+  },
+  update(dt, t) { Objs.update(dt, t); Lost.sync(); Lost.update(dt, t); Marks.update(t); Hype.update(dt); Job.update(); },
+  frameLook(dt, t) { Look.update(dt, t); }
+};
+
+// ---------- Алина ----------
+Story.alinaTalk = () => {
+  const v = Rel.get('alina'); if (!G.daily.relA) { G.daily.relA = 1; Rel.add('alina', 3); }
+  let t = v < 40 ? pick(['Привет.', 'Ты домашку по английскому понял?', 'Не отвлекай, я повторяю.']) : v < 65 ? pick(['Привет! Как дела? 🙂', 'Видел, что Димон опять в столовой учудил? 😂', 'Ты тоже думаешь, что физика — это боль?']) : pick(['О, привет! Я как раз о тебе думала... в смысле, хотела спросить про домашку 😅', 'Ты сегодня какой-то особенно весёлый. Это хорошо.']);
+  if (G.fx.popular) t = 'Слушай, все только о тебе и говорят. Ты правда такой классный? 😏';
+  const o = [];
+  if (v >= 55 && P.region === 'ext' && !G.daily.walkA) o.push({ t: 'Погуляем вместе?', f: () => { G.daily.walkA = 1; Busy.start('Гуляете с Алиной по району...', 60, () => { Rel.add('alina', 10); Needs.add({ mood: 18, energy: -4 }); toast('Алина', pick(['Было классно! Давай ещё как-нибудь 🙂', 'Спасибо, что выслушал. Мне стало легче.', 'Ты смешной. В хорошем смысле 😄'])); }); } });
+  if (!G.daily.complA) o.push({ t: 'Сделать комплимент', f: () => { G.daily.complA = 1; const ok = v > 35 || Math.random() < .5; Rel.add('alina', ok ? 5 : -2); say('Алина', ok ? 'Ой... спасибо 😊' : 'Эээ... Ладно? 😐'); } });
+  if (G.daily.hw && P.region === 'school' && !G.daily.hwA) o.push({ t: 'Сравнить ответы в домашке', f: () => { G.daily.hwA = 1; Rel.add('alina', 3); G.knowledge = Math.min(100, G.knowledge + 1); say('Алина', 'О, у тебя в третьем задании так же! Значит, правильно.'); } });
+  o.push({ t: 'Пока', f: () => { } });
+  return { t, o };
+};
+// ---------- локальный разбор: добрые дела и предметы ----------
+const DEED_WORDS = { cat: /(мурзик|кот.{0,15}баб|баб.{0,15}кот)/, mom: /(мам.{0,25}(отпуск|преми|отдох|устал|счастлив|легче))/, dima: /(дим.{0,30}(отец|отц|бат|пап|работ))/, kid: /(шарик|малыш)/, guard: /(охранник|спин[аеуы])/, teacher: /(проектор)/, cashier: /(зульфи|кассир|дочк)/, coach: /(палыч|ремонт.{0,10}зал|тренер)/, alina: /(алин.{0,30}(геометр|контрольн|понял|поним))/, park: /(мусор.{0,15}парк|парк.{0,15}(чист|мусор))/ };
+const MODEL_RU = { snowman: 'Снеговик', statue: 'Твоя статуя', ufo: 'НЛО', rocket: 'Ракета', christmasTree: 'Новогодняя ёлка', fountain: 'Фонтан', chest: 'Сундук с золотом', icecream: 'Мороженое', burger: 'Бургер', ball: 'Мяч', guitar: 'Гитара', bike: 'Велосипед', skateboard: 'Скейтборд', crown: 'Корона', sword: 'Меч', trophy: 'Кубок', flowers: 'Цветы', tent: 'Палатка', pool: 'Бассейн', robot: 'Робот', tree: 'Дерево', house: 'Домик', tv: 'Телевизор', computer: 'Компьютер', cake: 'Торт' };
+const MODEL_WORDS = [['snowman', /снегов/], ['statue', /(статую|памятник себ|свой памятник)/], ['ufo', /(нло|летающ.{0,5}тарел|инопланет)/], ['rocket', /ракет/], ['christmasTree', /(елк|ёлк|новогодн)/], ['fountain', /фонтан/], ['chest', /(сундук|клад|сокровищ)/], ['icecream', /морожен/], ['burger', /бургер/], ['ball', /мяч/], ['guitar', /гитар/], ['bike', /велосипед/], ['skateboard', /скейт/], ['crown', /корон/], ['sword', /меч/], ['trophy', /кубок/], ['flowers', /(цвет(ы|ов|очк)|букет)/], ['tent', /палатк/], ['pool', /бассейн/], ['robot', /робот/], ['tree', /дерев/], ['house', /домик/], ['tv', /(телевизор|плазм)/], ['computer', /(компьютер|ноутбук|комп )/], ['cake', /торт/]];
+WR.push({ re: /./, f: (t) => { const out = []; for (const id in DEED_WORDS) if (DEED_WORDS[id].test(t) && Deeds.st(id) !== 'done') { setTimeout(() => Deeds.complete(id, true), 1200); out.push(Deeds.def(id).miracle); } return out.length ? out.join(' ') : null; } });
+WR.push({ re: /./, f: (t, raw) => { for (const [m, re] of MODEL_WORDS) if (re.test(t)) { const big = /(огромн|гигантск|большущ|высоченн)/.test(t), lbl = MODEL_RU[m]; let c; for (const k in COLORS) if (t.includes(k)) c = '#' + COLORS[k].toString(16).padStart(6, '0'); Objs.spawnMany({ model: m, label: (big ? 'Огромный: ' : '') + lbl, size: big ? 3 : 1, color: c, count: 1, eat: ['cake', 'icecream', 'burger'].includes(m) ? 40 : 0 }); return 'Перед тобой появилось: «' + lbl + '».'; } return null; } });
 
 // ---------- ЗАПУСК ----------
 function boot() {
   W.mapRects = W.mapRects || [];
   buildExterior(); buildApartment(); buildSchool(); buildGym(); buildShop(); buildMansion(); buildMansionExterior();
-  flushStatic(); buildNPCs(); buildTraffic(); Fx.init(); P.init(); Touch.init();
+  flushStatic(); buildNPCs(); buildTraffic(); Fx.init(); P.init(); Touch.init(); Plus.init();
   $('wishGo').onclick = () => Wish.submit(); $('wishX').onclick = () => { closeModal(); relock(); }; $('phClose').onclick = () => { closeModal(); relock(); };
   $('wishIn').addEventListener('keydown', e => e.stopPropagation());
   document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
   Menu.show(); requestAnimationFrame(frame);
 }
 try { boot(); } catch (e) { console.error(e); document.body.insertAdjacentHTML('beforeend', '<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:#fff;z-index:99;padding:20px;text-align:center">Ошибка запуска: ' + esc(e.message) + '</div>'); }
-window.__game = { G: () => G, P, School, Wish, Busy, advanceRaw, teleport, Story, Cine, Interact, UI, colliders, NPCS };
+window.__game = { G: () => G, P, School, Wish, Busy, advanceRaw, teleport, Story, Cine, Interact, UI, colliders, NPCS, Deeds, Job, Objs, Rel, Feed, AI, OPS, talkTo, Post };
 </script>
 </body>
 </html>
