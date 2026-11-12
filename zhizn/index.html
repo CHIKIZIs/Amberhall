@@ -2022,11 +2022,11 @@ const Mini = {
   run(title, k, done) {
     openModal('miniM'); $('mnT').textContent = title; $('mnP').textContent = 'Жми, когда белая метка внутри зелёной зоны. 6 попыток.';
     const zw = G.fx.strongBody ? .95 : clamp(.13 + G[EX[k].st === 'endurance' ? 'endurance' : 'strength'] / 420, .13, .45);
-    let n = 0, succ = 0, t = 0, zc = .5, sp = 1.0, cool = 0, alive = true;
+    let n = 0, succ = 0, zc = .5, sp = 1.0, alive = true, lastP = 0; const t0 = performance.now(), tt = () => (performance.now() - t0) / 1000;
     const newZone = () => { zc = zw / 2 + Math.random() * (1 - zw); $('mnZone').style.left = (zc - zw / 2) * 100 + '%'; $('mnZone').style.width = zw * 100 + '%'; };
     newZone(); $('mnS').textContent = '0 / 6';
     const press = () => {
-      if (!alive || cool > 0) return; cool = .3;
+      if (!alive || performance.now() - lastP < 250) return; lastP = performance.now(); const t = tt();
       const pos = Math.abs(((t * sp) % 2) - 1), ok = Math.abs(pos - zc) <= zw / 2; n++; if (ok) succ++;
       $('mnS').innerHTML = (ok ? '<span style="color:#5fd38a">✓ Есть!</span>' : '<span style="color:#ff6b6b">✗ Мимо</span>') + `  ${succ} / ${n}`;
       Snd[ok ? 'good' : 'bad'](); if (W.bag && k === 'box') W.bag.userData.hit = 1;
@@ -2034,8 +2034,7 @@ const Mini = {
       if (n >= 6) { alive = false; setTimeout(() => { closeModal(); done(succ, n); }, 600); }
     };
     this.press = press; $('mnGo').onclick = press;
-    let lt = performance.now();
-    const loop = (now) => { if (!alive) return; const d = Math.min(.1, (now - lt) / 1000); lt = now; t += d; cool -= d; $('mnMark').style.left = (Math.abs(((t * sp) % 2) - 1) * 100) + '%'; requestAnimationFrame(loop); };
+    const loop = () => { if (!alive) return; $('mnMark').style.left = (Math.abs(((tt() * sp) % 2) - 1) * 100) + '%'; requestAnimationFrame(loop); };
     requestAnimationFrame(loop);
   }
 };
