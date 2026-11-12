@@ -80,7 +80,8 @@ textarea{resize:none;min-height:70px}
 input[type=range]{width:100%}
 #dlg{position:fixed;left:50%;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(640px,96vw);z-index:21;padding:14px 16px}
 #dlg .who{font-weight:800;color:var(--blue);font-size:14px}
-#dlg .txt{margin:4px 0 8px;font-size:16px;line-height:1.45}
+#dlg .txt{margin:4px 0 8px;font-size:16px;line-height:1.45;white-space:pre-line}
+#chP{white-space:pre-line}
 #phone{width:min(400px,96vw);height:min(720px,92vh);padding:0;display:flex;flex-direction:column;overflow:hidden;border-radius:28px;border:3px solid #2c3442}
 #phTop{display:flex;justify-content:space-between;padding:10px 18px 6px;font-size:12px;color:var(--mut)}
 #phTabs{display:flex;gap:2px;padding:4px 8px;overflow-x:auto;border-bottom:1px solid var(--line);flex-shrink:0}
@@ -497,7 +498,7 @@ function boxGeoUV(w, h, d, tu, tv) {
   for (let f = 0; f < 6; f++) for (let i = 0; i < 4; i++) { const k = f * 4 + i; uv.setXY(k, uv.getX(k) * dims[f][0] / tu, uv.getY(k) * dims[f][1] / tv); }
   return g;
 }
-const regionAt = x => x < 900 ? 'ext' : x < 1150 ? 'home' : x < 1350 ? 'school' : x < 1550 ? 'gym' : x < 1750 ? 'shop' : 'mansion';
+const regionAt = x => x < 900 ? 'ext' : x < 1150 ? 'home' : x < 1350 ? 'school' : x < 1550 ? 'gym' : x < 1750 ? 'shop' : x < 1850 ? 'mansion' : 'pod';
 // пространственная сетка коллайдеров
 const colliders = [], CG = new Map(), CELL = 8;
 const ckey = (i, j) => i * 100003 + j;
@@ -569,7 +570,7 @@ function vplane(w, h, m, x, y, z, face, o = {}) { const mesh = plane(w, h, m, x,
 
 // ---------- ИНТЕРАКТИВНЫЕ ОБЪЕКТЫ ----------
 const interacts = [];
-function addI(x, y, z, name, act, o = {}) { const it = { pos: new THREE.Vector3(x, y, z), r: o.r || 1.7, name, act, cond: o.cond || null, alt: o.alt || null }; interacts.push(it); return it; }
+function addI(x, y, z, name, act, o = {}) { const it = { pos: new THREE.Vector3(x, y, z), r: o.r || 1.7, name, act, cond: o.cond || null, alt: o.alt || null, door: !!o.door }; interacts.push(it); return it; }
 
 // ---------- ЧЕЛОВЕЧКИ ----------
 function makeHuman(o = {}) {
@@ -723,12 +724,13 @@ function streetLamp(x, z, ax, az) {
   sm(GEO.circle, MT.pool, hx, .09, hz, { rx: -Math.PI / 2, s: [6.5, 6.5, 1], cast: false });
   addCol(x - .12, x + .12, z - .12, z + .12, 0, 7.6, 't');
 }
-function bench(x, z, ry = 0) {
+function bench(x, z, ry = 0, sit = true) {
   const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry;
   const wd = mat(0x7a5434), mt = MT.metalD;
   const a = (w, h, d, m, px, py, pz) => { const me = new THREE.Mesh(bgeo(w, h, d), m); me.position.set(px, py, pz); me.castShadow = true; g.add(me); };
   a(1.8, .06, .45, wd, 0, .45, 0); a(1.8, .32, .05, wd, 0, .72, -.22); a(.08, .45, .45, mt, -.8, .22, 0); a(.08, .45, .45, mt, .8, .22, 0);
   addStaticGroup(g);
+  if (sit) addI(x, .7, z, 'Сесть на лавочку', () => { P.sitAt(x + Math.sin(ry) * .05, z + Math.cos(ry) * .05, yawFor(Math.sin(ry), Math.cos(ry)), 1.05, 'Встать с лавочки', 'bench'); toast('Лавочка', 'Сидишь, отдыхаешь. Можно подождать через телефон (Tab → Дела).'); Needs.add({ mood: 1 }); }, { r: 1.6 });
   const sw = Math.abs(Math.sin(ry)) > .5; addCol(x - (sw ? .3 : .95), x + (sw ? .3 : .95), z - (sw ? .95 : .3), z + (sw ? .95 : .3), 0, .5, 'f');
 }
 function parkedCar(x, z, ry) { const c = makeCar(pick(CAR_COLS)); c.position.set(x, 0, z); c.rotation.y = ry; addStaticGroup(c); const sw = Math.abs(Math.sin(ry)) > .5; addCol(x - (sw ? 2.1 : .9), x + (sw ? 2.1 : .9), z - (sw ? .9 : 2.1), z + (sw ? .9 : 2.1), 0, 1.5, 'c'); }
@@ -772,9 +774,12 @@ function buildExterior() {
   entrance(-60, 28, 's', { sign: sMat('Подъезд 1', '#1d4f8a', '#fff', 256, 96, 'bold 40px sans-serif') });
   entrance(-40, 28, 's', { sign: podSign, signH: .5, signY: 2.35 });
   entrance(-20, 28, 's', { sign: sMat('Подъезд 3', '#1d4f8a', '#fff', 256, 96, 'bold 40px sans-serif') });
+  W.it.podDoor = addI(-40, 1.2, 28.4, 'Подъезд № 2 — домой', () => goDoor('pod', true), { r: 2.6, door: true });
+  for (const x of [-60, -20]) addI(x, 1.2, 28.4, 'Чужой подъезд', () => { Snd.tone(900, .15, 'square', .05); say('Домофон', pick(['«Кто там?» — «Э-э... ошибся, извините.»', 'Код не подходит. Это не твой подъезд — тебе во второй.', '«Опять реклама?! Не открою!»'])); }, { r: 2.2, door: true });
+  for (const z of [25, 45, 65]) addI(-98.6, 1.2, z, 'Чужой подъезд', () => say('Домофон', 'Тут живут незнакомые люди. Твой дом — Строителей, 25, подъезд № 2.'), { r: 2, door: true });
   vplane(3.2, .6, sMat('ул. Строителей, 25', '#1b3f6e', '#fff', 512, 96, 'bold 46px sans-serif'), -10.5 + .0, 6, 23, 'e');
   // подъездная лавочка и урна
-  bench(-36.5, 29.6, Math.PI); bench(-44, 29.6, Math.PI);
+  bench(-36.5, 29.6, Math.PI, false); bench(-44, 29.6, Math.PI);
   cyl(.22, .18, .6, mat(0x2d5a3a), -38.6, 0, 29.4);
   // --- хрущёвка ---
   building(-45, 72, 54, 11, 5, MT.khr, { balc: ['n'] });
@@ -881,14 +886,14 @@ function buildExterior() {
   for (let i = 0; i < 12; i++) { birch(RR(-98, -60), RR(-98, -86), RR(.8, 1.1)); }
   for (let x = -56; x <= -4; x += 8) { if (Math.abs(x + 30) < 5) continue; spruce(x, -47.5, RR(.6, .8)); }
   bench(-40, -45, Math.PI); bench(-20, -45, Math.PI);
-  addI(-30, 1.2, -50.6, 'Войти в школу', () => goDoor('school', true));
+  addI(-30, 1.2, -50.6, 'Войти в школу', () => goDoor('school', true), { r: 2.4, door: true });
 
   // --- СПОРТЗАЛ ---
   building(95, -32, 24, 16, 2, MT.gymF, { fh: 4, tu: 16, tv: 8 });
   entrance(95, -24, 's', { w: 1.8, doorCol: 0x2a2f36 });
   const gs = sMat('СПОРТЗАЛ «ЖЕЛЕЗО»', '#111111', '#ffcc00', 512, 96, 'bold 50px sans-serif'); gs.emissiveMap = gs.map; W.glowSigns = [gs];
   vplane(8, 1.4, gs, 95, 6.6, -23.9, 's');
-  addI(95, 1.2, -23.6, 'Войти в спортзал', () => goDoor('gym', true));
+  addI(95, 1.2, -23.6, 'Войти в спортзал', () => goDoor('gym', true), { r: 2.4, door: true });
   for (const x of [86, 104]) streetLamp(x, -20, 0, -1);
 
   // --- МАГАЗИН ---
@@ -896,7 +901,7 @@ function buildExterior() {
   entrance(15, 17, 'n', { w: 1.6, doorCol: 0x3a4a5a });
   const ss = sMat('ПРОДУКТЫ 24 ЧАСА', '#1e7a3a', '#ffffff', 512, 96, 'bold 52px sans-serif'); ss.emissiveMap = ss.map; W.glowSigns.push(ss);
   vplane(10, 1.1, ss, 15, 4.3, 16.9, 'n');
-  addI(15, 1.2, 16.6, 'Войти в магазин «Продукты»', () => goDoor('shop', true));
+  addI(15, 1.2, 16.6, 'Войти в магазин «Продукты»', () => goDoor('shop', true), { r: 2.4, door: true });
 
   // --- ПАРК ---
   plane(90, 76, mat(0x58653a), 125, .035, 55, {});
@@ -1016,7 +1021,7 @@ function buildApartment() {
   I.cyl(.18, .14, .35, mat(0xa65a3a), 5.0, 0, .45); sm(GEO.dodec, mat(0x2f6a35), 1000 + 5.0, .7, .45, { s: [.35, .45, .35] });
   // ---- ПРИХОЖАЯ ----
   I.box(.07, 2.05, .9, mat(0x4f3626), 9.91, 0, 4.8); I.box(.04, .04, .14, MT.metal, 9.86, 1.0, 4.45);
-  W.it.door = I.i(9.6, 1.1, 4.8, 'Выйти из квартиры', () => goDoor('home', false));
+  W.it.door = I.i(9.6, 1.1, 4.8, 'Выйти из квартиры', () => goDoor('home', false), { r: 2.4, door: true });
   I.box(.9, .4, .28, MT.woodD, 9.0, 0, 5.4, { col: true });
   for (let i = 0; i < 3; i++) I.box(.26, .1, .1, mat(pick([0x222222, 0x6a4a2a, 0xeeeeee])), 8.75 + i * .25, .4, 5.4, { cast: false });
   I.box(1.0, .05, .08, MT.woodD, 8.9, 1.75, 5.5);
@@ -1078,7 +1083,7 @@ function buildSchool() {
   for (const [x, z] of [[11, 7], [17, 7], [11, 11], [17, 11], [24, 7], [30, 7], [24, 11], [30, 11]]) I.box(1.1, .06, .3, MT.lampIn, x, 3.12, z, { cast: false });
   // вход, вахта, гардероб
   I.box(.08, 2.2, 1.7, mat(0x6b4a2e), .1, 0, 2);
-  W.it.schoolExit = I.i(.6, 1.2, 2, 'Выйти на улицу', () => goDoor('school', false));
+  W.it.schoolExit = I.i(.6, 1.2, 2, 'Выйти на улицу', () => goDoor('school', false), { r: 2.4, door: true });
   I.box(1.3, .8, .55, MT.woodL, 3.0, 0, 3.15, { col: true }); I.box(.3, .2, .2, mat(0x333333), 3.2, .8, 3.15);
   I.box(3.2, .05, .05, MT.metal, 6, 1.75, .35); for (let i = 0; i < 8; i++) I.box(.32, .8, .16, mat(pick([0x2b3a2b, 0x222a3a, 0x5a2a2a, 0x3a3a3a, 0x6a5a3a])), 4.6 + i * .4, .95, .38, { cast: false });
   addCol(1200 + 4.4, 1200 + 7.6, .1, .55, 0, 1.8, 'f');
@@ -1129,7 +1134,7 @@ function buildGym() {
   I.v(14, 2.2, mat(0xc0d4dc, { emissive: 0x33434c }), 10, 1.3, 11.92, 'n');
   I.v(3, 1.2, sMat('БЕЗ БОЛИ\nНЕТ РЕЗУЛЬТАТА', '#111', '#ffcc00', 512, 200, 'bold 54px sans-serif'), 17.93, 2.6, 6, 'w');
   I.box(.08, 2.2, 1.6, mat(0x2a2f36), .1, 0, 2);
-  W.it.gymExit = I.i(.6, 1.2, 2, 'Выйти на улицу', () => goDoor('gym', false));
+  W.it.gymExit = I.i(.6, 1.2, 2, 'Выйти на улицу', () => goDoor('gym', false), { r: 2.4, door: true });
   I.box(1.9, 1.1, .6, mat(0x2a2a2a), 3, 0, .9, { col: true }); I.box(1.9, .04, .7, MT.woodL, 3, 1.1, .9);
   W.it.recep = I.i(3, 1.2, 1.6, 'Ресепшен', () => Gym.reception());
   I.box(.04, 2.1, 1.0, mat(0x5a6470), .08, 0, 9); I.v(1.0, .3, sMat('РАЗДЕВАЛКА', '#222', '#fff', 256, 64, 'bold 34px sans-serif'), .09, 2.35, 9, 'e');
@@ -1172,7 +1177,7 @@ function buildShop() {
   I.window(0, 5.5, 'e', 3, 1.8, .6);
   for (let x = 2; x <= 10; x += 4) for (const z of [2.5, 6.5]) I.box(1.2, .06, .3, MT.lampIn, x, 3.12, z, { cast: false });
   I.box(.08, 2.2, 1.4, mat(0x3a4a5a), .1, 0, 1.5);
-  W.it.shopExit = I.i(.6, 1.2, 1.5, 'Выйти на улицу', () => goDoor('shop', false));
+  W.it.shopExit = I.i(.6, 1.2, 1.5, 'Выйти на улицу', () => goDoor('shop', false), { r: 2.4, door: true });
   const prod = [0xd94a3a, 0xe8c040, 0x3a8ad9, 0x4ab84a, 0xffffff, 0xe88a2a, 0x8a4ab8, 0xc8a070, 0x2a6a2a];
   for (const x of [5, 7.5, 10]) {
     I.box(.5, 1.75, 4.2, mat(0xd0d0d0), x, 0, 5.4, { col: true });
@@ -1192,7 +1197,7 @@ function buildMansion() {
   for (const x of [4, 10, 16, 20]) I.window(x, 0, 's', 2.4, 3.6, .8, 0x8a1f2a);
   for (const x of [6, 12, 18]) for (const z of [4, 12]) I.cyl(.35, .4, 6, MT.gold, x, 0, z, { col: true });
   I.cyl(1.2, .3, 1, MT.lampIn, 12, 4.8, 8); I.cyl(.03, .03, .4, MT.gold, 12, 5.6, 8);
-  I.box(.08, 2.6, 2, mat(0x5a2a1a), .1, 0, 8); W.it.manExit = I.i(.7, 1.2, 8, 'Выйти из особняка', () => goDoor('mansion', false));
+  I.box(.08, 2.6, 2, mat(0x5a2a1a), .1, 0, 8); W.it.manExit = I.i(.7, 1.2, 8, 'Выйти из особняка', () => goDoor('mansion', false), { r: 2.4, door: true });
   I.box(4, .5, 1.2, mat(0x8a1f2a), 12, 0, 14.6, { col: true }); I.box(4, .6, .3, mat(0x7a1520), 12, .5, 15.2);
   I.v(6, 3.2, MT.tv, 12, 2.8, 1.0, 's'); I.box(6.3, 3.4, .1, MT.black, 12, 1.2, .95);
   I.i(12, 1.0, 13.4, 'Огромный диван и кинотеатр', () => Act.tv(true));
@@ -1217,18 +1222,19 @@ function buildMansionExterior() {
   for (const dx of [-14, 14]) { const t = new THREE.Mesh(GEO.cone, mat(0x2a5a30)); t.scale.set(1.2, 4, 1.2); t.position.set(cx + dx, 2, cz - 12); g.add(t); }
   g.visible = false; scene.add(g); W.mansionExt = g;
   W.mansionCol = { x0: cx - 14, x1: cx + 14, z0: cz - 9, z1: cz + 9, y0: 0, y1: 15, kind: 'b', on: false }; dynCols.push(W.mansionCol);
-  W.it.manDoor = addI(cx, 1.2, cz - 10.2, 'Войти в свой особняк', () => goDoor('mansion', true), { cond: () => G.flags.mansion });
+  W.it.manDoor = addI(cx, 1.2, cz - 10.2, 'Войти в свой особняк', () => goDoor('mansion', true), { cond: () => G.flags.mansion, r: 2.6, door: true });
 }
 
 const DOORS = {
-  home: { out: [-40, 29.6, Math.PI], in: [1009.3, 4.8, Math.PI / 2], name: 'Квартира' },
-  school: { out: [-30, -49.4, Math.PI], in: [1201.2, 2, -Math.PI / 2], name: 'Школа № 17' },
-  gym: { out: [95, -22.4, Math.PI], in: [1401.2, 2, -Math.PI / 2], name: 'Спортзал «Железо»' },
-  shop: { out: [15, 15.4, 0], in: [1601.2, 1.5, -Math.PI / 2], name: 'Магазин «Продукты»' },
-  mansion: { out: [125, 128.5, Math.PI], in: [1801.5, 8, -Math.PI / 2], name: 'Твой особняк' }
+  home: { out: [1905.5, 2.4, Math.PI], in: [1008.7, 4.8, Math.PI / 2], name: 'Квартира 52' },
+  pod: { out: [-40, 29.8, Math.PI], in: [1904, 7.1, 0], name: 'Подъезд № 2' },
+  school: { out: [-30, -49.4, Math.PI], in: [1201.9, 2, -Math.PI / 2], name: 'Школа № 17' },
+  gym: { out: [95, -22.4, Math.PI], in: [1401.9, 2, -Math.PI / 2], name: 'Спортзал «Железо»' },
+  shop: { out: [15, 15.4, 0], in: [1601.9, 1.5, -Math.PI / 2], name: 'Магазин «Продукты»' },
+  mansion: { out: [125, 128.5, Math.PI], in: [1802.3, 8, -Math.PI / 2], name: 'Твой особняк' }
 };
 const REGION_INFO = {
-  ext: { name: 'Улица', ceil: 999 }, home: { name: 'Квартира 52, 5 этаж', ceil: 2.6, b: [1000, 1010, 0, 8.4] },
+  ext: { name: 'Улица', ceil: 999 }, pod: { name: 'Подъезд № 2', ceil: 2.8, b: [1900, 1908, 0, 9] }, home: { name: 'Квартира 52, 5 этаж', ceil: 2.6, b: [1000, 1010, 0, 8.4] },
   school: { name: 'Школа № 17', ceil: 3.2, b: [1200, 1234, 0, 14] }, gym: { name: 'Спортзал «Железо»', ceil: 4.2, b: [1400, 1418, 0, 12] },
   shop: { name: 'Магазин «Продукты»', ceil: 3.2, b: [1600, 1612, 0, 9] }, mansion: { name: 'Твой особняк', ceil: 6, b: [1800, 1824, 0, 16] }
 };
@@ -1544,7 +1550,7 @@ const OUTFITS = {
 };
 const ITEM_NAMES = { balloon: 'Воздушный шарик', ointment: 'Мазь согревающая', bread: 'Хлеб (ломтики)', sausage: 'Колбаса (кружки)', eggs: 'Яйца', milk: 'Молоко (стаканы)', cereal: 'Хлопья (порции)', soup: 'Мамин суп (порции)', pelmeni: 'Пельмени (порции)', noodles: 'Лапша быстрого приготовления', apple: 'Яблоко', choco: 'Шоколадка', chips: 'Чипсы', juice: 'Сок', water: 'Вода', gum: 'Жвачка', bar: 'Протеиновый батончик', pizza: 'Пицца ✨', cake: 'Торт ✨' };
 const SNACKS = { apple: { h: 10, m: 2, b: -3 }, choco: { h: 12, m: 8 }, chips: { h: 14, m: 6, b: -4 }, juice: { h: 6, m: 4, b: -15 }, water: { h: 1, m: 1, b: -12 }, gum: { h: 0, m: 2 }, bar: { h: 20, m: 3 }, pizza: { h: 100, m: 20 }, cake: { h: 60, m: 25 } };
-const msgFrom = { mom: 'Мама', dima: 'Димон', alina: 'Алина', cls: 'Марина Сергеевна (классная)', chat: 'Чат 9 «Б»', x: '???', gym: 'Спортзал «Железо»' };
+const msgFrom = { mom: 'Мама', dima: 'Димон', alina: 'Алина', cls: 'Марина Сергеевна (классная)', chat: 'Чат 9 «Б»', x: '???', gym: 'Спортзал «Железо»', dom: 'Чат дома Строителей, 25', promo: '«Продукты 24»' };
 
 // ---------- ПОТРЕБНОСТИ ----------
 const Needs = {
@@ -1603,7 +1609,7 @@ function advanceRaw(gm, sleepLike) {
 }
 function newDay() {
   const d = G.daily;
-  G.hwReady = !!d.hw; G.day++; G.totalDays++; Feed.daily();
+  G.hwReady = !!d.hw; G.day++; G.totalDays++; Feed.daily(); Plus.newDay();
   G.daily = {}; G.fired = {}; G.dirty = Math.min(G.dirty + 1, 4);
   if (G.day % 2 === 0) G.flags.trashFull = true;
   if (!G.fx.warm && !G.flags.weatherLock) { const r = Math.random(); G.weather = r < .35 ? 'cloudy' : r < .65 ? 'snow' : r < .85 ? 'clear' : 'rain'; }
@@ -1695,6 +1701,7 @@ const Act = {
     choose('Кровать', 'Энергия: ' + Math.round(G.st.energy) + '%. Будильник: ' + (G.alarmOn ? fmtT(G.alarm) : 'выключен') + '.', opts);
   },
   sleep(dm) {
+    if (dm >= 300 && !G.daily.summary && (G.min > 1140 || G.min < 240)) { G.daily.summary = 1; Plus.summary(() => Act.sleep(dm)); return; }
     const m = G.min;
     if (m >= 1260 || m < 120) { if (m <= 1380 && m >= 1260) G.daily.bedOk = true; if (!G.daily.teethE) { Needs.add({ mood: -2 }); toast('Эх', 'Ты лёг, не почистив зубы.'); } }
     save();
@@ -1754,6 +1761,7 @@ const Act = {
       { t: 'Скорчить рожу', f: () => { Needs.add({ mood: 1 }); toast('Зеркало', '😜'); } }]);
   },
   shower() {
+    if (Plus.ev('hotwater') && G.min >= 540 && G.min < 1260) { Busy.start('Ледяной душ 🥶 (горячую воду отключили)', 6, () => { G.st.hygiene = 100; Needs.add({ mood: -6, energy: 10 }); G.daily.shower = true; toast('Брр!', 'Помылся ледяной водой. Зато проснулся окончательно.'); }); return; }
     Busy.start('Принимаешь душ 🚿', 15, () => { G.st.hygiene = 100; Needs.add({ mood: 6, energy: 3 }); G.daily.shower = true; toast('Свежесть', 'Гигиена 100%'); });
   },
   bathSink() {
@@ -1909,16 +1917,17 @@ const School = {
     if (!G.bag) { intro.push('Ты забыл рюкзак! Пишешь на листочке у Димона.'); Needs.add({ mood: -4 }); }
     if (G.outfit !== 'school') { intro.push(`«Это что за вид? Где школьная форма?» — ${S[0]} неодобрительно смотрит на тебя.`); Needs.add({ mood: -3 }); }
     const hwCheck = Math.random() < .35;
-    const qs = [QB[S[2]](), QB[S[2]](), QB[S[2]]()];
+    const isTest = Plus.isTest(i); if (isTest) intro.unshift('📝 КОНТРОЛЬНАЯ РАБОТА! Пять вопросов, оценку получат все.');
+    const qs = Array.from({ length: isTest ? 5 : 3 }, () => QB[S[2]]());
     let qi = 0, right = 0, hwGrade = null;
     const finish = () => {
       let g = null;
-      if (Math.random() < .55 || G.fx.smart) g = [2, 3, 4, 5][right];
+      if (isTest) g = [2, 2, 3, 4, 5, 5][right]; else if (Math.random() < .55 || G.fx.smart) g = [2, 3, 4, 5][right];
       if (g) { G.journal.push({ d: G.day, s: r.s, g, note: 'Работа на уроке' }); (G.grades[r.s] = G.grades[r.s] || []).push(g); r.g = g; }
       G.knowledge = Math.min(100, G.knowledge + right * 1.2);
       Needs.add({ mood: g === 5 ? 8 : g === 2 ? -10 : 0 });
       if (g === 2) G.flags.badGrade = G.day;
-      const lines = [`Правильных ответов: ${right} из 3.`];
+      const lines = [`Правильных ответов: ${right} из ${qs.length}.`];
       if (hwGrade) lines.push(`За домашку: ${hwGrade}.`);
       lines.push(g ? `${S[0]} ставит тебе <b class="g${g}">${g}</b> в журнал.` : 'Сегодня тебя не спросили — без оценки.');
       Quiz.show(`Урок ${i + 1} · ${r.s}`, 'Итог', lines.join('<br>'), [
@@ -1931,7 +1940,7 @@ const School = {
       if (qi >= qs.length) return finish();
       const q = qs[qi]; let hint = -1, cut = -1;
       if (G.fx.smart) hint = q.a; else if (G.knowledge > 55 && Math.random() < (G.knowledge - 45) / 100) { cut = [0, 1, 2, 3].filter(k => k !== q.a)[Math.floor(Math.random() * 3)]; }
-      Quiz.show(`Урок ${i + 1} · ${r.s} · вопрос ${qi + 1}/3`, q.q, G.fx.smart ? '✨ Ты просто знаешь ответ.' : (cut >= 0 ? 'Ты кое-что помнишь — один вариант точно мимо.' : ''), q.o.map((t, k) => ({
+      Quiz.show(`Урок ${i + 1} · ${r.s} · вопрос ${qi + 1}/${qs.length}`, q.q, G.fx.smart ? '✨ Ты просто знаешь ответ.' : (cut >= 0 ? 'Ты кое-что помнишь — один вариант точно мимо.' : ''), q.o.map((t, k) => ({
         t, cls: k === hint ? 'hint' : '', dis: k === cut, keep: true, f: (btn, all) => {
           if (Quiz.locked) return; Quiz.locked = true;
           if (k === q.a) { right++; btn.classList.add('right'); Snd.good(); } else { btn.classList.add('wrong'); all[q.a].classList.add('right'); Snd.bad(); }
@@ -2052,7 +2061,7 @@ const Shop = {
     if (kind === 'canteen' && !(isWeekday(G.day) && G.min >= 480 && G.min < 930)) { say('Столовая', 'Столовая закрыта.'); return; }
     const title = { shop: 'Касса · «Продукты 24»', kiosk: 'Ларёк «Шаурма»', canteen: 'Школьная столовая' }[kind];
     const opts = GOODS[kind].map(([k, n, p, q]) => ({
-      t: n, r: p + ' ₽' + (q && G.inv[k] ? ' · есть ' + G.inv[k] : ''), keep: false, f: () => {
+      t: n, r: (kind === 'shop' && Plus.ev('sale') ? (p = Math.round(p * .7)) + ' ₽ (−30%)' : p + ' ₽') + (q && G.inv[k] ? ' · есть ' + G.inv[k] : ''), keep: false, f: () => {
         if (!pay(p)) return;
         if (k === '_shawa') eat('Шаурма', { h: 50, m: 12, b: -4 }, 10);
         else if (k === '_tea') eat('Чай', { h: 2, m: 4, b: -10 }, 4);
@@ -2102,6 +2111,7 @@ const Story = {
     if (!G.daily.dimaGym) o.push({ t: 'Пойдём в зал после школы?', f: () => { G.daily.dimaGym = true; say('Димон', 'Го! Я там буду с 16:00 до 18:00. Не забудь форму.'); } });
     if (G.power && !G.flags.dimaKnows) o.push({ t: 'Димон, я могу исполнять любые желания.', f: () => say('Димон', 'Ага, конечно. Докажи! Загадай, чтобы у меня был новый телефон, а то мой с трещиной.', [{ t: '✨ Загадать Димону новый телефон', f: () => { G.flags.dimaKnows = true; Wish.fxBurst(); setTimeout(() => { msg('dima', 'БРО!!!! Мне только что курьер принёс новый телефон!!! Ты как это сделал??? Я в шоке 😱😱😱'); }, 2500); } }, { t: 'Ладно, проехали', f: () => { } }]) });
     if (G.flags.dimaKnows) o.push({ t: 'Что бы ты загадал на моём месте?', f: () => say('Димон', pick(['Чтобы контрольных не было. Никогда. Вообще.', 'Ламбу. Жёлтую. И чтобы в школу на ней.', 'Бесконечную шаурму. Я серьёзно.', 'Летать! Это же топ.'])) });
+    if (Plus.ev('bday')) { t = '🎉 ' + (G.min >= 1080 ? 'О, пришёл! Бери шаурму, я угощаю!' : 'Сегодня мой день, бро! Вечером у ларька, в 18:00.'); o.unshift(...Story.dimaBday()); }
     o.push({ t: 'Ладно, давай', f: () => { } });
     return { t, o };
   },
@@ -2175,7 +2185,7 @@ const Fx = {
     this.rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0x9aaabb, transparent: true, opacity: .45 })); this.rain.frustumCulled = false; scene.add(this.rain);
     // искры
     const kn = 160, kg = new THREE.BufferGeometry(); kg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(kn * 3), 3));
-    this.spark = new THREE.Points(kg, new THREE.PointsMaterial({ color: 0xffd86b, size: .1, map: DOT, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+    this.spark = new THREE.Points(kg, new THREE.PointsMaterial({ color: 0xffd86b, size: .06, map: DOT, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
     this.spark.frustumCulled = false; this.spark.visible = false; scene.add(this.spark); this.sparkV = []; this.sparkT = 0;
     // денежный дождь
     this.cash = new THREE.InstancedMesh(new THREE.PlaneGeometry(.32, .16), new THREE.MeshLambertMaterial({ map: T.money, side: THREE.DoubleSide }), 260);
@@ -2400,7 +2410,7 @@ const WR = [
   { re: /(салют|фейерверк|праздник)/, f: () => { Fx.fireworks(45); return 'В небе грохочет салют! (лучше видно на улице вечером)'; } },
   { re: /(невидим)/, not: /(перестат|снова видим|не быть невидим|стать видим|стань видим)/, f: () => { G.fx.invisible = true; return 'Ты невидимка. Тебя никто не замечает.'; } },
   { re: /(снова видим|стать видимым|стань видимым|перестать быть невидим|не быть невидим)/, f: () => { G.fx.invisible = false; return 'Тебя снова видно.'; } },
-  { re: /(великан|гигантом|двадцать метров|большой ростом|(стать|быть|сделай меня|стал|вырасти|хочу быть) .{0,14}(огромн|гигант|высок|больш|велик))/, f: () => { if (P.region !== 'ext') { const D = DOORS[P.region]; teleport(D.out[0], D.out[1], D.out[2]); } P.setScale(4.5); return 'Ты стал великаном! (В помещения теперь не влезть.)'; } },
+  { re: /(великан|гигантом|двадцать метров|большой ростом|(стать|быть|сделай меня|стал|вырасти|хочу быть) .{0,14}(огромн|гигант|высок|больш|велик))/, f: () => { if (P.region !== 'ext') goOutside(); P.setScale(4.5); return 'Ты стал великаном! (В помещения теперь не влезть.)'; } },
   { re: /(размером с муравь|гномом|(стать|быть|сделай меня|стал|хочу быть) .{0,14}(маленьк|крошечн|мелк|муравь))/, f: () => { P.setScale(.25); return 'Ты стал крошечным, как игрушка.'; } },
   { re: /(нормальн.{0,6}(рост|размер)|обычн.{0,6}(рост|размер)|прежн)/, f: () => { P.setScale(1); return 'Ты снова обычного роста.'; } },
   { re: /(популяр|любил|любят|знаменит|звездой|блогер|подписчик|лайк|уважал|крутым|девушк|подруг|друз)/, f: () => { G.fx.popular = true; G.pop = 100; setTimeout(() => { msg('chat', 'Ребят, ' + G.name + ' — легенда школы, это факт 🔥'); msg('dima', 'Бро, у тебя в соцсетях +100 тысяч подписчиков за час. ЧТО ПРОИСХОДИТ?!'); }, 1500); return 'Тебя все обожают. Люди машут тебе на улице.'; } },
@@ -2513,18 +2523,19 @@ function goDoor(key, entering) {
     if (key === 'school' && !(isWeekday(G.day) && m >= 420 && m < 1140)) { say('Дверь школы', 'Закрыто. Школа работает по будням с 7:00 до 19:00.'); return; }
     if (key === 'gym' && !(m >= 420 && m < 1380)) { say('Спортзал', 'Закрыто. Часы работы: 7:00–23:00.'); return; }
   } else {
-    if (key === 'home' && G.outfit === 'pajama') { say('Ты', 'В пижаме на улицу? Ну уж нет. Сначала переоденься (шкаф в комнате).'); return; }
+    if (key === 'pod' && G.outfit === 'pajama') { say('Ты', 'В пижаме на улицу? Ну уж нет. Сначала переоденься (шкаф в комнате).'); return; }
     if (key === 'home' && (m >= 1380 || m < 330) && W.mom.vis && !G.fx.invisible) { say('Мама', 'Куда это ты на ночь глядя?! А ну марш в кровать!'); return; }
   }
   Snd.door();
-  const lift = key === 'home', broken = lift && Math.random() < .15;
+  const lift = key === 'home', broken = lift && (Pod.liftBroken() || Math.random() < .06);
+  if (key === 'pod' && entering) Snd.tone(1200, .12, 'square', .05);
   fadeTo(() => {
     const p = entering ? D.in : D.out; teleport(p[0], p[1], p[2]);
     if (lift) { advanceRaw(broken ? 4 : 1.5); if (!broken) Snd.lift(); }
     if (key === 'school' && entering && isWeekday(G.day) && schoolOn()) { if (G.min <= 512) G.daily.onTime = true; else if (G.min < 845 && !G.daily.lateMsg) { G.daily.lateMsg = 1; toast('Охранник', '«Опаздываешь! Бегом в класс, кабинет 21!»'); } }
     if (key === 'home' && entering && G.flags.breadTask === G.day && G.daily.bread && !G.daily.breadThx) { G.daily.breadThx = 1; G.flags.momLove = (G.flags.momLove || 0) + 1; setTimeout(() => toast('Мама', 'Спасибо за хлеб, сынок! ❤️'), 800); }
     save();
-  }, entering ? D.name : (lift ? (broken ? 'Лифт опять сломан. Идёшь пешком с 5 этажа...' : 'Лифт везёт тебя вниз...') : 'Улица'));
+  }, lift ? (broken ? (entering ? 'Лифт сломан. Пешком на пятый...' : 'Лифт сломан. Спускаешься пешком с 5 этажа...') : (entering ? 'Лифт поднимает тебя на 5 этаж...' : 'Лифт везёт тебя вниз...')) : entering ? D.name : (key === 'pod' ? 'Улица Строителей' : 'Улица'));
 }
 
 // =====================================================================
@@ -2709,7 +2720,7 @@ const Interact = {
       const dx = it.pos.x - eye.x, dy = it.pos.y - eye.y, dz = it.pos.z - eye.z, d = Math.hypot(dx, dy * .6, dz);
       if (d > it.r * rm) continue;
       const hd = Math.hypot(dx, dz), fl = Math.hypot(_fw.x, _fw.z) || 1, dot = hd < .45 ? 1 : (dx * _fw.x + dz * _fw.z) / (hd * fl);
-      if (d > .7 && dot < .55) continue;
+      if (d > .45 && dot < (it.door ? .15 : .55)) continue;
       const sc = dot * 2 - d * .8; if (sc > bs) { bs = sc; best = it; }
     }
     return best;
@@ -2717,8 +2728,8 @@ const Interact = {
   update() {
     const c = (state === 'play' && !UI.modal && !Busy.cur && !Cine.active) ? this.find() : null; this.cur = c;
     const el = $('prompt');
-    if (c) { const n = typeof c.name === 'function' ? c.name() : c.name; el.innerHTML = (isTouch ? '' : '<kbd>E</kbd>') + esc(n); el.classList.remove('hidden'); }
-    else el.classList.add('hidden');
+    if (c) { const n = typeof c.name === 'function' ? c.name() : c.name; el.innerHTML = (isTouch ? '' : '<kbd>E</kbd>') + esc(n); el.classList.remove('hidden'); if (isTouch) $('mbUse').textContent = n.split(/[ :—]/)[0].slice(0, 11) || 'Действие'; }
+    else { el.classList.add('hidden'); if (isTouch) $('mbUse').textContent = 'Действие'; }
   },
   use() { const c = this.cur || this.find(); if (c) { Snd.click(); c.act(); } }
 };
@@ -2769,7 +2780,7 @@ function say(who, text, opts) {
   const L = $('dlgOpts'); L.innerHTML = ''; const btns = [];
   (opts && opts.length ? opts : [{ t: 'Ок', f: () => { } }]).forEach((o, i) => {
     const b = document.createElement('button'); b.className = 'btn'; b.innerHTML = `<span class="k">${i + 1}</span>${esc(o.t)}`;
-    b.onclick = () => { hideDialog(); relock(); o.f(); }; L.appendChild(b); btns.push(b);
+    if (o.dis) b.disabled = true; b.onclick = () => { if (b.disabled) return; hideDialog(); relock(); o.f(); }; L.appendChild(b); btns.push(b);
   });
   UI.keyOpts = btns;
 }
@@ -2824,8 +2835,9 @@ const Goal = {
 function routeTarget(t) {
   if (!t) return null; const tr = regionAt(t[0]);
   if (tr === P.region) return t;
-  if (P.region !== 'ext') { const d = DOORS[P.region].in; return [d[0] - .6, d[1]]; }
-  const key = Object.keys(DOORS).find(k => regionAt(DOORS[k].in[0]) === tr); return key ? [DOORS[key].out[0], DOORS[key].out[1] - (key === 'shop' ? -1 : 1)] : null;
+  const PAR = { home: 'pod', pod: 'ext', school: 'ext', gym: 'ext', shop: 'ext', mansion: 'ext' }, up = [tr]; let r = tr; while (PAR[r]) { r = PAR[r]; up.push(r); }
+  if (!up.includes(P.region)) { const d = DOORS[P.region].in; return [d[0], d[1]]; }
+  const child = up[up.indexOf(P.region) - 1], o = DOORS[child].out; return child === 'home' ? [1905.5, .9] : [o[0], o[1] - (child === 'shop' ? -1 : 1)];
 }
 
 // ---------- МИНИКАРТА ----------
@@ -2980,7 +2992,7 @@ const Menu = {
     openModal('pause'); const L = $('pauseList'); L.innerHTML = '';
     const add = (t, f) => { const b = document.createElement('button'); b.className = 'btn'; b.textContent = t; b.onclick = f; L.appendChild(b); };
     add('▶ Продолжить', () => { closeModal(); relock(); }); add('📱 Телефон', () => Phone.open()); add('⚙️ Настройки', () => Phone.open('set'));
-    add('💾 Сохранить', () => { save(); toast('Сохранено', 'Игра сохранена.'); }); add('🚪 Главное меню', () => { save(); closeModal(); Menu.show(); });
+    add('💾 Сохранить', () => { save(); toast('Сохранено', 'Игра сохранена.'); }); add('🆘 Застрял? Вернуться домой', () => Plus.unstick()); add('🚪 Главное меню', () => { save(); closeModal(); Menu.show(); });
   }
 };
 function resetWorld() {
@@ -3155,7 +3167,7 @@ const OPS = {
   weather(o) { const w = String(o.value); if (!['clear', 'cloudy', 'snow', 'rain', 'summer'].includes(w)) return null; G.weather = w; G.flags.weatherLock = true; G.fx.warm = w === 'summer'; if (w === 'snow') G.snow = 1; if (w === 'summer') G.snow = 0; return null; },
   stat(o) { if (o.name in G.st) G.st[o.name] = clamp(+o.value, 0, 100); return null; },
   skill(o) { if (['strength', 'endurance', 'knowledge', 'pop'].includes(o.name)) G[o.name] = clamp(+o.value, 0, 100); return null; },
-  scale(o) { const s = clamp(+o.value || 1, .2, 5); if (s > 1.4 && P.region !== 'ext') { const D = DOORS[P.region]; teleport(D.out[0], D.out[1], D.out[2]); } P.setScale(s); return null; },
+  scale(o) { const s = clamp(+o.value || 1, .2, 5); if (s > 1.4 && P.region !== 'ext') goOutside(); P.setScale(s); return null; },
   teleport(o) { Wish.go(String(o.to)); return null; },
   pet(o) { const k = String(o.kind); if (!['dog', 'cat', 'dragon', 'unicorn'].includes(k)) return null; G.spawns.pets.push(k); Spawn.pet(k); return null; },
   car(o) { const c = hexCol(o.color, 0xd01f1f); G.spawns.car = c; P.spawnCar(c); return 'спорткар ждёт' + (P.region !== 'ext' ? ' у подъезда' : ''); },
@@ -3321,7 +3333,7 @@ const Deeds = {
   },
   complete(id, magic) {
     const d = this.def(id); if (!d || this.st(id) === 'done') return;
-    G.deeds[id] = 'done'; if (!magic && d.done) d.done();
+    G.deeds[id] = 'done'; G.daily.deeds = (G.daily.deeds || 0) + 1; if (!magic && d.done) d.done();
     if (id === 'cat') { G.carry = null; Lost.cat.visible = false; }
     if (id === 'park') Lost.trash.forEach(t => t.visible = false);
     Needs.add({ mood: 12 }); if (d.reward && !magic) G.money += d.reward; if (d.grade) { (G.grades['Алгебра'] = G.grades['Алгебра'] || []).push(5); G.journal.push({ d: G.day, s: 'Алгебра', g: 5, note: 'За помощь учителю' }); }
@@ -3539,15 +3551,17 @@ const PlusPhone = {
 //  ОБЩЕЕ
 // =====================================================================
 const Plus = {
-  init() { Lost.init(); Marks.init(); Look.init(); Post.init(); AI.init(); },
+  init() { Lost.init(); Marks.init(); Look.init(); Post.init(); AI.init(); Plus.patchNPC(); },
   onStart() {
     G.rel = Object.assign({ mom: 55, dima: 60, alina: 25, babki: 40, coach: 35 }, G.rel || {});
     G.deeds = G.deeds || {}; G.feed = G.feed || []; G.spawns.objs = G.spawns.objs || [];
     if (!G.feed.length) Feed.daily();
+    if (!G.event) { G.event = { id: null, day: G.day }; G.daily.money0 = G.money; }
+    Plus.hintT = 0;
     Objs.restore(); Lost.sync();
     $('wishSub').dataset.ai = '';
   },
-  update(dt, t) { Objs.update(dt, t); Lost.sync(); Lost.update(dt, t); Marks.update(t); Hype.update(dt); Job.update(); },
+  update(dt, t) { Plus.updateExtra(dt); Objs.update(dt, t); Lost.sync(); Lost.update(dt, t); Marks.update(t); Hype.update(dt); Job.update(); },
   frameLook(dt, t) { Look.update(dt, t); }
 };
 
@@ -3570,10 +3584,147 @@ const MODEL_WORDS = [['snowman', /снегов/], ['statue', /(статую|па
 WR.push({ re: /./, f: (t) => { const out = []; for (const id in DEED_WORDS) if (DEED_WORDS[id].test(t) && Deeds.st(id) !== 'done') { setTimeout(() => Deeds.complete(id, true), 1200); out.push(Deeds.def(id).miracle); } return out.length ? out.join(' ') : null; } });
 WR.push({ re: /./, f: (t, raw) => { for (const [m, re] of MODEL_WORDS) if (re.test(t)) { const big = /(огромн|гигантск|большущ|высоченн)/.test(t), lbl = MODEL_RU[m]; let c; for (const k in COLORS) if (t.includes(k)) c = '#' + COLORS[k].toString(16).padStart(6, '0'); Objs.spawnMany({ model: m, label: (big ? 'Огромный: ' : '') + lbl, size: big ? 3 : 1, color: c, count: 1, eat: ['cake', 'icecream', 'burger'].includes(m) ? 40 : 0 }); return 'Перед тобой появилось: «' + lbl + '».'; } return null; } });
 
+// =====================================================================
+//  ПОДЪЕЗД № 2
+// =====================================================================
+function buildPod() {
+  const I = Interior(1900, 0, 2.8), SW = MT.schoolWall, wo = { tu: 1, tv: 2.8 };
+  const fl = tmat(ctex(128, 128, (g) => { for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) { g.fillStyle = (x + y) % 2 ? '#7d5f4a' : '#a7866a'; g.fillRect(x * 32, y * 32, 32, 32); } speckle(g, 0, 0, 'rgba(0,0,0,0)', .1, 0); }));
+  I.floor(0, 0, 8, 9, fl, 1); I.ceil(0, 0, 8, 9);
+  I.wall(0, 0, 8, 0, null, SW, [], wo); I.wall(0, 9, 8, 9, SW, null, [], wo); I.wall(0, 0, 0, 9, null, SW, [], wo); I.wall(8, 0, 8, 9, SW, null, [], wo);
+  // дверь на улицу
+  I.box(1.3, 2.15, .08, mat(0x4a3628), 4, 0, 8.93); I.box(.05, .2, .05, MT.metal, 4.5, 1.0, 8.86);
+  I.box(.2, .3, .06, mat(0x333333), 5.0, 1.2, 8.9);
+  W.it.podExit = I.i(4, 1.2, 8.3, 'Выйти на улицу', () => goDoor('pod', false), { r: 2.4, door: true });
+  I.window(0, 7, 'e', 1.0, 1.2, 1.2);
+  // лифт
+  I.box(1.3, 2.1, .06, mat(0x8a8f94), 5.5, 0, .09); I.box(.02, 2.1, .07, MT.black, 5.5, 0, .1); I.box(1.5, .12, .08, mat(0x6a6f74), 5.5, 2.1, .1);
+  I.box(.12, .25, .04, MT.metalD, 6.45, 1.0, .1); I.v(.05, .05, mat(0xff4422, { emissive: 0xff2200 }), 6.45, 1.18, .125, 's');
+  I.v(.9, .22, sMat('ЛИФТ', '#2a2f36', '#ffffff', 256, 64, 'bold 40px sans-serif'), 5.5, 2.45, .07, 's');
+  W.it.lift = I.i(5.5, 1.2, .9, () => Pod.liftBroken() ? 'Лифт (не работает)' : 'Вызвать лифт — 5 этаж', () => Pod.lift(), { r: 2.3, door: true });
+  // лестница наверх
+  for (let i = 0; i < 8; i++) I.box(2.2, .17 * (i + 1), .3, mat(0x9a948a), 1.3, 0, 1.0 + i * .3);
+  addCol(1900 + .2, 1900 + 2.4, .9, 3.4, 0, 2.8, 'w');
+  for (let i = 0; i < 4; i++) I.box(.04, .9, .04, MT.metalD, 2.45, .3 + i * .35, 1.2 + i * .65);
+  I.box(.05, .05, 2.6, MT.woodD, 2.45, 1.5, 2.2, { rx: .45 });
+  W.it.stairs = I.i(1.4, 1.0, 3.8, 'Подняться пешком на 5 этаж', () => Pod.stairs(), { r: 2.2, door: true });
+  // почтовые ящики
+  I.box(.3, .95, 1.7, mat(0x3a5a8a), 7.83, 1.0, 6.2, { col: true });
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) I.box(.02, .17, .36, mat(0x2a4472), 7.67, 1.06 + r * .22, 5.6 + c * .4, { cast: false });
+  W.it.mail = I.i(7.3, 1.4, 6.2, 'Почтовый ящик кв. 52', () => Pod.mail(), { r: 1.9 });
+  // доска объявлений
+  I.v(1.1, .8, sMat('ОБЪЯВЛЕНИЯ\n· · ·\n· · ·', '#ece4cc', '#3a2a1a', 256, 190, 'bold 30px sans-serif'), .07, 1.6, 5.0, 'e');
+  W.it.notice = I.i(.6, 1.5, 5.0, 'Доска объявлений', () => Pod.notices(), { r: 1.9 });
+  // батарея, лампа, надпись
+  I.box(.08, .5, 1.0, mat(0xd8d8d8), 7.9, .2, 3.4); I.box(.4, .06, .4, MT.lampIn, 4, 2.74, 4.5, { cast: false });
+  const gr = sMat('Рома + Катя', '#e9e3d0', '#2a4a9a', 256, 64, 'italic bold 34px sans-serif'); I.v(1.0, .25, gr, 7.93, 1.95, 1.6, 'w');
+  I.v(.7, .5, sMat('НЕ КУРИТЬ!', '#ffffff', '#c0201a', 256, 128, 'bold 40px sans-serif'), 4, 2.0, 8.88, 'n');
+  I.cyl(.15, .12, .35, mat(0xa65a3a), .35, 1.05, 6.5); sm(GEO.dodec, mat(0x3a7a3a), 1900 + .35, 1.55, 6.5, { s: [.25, .3, .25] });
+}
+const NOTICES = ['Уважаемые жильцы! Собрание в четверг в 19:00 у 1-го подъезда. Повестка: кто сломал лавочку.', 'Найдены ключи с брелоком-котиком. Спросить в кв. 41.', 'Продам гараж. Недорого. Тел. висит отдельно (оторвали).', 'Кто курит в подъезде — совесть имейте! Тут дети ходят.', 'Пропала кошка, рыжая, отзывается на «Мурзик» и на звук холодильника. Кв. 12 (баба Валя).', 'ПОВЕРКА СЧЁТЧИКОВ — не открывайте мошенникам! ЖЭК.'];
+const Pod = {
+  liftBroken: () => Plus.ev('lift'),
+  lift() {
+    if (P.scale > 1.4) { toast('Не влезаешь', 'В лифт с таким ростом не поместиться.'); return; }
+    if (this.liftBroken()) { say('Лифт', 'На двери табличка: «Лифт не работает. Ремонт. ЖЭК». Придётся пешком.', [{ t: 'Подняться пешком', f: () => this.stairs() }, { t: 'Ладно', f: () => { } }]); return; }
+    goDoor('home', true);
+  },
+  stairs() {
+    Snd.door();
+    fadeTo(() => { const d = DOORS.home.in; teleport(d[0], d[1], d[2]); advanceRaw(3); Needs.add({ energy: -3 }); G.endurance = Math.min(100, G.endurance + .2); save(); }, 'Пешком на пятый этаж... Уф.');
+  },
+  mail() {
+    if (G.daily.mail) { say('Почтовый ящик', 'Пусто. Ты уже проверял сегодня.'); return; }
+    G.daily.mail = 1;
+    if (Math.random() < .15) { G.money += 100; Snd.good(); say('Почтовый ящик', 'Конверт от бабушки из Саратова: «Учись хорошо, внучек!» и 100 ₽ на мороженое ❤️'); return; }
+    say('Почтовый ящик', pick(['Квитанция за свет. Маме будет «приятно».', 'Реклама пиццы: «Вторая пицца в подарок!»', 'Газета «Районные вести». На первой полосе — ремонт дороги. Опять.', 'Листовка «Окна ПВХ — дёшево!». Таких у тебя уже десять.', 'Пусто. Только паук.']));
+  },
+  notices() {
+    const ev = Plus.curEv(), L = []; if (ev && EVENTS[ev].notice) L.push('📌 ' + EVENTS[ev].notice);
+    for (let i = 0; i < 3; i++) L.push('• ' + NOTICES[(G.day + i * 2) % NOTICES.length]);
+    say('Доска объявлений', L.join('\n'));
+  }
+};
+function goOutside() { const k = P.region === 'home' ? 'pod' : P.region; const D = DOORS[k]; if (D) teleport(D.out[0], D.out[1], D.out[2]); }
+
+// =====================================================================
+//  СОБЫТИЯ ДНЯ
+// =====================================================================
+const EVENTS = {
+  hotwater: { t: 'Отключили горячую воду до 21:00', from: 'dom', msg: 'Соседи, горячую воду отключили до 21:00. Опять! 😡', notice: 'С 9:00 до 21:00 — отключение горячей воды. Администрация.' },
+  lift: { t: 'Лифт в подъезде сломан', from: 'dom', msg: 'Лифт во втором подъезде сломался. Мастер обещал «на днях».', notice: 'ЛИФТ НЕ РАБОТАЕТ. Ремонт. Просьба не стучать по дверям!' },
+  test: { t: 'Контрольная на 3-м уроке', from: 'chat', msg: 'НАРОД, сегодня на 3-м уроке КОНТРОЛЬНАЯ!!! Кто не знал — теперь знает 💀' },
+  drill: { t: 'Сосед сверлит с утра', from: 'dom', msg: 'Тому, кто сверлит в 9 утра в выходной: мы вас найдём.', notice: 'Шуметь можно только с 9:00 до 19:00. Но имейте совесть!' },
+  sale: { t: 'Скидка 30% в «Продуктах»', from: 'promo', msg: 'Только сегодня: скидка 30% на всё! «Продукты 24», ул. Строителей.' },
+  bday: { t: 'У Димона день рождения!', from: 'dima', msg: 'Бро, мне сегодня 16!!! 🎉 Вечером в 18:00 угощаю шаурмой у ларька, приходи!' }
+};
+const KIOSK_PARTY = { x: 30.6, z: 9.1, ry: 0, pose: 'talk' };
+Object.assign(Plus, {
+  ev(id) { return G && G.event && G.event.day === G.day && G.event.id === id; },
+  curEv() { return G && G.event && G.event.day === G.day ? G.event.id : null; },
+  pickEvent() {
+    const d = G.day, wd = isWeekday(d) && schoolOn();
+    if (d === 4) return 'bday';
+    if (d === 0 || Math.random() < .3) return null;
+    return pick(['hotwater', 'lift', 'sale', wd ? 'test' : 'drill']);
+  },
+  newDay() {
+    G.daily.money0 = G.money;
+    const id = this.pickEvent(); G.event = { id, day: G.day };
+    if (id) setTimeout(() => msg(EVENTS[id].from, EVENTS[id].msg), 600);
+  },
+  isTest(i) { return this.ev('test') && i === 2; },
+  // итоги дня перед сном
+  summary(cb) {
+    const d = G.daily, L = this.tasks(), done = L.filter(x => x[1]).length, j = G.journal.filter(x => x.d === G.day), delta = Math.round(G.money - (d.money0 ?? G.money));
+    const score = clamp(Math.round(done / Math.max(1, L.length) * 7 + G.st.mood / 100 * 3), 1, 10);
+    const verdict = score >= 9 ? 'Идеальный день.' : score >= 7 ? 'Хороший день.' : score >= 5 ? 'Обычный день.' : score >= 3 ? 'Так себе денёк.' : 'Ну и денёк...';
+    const lines = [`${verdict} Оценка дня: ${score}/10`, `Дела: ${done} из ${L.length}`, `Оценки: ${j.filter(x => x.g !== 'н').map(x => x.g).join(', ') || 'нет'}` + (j.some(x => x.g === 'н') ? ` · прогулов: ${j.filter(x => x.g === 'н').length}` : ''), `Деньги: ${delta >= 0 ? '+' : ''}${delta.toLocaleString('ru-RU')} ₽`, `Добрых дел сегодня: ${d.deeds || 0}`, `Сила ${Math.round(G.strength)} · Знания ${Math.round(G.knowledge)} · Настроение ${Math.round(G.st.mood)}`];
+    choose('Итоги: ' + DAYS[G.day % 7].toLowerCase() + ', ' + dateOf(G.day), lines.join('\n'), [{ t: 'Спокойной ночи 😴', f: cb }]);
+  },
+  tasks() {
+    const d = G.daily, wd = isWeekday(G.day) && schoolOn(), L = [['Встать по будильнику', d.upOnTime || d.slept], ['Почистить зубы утром', d.teethM], ['Позавтракать', d.breakfast]];
+    if (wd) L.push(['Форма и рюкзак', d.ready], ['Прийти в школу к 8:30', d.onTime], ['Отсидеть все уроки', d.allLessons]);
+    L.push(['Пообедать', d.lunch], ['Тренировка в спортзале', d.gym]);
+    if (isWeekday(G.day + 1)) L.push(['Сделать домашку на завтра', d.hw]);
+    L.push(['Поужинать с мамой', d.dinner], ['Принять душ', d.shower], ['Почистить зубы вечером', d.teethE]);
+    return L;
+  },
+  hints: [[5, 'Жёлтая точка на мини-карте и столб света показывают, куда идти дальше.'], [18, 'Подойди к предмету или человеку и нажми E (на телефоне — кнопку действия). Встать с кровати — тоже E.'], [40, 'Tab (или 📱) — телефон: сообщения, дела на день, карта, лента района и кнопка «Подождать».'], [75, 'Время идёт быстро: 1 минута = 10 игровых минут. Сон, еда и уроки проматываются сами.'], [120, 'Видишь «!» над человеком? У него проблема. Помоги — это важно для истории.']],
+  hintT: 0,
+  updateExtra(dt) {
+    // подсказки новичку
+    if (!G.sandbox && (G.flags.hint || 0) < this.hints.length && !Cine.active) { this.hintT += dt; const h = this.hints[G.flags.hint || 0]; if (this.hintT > h[0]) { toast('💡 Подсказка', h[1]); G.flags.hint = (G.flags.hint || 0) + 1; } }
+    // сосед сверлит
+    if (this.ev('drill') && P.region === 'home' && G.min > 540 && G.min < 720) { G.st.mood = Math.max(0, G.st.mood - dt * .03); if (!G.daily.drillMsg) { G.daily.drillMsg = 1; toast('ВЖЖЖЖЖ', 'Сосед сверлит. С самого утра. В выходной.'); } if (Math.random() < dt * 1.5) Snd.tone(rand(180, 260), .4, 'sawtooth', .02); }
+    // застревание: если игрок внутри препятствия — выталкиваем
+    if (!P.seat && !P.drive && !Busy.cur) {
+      const n = []; nearCols(P.pos.x, P.pos.z, 1, n); const inside = n.some(c => c.kind !== 'l' && P.pos.x > c.x0 + .05 && P.pos.x < c.x1 - .05 && P.pos.z > c.z0 + .05 && P.pos.z < c.z1 - .05 && P.pos.y < c.y1 - .5 && P.pos.y + 1.6 > c.y0);
+      this.stuckT = inside ? (this.stuckT || 0) + dt : 0;
+      if (this.stuckT > 1.5) { const f = freeSpot(P.pos.x, P.pos.z); P.pos.x = f[0]; P.pos.z = f[1]; this.stuckT = 0; }
+    }
+  },
+  unstick() { closeAll(); if (P.drive) P.exitCar(); P.setScale(1); G.fx.scale = 1; fadeTo(() => { teleport(1002.2, 2.4, 0); }, 'Дом, милый дом'); }
+});
+// день рождения Димона: вечер у ларька
+const _dimaSpot = () => W.dima.spot;
+Plus.patchNPC = () => {
+  const base = W.dima.spot; W.dima.spot = () => (Plus.ev('bday') && G.min >= 1080 && G.min < 1170) ? KIOSK_PARTY : base();
+  W.neighbor = npc({ name: 'Сосед дядя Вася', look: { skin: 0xd8a080, top: 0x3a4a3a, bottom: 0x2a2a2a, hair: 0x6a6a6a, beard: true, scale: 1.03 }, spot: sched([[470, 495, { x: 1906.9, z: 6.3, ry: -Math.PI / 2, pose: 'stand' }], [1110, 1150, { x: 1906.9, z: 6.3, ry: -Math.PI / 2, pose: 'phone' }]]), talk: () => pick(['Здорово, сосед! Мать-то дома? Передай, что я дрель верну.', 'Опять квитанцию за свет принесли. Грабёж!', 'Ты лифт не ломал? А то говорят, школьники.', 'Холодно нынче. В моё время зимы были настоящие!']) });
+};
+Story.dimaBday = () => {
+  const o = [];
+  if (!G.daily.bdayCongr) o.push({ t: 'С днём рождения, бро! 🎉', f: () => { G.daily.bdayCongr = 1; Rel.add('dima', 5); Needs.add({ mood: 4 }); say('Димон', 'Спасибо, бро! Вечером у ларька, не забудь!'); } });
+  const gift = ['bar', 'choco', 'chips', 'juice', 'cake', 'gum'].find(k => has(k));
+  if (!G.daily.bdayGift) o.push({ t: gift ? 'Подарить: ' + ITEM_NAMES[gift] : 'Подарок (купи что-нибудь в магазине)', dis: !gift, f: () => { G.daily.bdayGift = 1; use(gift); Rel.add('dima', 12); Needs.add({ mood: 6 }); say('Димон', gift === 'bar' ? 'Протеиновый батончик?! Ты меня знаешь, бро 💪' : 'О, спасибо! Ты лучший!'); } });
+  if (P.region === 'ext' && G.min >= 1080 && G.min < 1170 && !G.daily.bdayParty) o.push({ t: 'Отметить шаурмой', f: () => { G.daily.bdayParty = 1; Busy.start('Шаурма-вечеринка у ларька 🌯🎉', 45, () => { Rel.add('dima', 10); Needs.add({ hunger: 45, mood: 22 }); toast('Димон', 'Лучший днюха! Спасибо, что пришёл, бро.'); Feed.post('Димон', 'Мне 16!!! Спасибо всем, кто пришёл к ларьку 😎🌯', 54); }); } });
+  return o;
+};
+
 // ---------- ЗАПУСК ----------
 function boot() {
   W.mapRects = W.mapRects || [];
-  buildExterior(); buildApartment(); buildSchool(); buildGym(); buildShop(); buildMansion(); buildMansionExterior();
+  buildExterior(); buildApartment(); buildSchool(); buildGym(); buildShop(); buildMansion(); buildMansionExterior(); buildPod();
   flushStatic(); buildNPCs(); buildTraffic(); Fx.init(); P.init(); Touch.init(); Plus.init();
   $('wishGo').onclick = () => Wish.submit(); $('wishX').onclick = () => { closeModal(); relock(); }; $('phClose').onclick = () => { closeModal(); relock(); };
   $('wishIn').addEventListener('keydown', e => e.stopPropagation());
@@ -3581,7 +3732,7 @@ function boot() {
   Menu.show(); requestAnimationFrame(frame);
 }
 try { boot(); } catch (e) { console.error(e); document.body.insertAdjacentHTML('beforeend', '<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:#fff;z-index:99;padding:20px;text-align:center">Ошибка запуска: ' + esc(e.message) + '</div>'); }
-window.__game = { G: () => G, P, School, Wish, Busy, advanceRaw, teleport, Story, Cine, Interact, UI, colliders, NPCS, Deeds, Job, Objs, Rel, Feed, AI, OPS, talkTo, Post };
+window.__game = { interacts, camera, G: () => G, P, School, Wish, Busy, advanceRaw, teleport, Story, Cine, Interact, UI, colliders, NPCS, Deeds, Job, Objs, Rel, Feed, AI, OPS, talkTo, Post };
 </script>
 </body>
 </html>
