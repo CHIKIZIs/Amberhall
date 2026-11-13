@@ -200,7 +200,7 @@
 
     /* --- Зелёный остров: берег, руины, склеп --- */
     { const dry = (x, y) => TD[m.t(x, y)].pass === 1; if (dry(sx - 6, sy) && dry(sx - 4, sy)) m.add('wreck', sx - 6, sy, {}); for (const [t, dx, dy] of [['crate', -2, 1], ['barrel', 3, 0], ['crate', -7, -2], ['crate', 2, -2]]) if (dry(sx + dx, sy + dy)) m.add(t, sx + dx, sy + dy, {}); }
-    { const o = m.add('tablet', sx + 4, sy - 3, {}); if (o) o.lore = 0; }
+    { for (const [dx, dy] of [[4, -3], [3, -2], [-3, -3], [2, 2], [-2, 2]]) if (TD[m.t(sx + dx, sy + dy)].pass === 1 && m.t(sx + dx, sy + dy) !== T.CLIFF) { const o = m.add('tablet', sx + dx, sy + dy, {}); if (o) { o.lore = 0; break; } } }
     { const [x, y] = spot(cryptC[0], cryptC[1], 11, 10, 6); stamp(m, 'crypt', x, y, { to: { map: 'crypt' }, lore: 4, ground: T.GRASS }); m.ret = m.ret || {}; m.ret.crypt = [x + 5, y + 10]; poi('crypt', 'Забытый склеп', x + 5, y + 5, 'dungeon'); m.spawns.push({ type: 'guardian', x: x + 5, y: y + 12, id: 'gcrypt' }); road(x + 4, y + 11, cryptC[0], cryptC[1] + 9); }
     const smallRuins = ['tower', 'camp', 'wallrow', 'archway', 'wellyard'];
     const ruinAt = (fx, fy, rad, b, lore) => { const name = r.pick(smallRuins), tp = TPL[name], [cx, cy] = P(fx, fy), [x, y] = spot(cx, cy, tp[0].length, tp.length, rad); if (bio[y * WW + x] !== b) return; stamp(m, name, x, y, { ground: gnd(x, y), lore, loot: b === BI.green ? 't1' : 't2' }); poi('ruin', 'Руины', x + (tp[0].length >> 1), y + (tp.length >> 1)); if (b !== BI.green && r() < .7) m.spawns.push({ type: 'guardian', x: x + (tp[0].length >> 1), y: y + tp.length + 1, id: 'g' + x + '_' + y }); };

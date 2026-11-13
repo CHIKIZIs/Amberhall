@@ -18,9 +18,9 @@
 
   /* Палитры: от тёмного к светлому */
   const PAL = {
-    grass: ['#2f6b3a', '#4c9a36', '#62ae3c', '#7cc448', '#b8e25e'],
-    dgrass: ['#245a34', '#3a8436', '#4c9a3a', '#6cb844', '#98d458'],
-    pink: ['#7c1a3a', '#b02c4c', '#d8465e', '#f06a7a', '#ff9a9a'],
+    grass: ['#2c4f24', '#3d7330', '#5a9638', '#7fb446', '#a8d062'],
+    dgrass: ['#22402a', '#2f5e32', '#457c38', '#649a42', '#8cbc54'],
+    pink: ['#5a1630', '#8a2440', '#b43a52', '#d85e6a', '#f08a8a'],
     sand: ['#c98f5e', '#e2ae78', '#f2c894', '#fbdcae', '#fff0cc'],
     dirt: ['#6e3e2a', '#8e5236', '#a8663f', '#c07e52', '#d89a6a'],
     red: ['#5a2c2c', '#7a3e36', '#96503e', '#b0684a', '#cc8860'],
@@ -113,8 +113,22 @@
     p.r(0, 0, 16, 16, style === 'snow' ? pal[3] : pal[2]);
     const pos = i => [1 + Math.floor(h(i, 1, 9) * 12), 2 + Math.floor(h(i, 2, 9) * 11)];
     if (style === 'grass' || lush) {
-      const n = lush ? 3 : (seed % 4 === 0 ? 0 : seed % 2 ? 1 : 2);
-      for (let i = 0; i < n; i++) { const [x, y] = pos(i), dk = h(i, 3, 9) < .6; const c = dk ? pal[1] : pal[3]; p.d(x, y, c); p.d(x + 2, y, c); p.d(x + 1, y + 1, c); if (lush && i === 0) { p.d(x + 4, y + 3, pal[1]); p.d(x + 5, y + 2, pal[1]); p.d(x + 6, y + 3, pal[1]); } }
+      /* плотные пучки травинок (веерки) со светлыми кончиками и тенью; рисуются с переносом — тайл бесшовный */
+      p.r(0, 0, 16, 16, pal[1]);
+      for (let k = 0; k < 6; k++) { const x = Math.floor(h(k, 11, 3) * 16), y = Math.floor(h(k, 12, 3) * 16); p.d(x, y, pal[0]); p.d((x + 1) & 15, y, pal[0]); }
+      const W = (x, y, c) => p.d(((x % 16) + 16) % 16, ((y % 16) + 16) % 16, c);
+      const tuft = (x, y, big) => {
+        W(x + 1, y + 4, pal[0]); W(x + 2, y + 4, pal[0]); W(x + 3, y + 4, pal[0]);
+        W(x, y + 3, pal[1]); W(x + 1, y + 3, pal[2]); W(x + 2, y + 3, pal[2]); W(x + 3, y + 3, pal[2]); W(x + 4, y + 3, pal[1]);
+        W(x, y + 2, pal[2]); W(x + 1, y + 2, pal[3]); W(x + 2, y + 2, pal[2]); W(x + 3, y + 2, pal[3]); W(x + 4, y + 2, pal[2]);
+        W(x, y + 1, pal[3]); W(x + 2, y + 1, pal[3]); W(x + 4, y + 1, pal[3]);
+        if (big) { W(x + 1, y, pal[4]); W(x + 3, y, pal[4]); W(x - 1, y + 2, pal[3]); W(x + 5, y + 2, pal[3]); } else { W(x, y, pal[4]); W(x + 4, y, pal[4]); }
+      };
+      const pts = [];
+      for (let gy = 0; gy < 16; gy += 4) for (let gx = 0; gx < 16; gx += 5) pts.push([gx + ((gy >> 2) & 1) * 2 + Math.floor(h(gx, gy, 5) * 3) - 1, gy + Math.floor(h(gx, gy, 6) * 2)]);
+      pts.sort((a, b) => a[1] - b[1]);
+      for (const [x, y] of pts) tuft(x, y, h(x, y, 8) < (lush ? .6 : .35));
+      if (lush && seed % 3 === 1) { const x = 3 + Math.floor(h(1, 1, 7) * 9), y = 3 + Math.floor(h(2, 2, 7) * 9); p.d(x, y, '#f4f0e0'); p.d(x + 1, y, '#f4f0e0'); p.d(x, y + 1, '#f4f0e0'); p.d(x + 1, y + 1, '#ecc23c'); }
     } else if (style === 'sand' || style === 'dirt') {
       for (let i = 0; i < 3; i++) { const [x, y] = pos(i); p.d(x, y, pal[1]); if (i === 0) p.d(x + 1, y, pal[1]); }
       { const [x, y] = pos(5); p.d(x, y, pal[3]); p.d(x + 1, y, pal[3]); if (seed % 3 === 0) { p.d(x + 5, y + 2, pal[0]); p.d(x + 6, y + 2, pal[1]); } }
