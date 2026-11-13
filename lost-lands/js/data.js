@@ -427,6 +427,7 @@
   /* ---------- СУЩЕСТВА ---------- */
   const M = G.MOBS = {};
   const Mb = (id, d) => { M[id] = Object.assign({ id, w: 16, h: 14, r: 5, sh: 1, xp: 5, detect: 70, atkR: 14, atkCd: 1.1, kb: 1 }, d); };
+  Mb('chicken', { n: 'Курица', hp: 6, sp: 62, ai: 'flee', xp: 3, drops: [['raw_meat', 1, 1], ['feather', 1, 3]], spr: 'chicken', w: 16, h: 16, sh: 0, detect: 45 });
   Mb('rabbit', { n: 'Кролик', hp: 8, sp: 78, ai: 'flee', xp: 3, drops: [['raw_meat', 1, 1], ['leather', 1, 1, .35]], spr: 'rabbit', sh: 0, detect: 55 });
   Mb('deer', { n: 'Олень', hp: 24, sp: 92, ai: 'flee', xp: 8, drops: [['raw_meat', 2, 3], ['leather', 1, 2], ['bone', 0, 1]], spr: 'deer', w: 24, h: 22, r: 6, sh: 2, detect: 75 });
   Mb('fox', { n: 'Лиса', hp: 15, sp: 86, ai: 'flee', xp: 6, drops: [['raw_meat', 1, 1], ['leather', 1, 2]], spr: 'fox', w: 20, h: 14, sh: 1, detect: 60 });
@@ -453,10 +454,10 @@
   /* ---------- БИОМЫ ---------- */
   G.BIOMES = [
     { id: 'ocean', n: 'Море', c: '#2e7fc0', temp: 50 },
-    { id: 'green', n: 'Зелёный остров', c: '#56aa52', temp: 52, tier: 1, mobs: [['slime', 5], ['imp', 4]], animals: [['rabbit', 5], ['deer', 3], ['fox', 2], ['bird', 4]], music: 0, desc: 'Тихие луга и песчаные пляжи.' },
+    { id: 'green', n: 'Зелёный остров', c: '#56aa52', temp: 52, tier: 1, mobs: [['slime', 5], ['imp', 4]], animals: [['rabbit', 5], ['chicken', 3], ['deer', 3], ['fox', 2], ['bird', 4]], music: 0, desc: 'Тихие луга и песчаные пляжи.' },
     { id: 'pink', n: 'Розовый зачарованный лес', c: '#f08fb4', temp: 54, tier: 3, mobs: [['pslime', 4], ['spirit', 4], ['imp', 1]], animals: [['rabbit', 3], ['deer', 3], ['bird', 4]], music: 1, desc: 'Бирюзовые реки и светящиеся цветы.' },
     { id: 'canyon', n: 'Красный каньон', c: '#cf7c4c', temp: 72, tier: 4, mobs: [['golem', 3], ['crawler', 5], ['bat', 2]], animals: [['fox', 2], ['bird', 2]], music: 2, desc: 'Раскалённые скалы и узкие проходы.' },
-    { id: 'village', n: 'Лесная деревня', c: '#3a8450', temp: 48, tier: 2, mobs: [['imp', 5], ['slime', 3], ['skeleton', 1]], animals: [['rabbit', 3], ['deer', 4], ['fox', 3], ['bird', 3]], music: 3, desc: 'Покинутые дома под сенью старого леса.' },
+    { id: 'village', n: 'Лесная деревня', c: '#3a8450', temp: 48, tier: 2, mobs: [['imp', 5], ['slime', 3], ['skeleton', 1]], animals: [['chicken', 4], ['rabbit', 3], ['deer', 4], ['fox', 3], ['bird', 3]], music: 3, desc: 'Покинутые дома под сенью старого леса.' },
     { id: 'north', n: 'Северные земли', c: '#e4eef8', temp: 8, tier: 5, mobs: [['wolf', 5], ['islime', 3], ['frost', 2]], animals: [['rabbit', 2], ['deer', 2], ['fox', 2]], music: 4, desc: 'Вечный снег и ледяные озёра.' },
     { id: 'dungeon', n: 'Заброшенные подземелья', c: '#3d4156', temp: 40, tier: 3, mobs: [], animals: [], music: 5, desc: '' }
   ];

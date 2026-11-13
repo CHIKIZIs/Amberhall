@@ -21,6 +21,10 @@
   /* перекраска части палитры: sel(h,s,l) выбирает цвета, f(h,s,l) → [h,s,l] */
   const recol = (sel, f) => c => { const [h, s, l] = toHsl(c); if (l < .1 || !sel(h, s, l)) return c; const o = f(h, s, l); return fromHsl(o[0], o[1], o[2]); };
   const chain = (...fs) => c => fs.reduce((v, f) => f(v), c);
+  /* перекраска готового холста функцией rc(hex) */
+  const recolorCanvas = (cv, rc) => { const g = cv.getContext('2d'), d = g.getImageData(0, 0, cv.width, cv.height), memo = {};
+    for (let i = 0; i < d.data.length; i += 4) { if (!d.data[i + 3]) continue; const k = (d.data[i] << 16) | (d.data[i + 1] << 8) | d.data[i + 2]; let v = memo[k]; if (!v) { v = memo[k] = hex2rgb(rc(rgb2hex(d.data[i], d.data[i + 1], d.data[i + 2]))); } d.data[i] = v[0]; d.data[i + 1] = v[1]; d.data[i + 2] = v[2]; }
+    g.putImageData(d, 0, 0); return cv; };
   const S = (n, cv) => { A.spr[n] = { c: cv, w: cv.width, h: cv.height }; };
   const R = (name, rc, flip) => A.refSprite(name, rc, flip);
 
@@ -154,6 +158,128 @@
   }
   A.cliffSheet = cliffSheet;
 
+  /* Ручные карты для того, на что у автора нет картинки — в том же стиле (цветной контур, 3–4 тона) */
+  const MAPS = {
+    cactus: { pal: { o: '#1a3418', a: '#2a5a26', b: '#3f8a34', c: '#6cb84a', d: '#a8dc6c', w: '#f6eecc', s: '#6a4a2a', S: '#8a6a40' }, rows: [
+      '......oooo......',
+      '.....obcddo.....',
+      '.....obcwco.....',
+      '.....obccco.....',
+      '.oo..obcwco.....',
+      'obco.obccco..oo.',
+      'obwo.obccco.obco',
+      'obcooobcwcoobwco',
+      'obcccbbccco.obco',
+      '.obbbbbcwcoobcco',
+      '..oooobccbbbbbo.',
+      '.....obcwcoooo..',
+      '.....obccco.....',
+      '.....obcwco.....',
+      '.....obccco.....',
+      '....oobccbbo....',
+      '...osSobbbaSso..',
+      '....ooooooooo...'] },
+    dead: { pal: { o: '#2a1810', a: '#4a2e1e', b: '#6e4a30', c: '#946a46', d: '#b48a5e' }, rows: [
+      '..o.........o.....o...',
+      '.obo.......obo...obo..',
+      '..obo.....obo...obo...',
+      '...obo...obo...obo.o..',
+      '....obo.obo...obooobo.',
+      '.....obbbo...obbbbo...',
+      '..o...obbo..obbo......',
+      '.obo...obbooobo.......',
+      '..oboo.obcbbbo........',
+      '...obbbobcbo..........',
+      '....ooobccbo..........',
+      '.......obcbo..........',
+      '.......obcdbo.........',
+      '.......obcdbo.........',
+      '.......obccbo.........',
+      '......obbcdbo.........',
+      '......obccdbbo........',
+      '.....obbbcbbbbo.......',
+      '....oaaobbbbaaao......',
+      '....ooooooooooooo.....'] },
+    palm: { pal: { o: '#14301e', G: '#1e5a32', g: '#2f8a3a', h: '#52b040', H: '#8ed84a', t: '#d8a868', T: '#a8784a', u: '#6e4a2e', y: '#7a4a24', Y: '#a86a34' }, rows: [
+      '...........oooo...oooo..........',
+      '........oooHHhhoooHHhhooo.......',
+      '......ooHhhhggggoHhgggghhoo.....',
+      '....ooHhhggooooggHgoooogghhoo...',
+      '...oHhggoo....oghHgo....oogghho.',
+      '..oHhgoo...ooohhggggooo...oogho.',
+      '..ohgo...oohhhggGGgggghoo...ogo.',
+      '..ogo...ohhggoyyoyyooGggho...o..',
+      '..oo...ohggo.oYyyYyo..oGgho.....',
+      '......ohgo...oyyooyo...oGgo.....',
+      '......ogo.....oootTo....ogo.....',
+      '......oo........otTo.....o......',
+      '................otTuo...........',
+      '................otTuo...........',
+      '...............otTuo............',
+      '...............otTuo............',
+      '...............otTuo............',
+      '..............otTTuo............',
+      '..............otTuo.............',
+      '..............otTuo.............',
+      '..............otTTuo............',
+      '..............otTTuo............',
+      '.............otTTTuuo...........',
+      '.............ooooooooo..........'] },
+    shell: { pal: { o: '#6a3a30', w: '#fff2e4', p: '#f0a890', P: '#d07a68' }, rows: [
+      '...oooo...',
+      '..owwwwo..',
+      '.owpwpwwo.',
+      'owpwpwpwwo',
+      'owPwPwPwPo',
+      '.ooPPPPPo.',
+      '...ooooo..'] }
+  };
+  /* ель поменьше: верх ели автора + её же ствол */
+  /* убрать «усы» — тёмные пиксели, держащиеся на одном соседе */
+  function dewhisker(cv) {
+    const g = cv.getContext('2d'), w = cv.width, h = cv.height, d = g.getImageData(0, 0, w, h), o = d.data;
+    for (let it = 0; it < 3; it++) { const kill = [];
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (!o[i + 3] || o[i] + o[i + 1] + o[i + 2] > 200) continue;
+        let n = 0; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + dx, Y = y + dy; if (X >= 0 && Y >= 0 && X < w && Y < h && o[(Y * w + X) * 4 + 3]) n++; }
+        if (n <= 1) kill.push(i); }
+      for (const i of kill) o[i + 3] = 0; }
+    g.putImageData(d, 0, 0); return cv;
+  }
+  /* ель поменьше: верх ели автора (срез по стыку ярусов, где крона уже всего) + её же ствол */
+  function pineCut(rc, frac, flip) {
+    const full = dewhisker(A.refSprite('pine', rc, flip)), w = full.width, h = full.height, trunkH0 = 9, fd = full.getContext('2d').getImageData(0, 0, w, h).data;
+    const width = y => { let a = w, b = -1; for (let x = 0; x < w; x++) if (fd[(y * w + x) * 4 + 3]) { a = Math.min(a, x); b = Math.max(b, x); } return b - a; };
+    let tH = 0; while (tH < h - 1 && width(h - 1 - tH) <= 10) tH++;
+    const trunkH = Math.max(5, Math.round(tH * (.35 + frac * .5)));
+    let cut = Math.round((h - trunkH) * frac), best = 1e9; for (let y = cut - 4; y <= cut + 4; y++) { const v = width(y); if (v < best) { best = v; cut = y; } }
+    const c = document.createElement('canvas'); c.width = w; c.height = cut + trunkH; const g = c.getContext('2d');
+    g.drawImage(full, 0, h - trunkH, w, trunkH, 0, cut, w, trunkH);
+    g.drawImage(full, 0, 0, w, cut, 0, 0, w, cut);
+    const d = g.getImageData(0, 0, w, c.height), o = d.data, y = cut - 1;
+    for (let yy = y; yy >= y - 1; yy--) for (let x = 0; x < w; x++) { const i = (yy * w + x) * 4, up = ((yy - 1) * w + x) * 4; if (o[i + 3] && !o[up + 3]) o[i + 3] = 0; }
+    for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (o[i + 3]) { o[i] = 14; o[i + 1] = 28; o[i + 2] = 32; } }
+    g.putImageData(d, 0, 0);
+    const all = g.getImageData(0, 0, w, c.height).data; let a = w, b = 0; for (let yy = 0; yy < c.height; yy++) for (let x = 0; x < w; x++) if (all[(yy * w + x) * 4 + 3]) { a = Math.min(a, x); b = Math.max(b, x); }
+    const out = document.createElement('canvas'); out.width = b - a + 1; out.height = c.height; out.getContext('2d').drawImage(c, -a, 0); return out;
+  }
+
+  /* масштаб по ближайшему пикселю; контур восстанавливается тёмным цветом */
+  const TSIZES = [[.82, .82], [.66, .7], [.6, .82], [.86, .66], [.5, .55]];
+  function nnScale(src, sx, sy) {
+    const w = src.width, h = src.height, W2 = Math.round(w * sx), H2 = Math.round(h * sy), sd = src.getContext('2d').getImageData(0, 0, w, h).data;
+    const c = document.createElement('canvas'); c.width = W2 + 2; c.height = H2 + 2; const g = c.getContext('2d'), d = g.createImageData(W2 + 2, H2 + 2), o = d.data;
+    let dark = null, dl = 1e9;
+    for (let i = 0; i < sd.length; i += 4) if (sd[i + 3]) { const l = sd[i] + sd[i + 1] + sd[i + 2]; if (l < dl) { dl = l; dark = [sd[i], sd[i + 1], sd[i + 2]]; } }
+    const at = (x, y) => { const X = Math.min(w - 1, Math.floor((x + .5) / sx)), Y = Math.min(h - 1, Math.floor((y + .5) / sy)); return (Y * w + X) * 4; };
+    for (let y = 0; y < H2; y++) for (let x = 0; x < W2; x++) { const i = at(x, y), j = ((y + 1) * (W2 + 2) + x + 1) * 4; if (!sd[i + 3]) continue; o[j] = sd[i]; o[j + 1] = sd[i + 1]; o[j + 2] = sd[i + 2]; o[j + 3] = 255; }
+    /* контур: каждый непрозрачный пиксель на краю — тёмный */
+    const W3 = W2 + 2, H3 = H2 + 2, op = (x, y) => x >= 0 && y >= 0 && x < W3 && y < H3 && o[(y * W3 + x) * 4 + 3];
+    const edge = []; for (let y = 0; y < H3; y++) for (let x = 0; x < W3; x++) if (op(x, y) && (!op(x - 1, y) || !op(x + 1, y) || !op(x, y - 1) || !op(x, y + 1))) edge.push((y * W3 + x) * 4);
+    for (const j of edge) { o[j] = dark[0]; o[j + 1] = dark[1]; o[j + 2] = dark[2]; }
+    g.putImageData(d, 0, 0); return c;
+  }
+  const fromMap = (k, flip) => { const m = MAPS[k], w = Math.max(...m.rows.map(r => r.length)), p = A.P(w, m.rows.length); m.rows.forEach((r, y) => { for (let x = 0; x < r.length; x++) { const c = m.pal[r[x]]; if (c) p.d(flip ? w - 1 - x : x, y, c); } }); return p.can(); };
+
   const prev = A.initPretty;
   A.initPretty = () => {
     prev();
@@ -168,10 +294,16 @@
       S(k + '0', R('tree', rc)); S(k + '1', R('tree', rc, true));
       const t2 = R('tree', rc, k !== 'oak');
       S(k + '2', FRUIT[k] ? dots(t2, 5, FRUIT[k], 7 + k.length, 90) : t2);
+      /* другие размеры и формы: то же дерево автора, масштаб по ближайшему пикселю (без смешивания цветов) */
+      const names = [k + '0', k + '1', k + '2'];
+      TSIZES.forEach(([sx, sy], i) => { for (let f = 0; f < 2; f++) { let cv = nnScale(R('tree', rc, f === 1), sx, sy); if (FRUIT[k] && f === 0 && i < 2) cv = dots(cv, 3, FRUIT[k], 3 + i, 90); const n = k + '_s' + i + f; S(n, cv); names.push(n); } });
+      if (G.OBJ[k]) G.OBJ[k].s = names;
     }
     for (const k in PINES) {
       const rc = PINES[k];
-      for (let i = 0; i < 2; i++) { let c = R('pine', rc, i === 1); if (k === 'spine') c = snowify(c, 2); S(k + i, c); }
+      const names = [];
+      [[1, 0], [1, 1], [.72, 0], [.72, 1], [.5, 0], [.5, 1]].forEach(([fr, fl], i) => { let c = fr === 1 ? dewhisker(R('pine', rc, fl === 1)) : pineCut(rc, fr, fl === 1); if (k === 'spine') c = snowify(c, 2); S(k + i, c); names.push(k + i); });
+      if (G.OBJ[k]) G.OBJ[k].s = names;
     }
     /* пень автора */
     S('stump', R('stump')); S('stump_s', snowify(R('stump'), 2));
@@ -195,6 +327,12 @@
     S('pebble', R('mrock'));
     /* большие скалы из набора автора */
     for (let i = 0; i < 7; i++) S('crag' + i, R('rs' + i));
+    S('cactus0', fromMap('cactus')); S('cactus1', fromMap('cactus', true));
+    S('dead0', fromMap('dead')); S('dead1', fromMap('dead', true));
+    S('palm0', fromMap('palm')); S('palm1', fromMap('palm', true));
+    S('shell', fromMap('shell'));
+    /* каменные столбы каньона — высокий камень автора, перекрашенный в красный */
+    { const red = recol(() => true, (h, s, l) => inHue(h, 70, 170) ? [h, s, l] : [12, Math.min(.5, s + .22), l * .95]); S('spire0', R('rk0', red)); S('spire1', R('rk0', red, true)); }
     /* упавшие брёвна автора */
     for (let i = 0; i < 4; i++) S('flog' + i, R('log' + i));
   };
