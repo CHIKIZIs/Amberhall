@@ -7,10 +7,10 @@
   const td = (id, set, pass, pri, step, nat) => { TD[id] = { set, pass, pri, step, nat: nat ? 1 : 0 }; };
   td(T.DEEP, 'water', 0, 0, 'water', 1); td(T.WATER, 'water', 2, 1, 'water', 1); td(T.ICE, 'ice', 1, 2, 'stone', 1); td(T.SAND, 'sand', 1, 3, 'sand', 1);
   td(T.DIRT, 'dirt', 1, 4, 'sand', 1); td(T.RED, 'red', 1, 5, 'stone', 1); td(T.GRASS, 'grass', 1, 6, 'grass', 1); td(T.DGRASS, 'dgrass', 1, 7, 'grass', 1);
-  td(T.PINK, 'pink', 1, 8, 'grass', 1); td(T.SNOW, 'snow', 1, 9, 'snow', 1); td(T.RUIN, 'ruin', 1, 0, 'stone'); td(T.WOODF, 'woodf', 1, 0, 'wood');
+  td(T.PINK, 'pink', 1, 8, 'grass', 1); td(T.SNOW, 'snow', 1, 9, 'snow', 1); td(T.RUIN, 'ruin', 1, 0, 'stone', 1); td(T.WOODF, 'woodf', 1, 0, 'wood');
   td(T.STONEF, 'stonef', 1, 0, 'stone'); td(T.FOUND, 'found', 1, 0, 'stone'); td(T.BRIDGE, 'bridge', 1, 0, 'wood'); td(T.SBRIDGE, 'sbridge', 1, 0, 'stone');
   td(T.CLIFF, 'cliff', 0, 0, 'stone'); td(T.DFLOOR, 'dfloor', 1, 5, 'stone', 1); td(T.DWALL, 'dwall', 0, 0, 'stone'); td(T.VOID, 'void', 0, 0, 'stone');
-  td(T.ROAD, 'cobble', 1, 0, 'stone'); td(T.LADDER, 'cliff', 1, 0, 'wood');
+  td(T.ROAD, 'cobble', 1, 0, 'stone', 1); td(T.LADDER, 'cliff', 1, 0, 'wood');
   const BI = { ocean: 0, green: 1, pink: 2, canyon: 3, village: 4, north: 5, dungeon: 6 };
   G.BI = BI;
 
@@ -61,10 +61,10 @@
     shrine1: ['p~~~p', '~...~', '~hH.~', '~...~', 'p~~~p'],
     frozen: ['###~~###', '#......#', '#.c..u.#', '~......~', '#..t...#', '##.G..##', '~##~~##~'],
     mine: ['k~~b~', '~...~', '~.t.k', 'b...~'],
-    house1: ['WWW=WWW', 'W.e..fW', 'W.....W', 'W.T..kW', 'WWWdWWW'],
-    house2: ['WW=WWW=WW', 'We..T..fW', 'W.......W', 'Wb.....cW', 'WWWWdWWWW'],
-    house3: ['WWWWWW', 'W.e.fW', '=....W', 'W.k..W', 'WWdWWW'],
-    workshop: ['WW=WW=WWW', 'WK..F..bW', 'W.......W', 'Wk..T..OW', 'WWWWdWWWW'],
+    house1: ['WWW=WWW', 'W.e..fW', 'W.....W', 'W.T..kW', 'W=WdW=W'],
+    house2: ['WW=WWW=WW', 'We..T..fW', 'W.......W', 'Wb.....cW', 'W=WWdWW=W'],
+    house3: ['WWWWWW', 'W.e.fW', '=....W', 'W.k..W', 'W=dW=W'],
+    workshop: ['WW=WW=WWW', 'WK..F..bW', 'W.......W', 'Wk..T..OW', 'W=WWdWW=W'],
     heart: ['~~p~~~~~p~~', '~.........~', 'p....Yyy..p', '~....yyy..~', '~.........~', '~~B~~~~~B~~']
   };
   const LEG = { '#': 'rwall', 'L': 'lwall', 'x': 'cracked', 'c': 'wchest', 'C': 'achest', 't': 'tablet', 'u': 'urn', 'k': 'crate', 'b': 'barrel', 's': 'rstatue', 'w': 'rwell', 'm': 'monument', 'B': 'brazier', 'S': 'stairs_d', 'W': 'wall_wood', '=': 'win_wood', 'd': 'door', 'e': 'bed', 'T': 'vtable', 'f': 'shelf', 'K': 'workbench', 'F': 'furnace', 'O': 'kitchen', 'h': 'shrine', 'A': 'arch', 'Y': 'hgate', 'p': 'pillar' };
@@ -80,7 +80,7 @@
     for (let j = 0; j < hh; j++) for (let i = 0; i < ww; i++) {
       const ch = tpl[j][i], x = x0 + i, y = y0 + j, k = y * m.w + x;
       if (ch === '~' || ch === ' ') continue;
-      if (house) { m.roof[k] = o.roof; m.tiles[k] = T.WOODF; }
+      if (house) { if (j < hh - 1) m.roof[k] = o.roof; m.tiles[k] = T.WOODF; }
       else if (ch !== 'p' && (ch === '.' ? r() < (o.fl == null ? .8 : o.fl) : true)) m.tiles[k] = land;
       if (ch === '.' || ch === 'a' || ch === 'y' || ch === 'H') continue;
       if (ch === 'G' || ch === 'E') { m.spawns.push({ type: ch === 'E' ? 'elder' : 'guardian', x, y, id: 's' + k, boss: ch === 'E' }); if (ch === 'E') out.boss = [x, y]; continue; }
@@ -128,22 +128,26 @@
           else {
             const cl = fb(x / 11, y / 11, seed + 7, 3);
             if (b1 === BI.canyon && cl > .6) t = T.CLIFF; else if (b1 === BI.north && cl > .68) t = T.CLIFF; else if ((b1 === BI.green || b1 === BI.village || b1 === BI.pink) && cl > .78 && v > .45) t = T.CLIFF;
-            else if (b1 === BI.green) { const sp = fb(x / 13, y / 13, seed + 90, 2); if (sp > .72) t = T.SAND; else if (sp < .25) t = T.DIRT; }
           }
         }
       }
       if (b1 === BI.north && t === T.WATER) t = T.ICE;
       til[k] = t; bio[k] = b1;
     }
+    for (let pass = 0; pass < 2; pass++) for (let y = 1; y < HH - 1; y++) for (let x = 1; x < WW - 1; x++) {
+      const k = y * WW + x, t = til[k]; if (t !== T.CLIFF) continue; let n = 0;
+      for (const [i, j] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (til[k + j * WW + i] === T.CLIFF) n++;
+      if (n <= 1) til[k] = [T.GRASS, T.GRASS, T.PINK, T.RED, T.DGRASS, T.SNOW][bio[k]] || T.GRASS;
+    }
     /* старт: южный берег зелёного острова */
     let sx = Math.floor(WW * .5), sy = HH - 10;
     for (let y = HH - 5; y > HH * .6; y--) { if (TD[til[y * WW + sx]].pass === 1 && TD[til[(y - 3) * WW + sx]].pass === 1) { sy = y - 2; break; } }
     m.start = [sx, sy];
     /* дороги: гарантируют проход между биомами */
-    const road = (x0, y0, x1, y1, kind, wid) => {
+    const road = (x0, y0, x1, y1, kind, wid, wig) => {
       let x = x0, y = y0, guard = 0; const pts = [];
       while ((Math.abs(x - x1) > 1 || Math.abs(y - y1) > 1) && guard++ < 3000) {
-        const ang = Math.atan2(y1 - y, x1 - x) + (fb(x / 9, y / 9, seed + 300, 2) - .5) * 1.5;
+        const ang = Math.atan2(y1 - y, x1 - x) + (fb(x / 9, y / 9, seed + 300, 2) - .5) * (wig == null ? 1.5 : wig);
         x += Math.cos(ang); y += Math.sin(ang); pts.push([Math.round(x), Math.round(y)]);
       }
       for (const [px, py] of pts) for (let j = 0; j < (wid || 2); j++) for (let i = 0; i < (wid || 2); i++) {
@@ -174,10 +178,10 @@
     /* --- Лесная деревня --- */
     {
       const [vx, vy] = vil; poi('village', 'Лесная деревня', vx, vy, 'village');
-      for (let j = -3; j <= 3; j++) for (let i = -4; i <= 4; i++) { const k = (vy + j) * WW + vx + i; til[k] = T.ROAD; }
+      for (let j = -4; j <= 4; j++) for (let i = -6; i <= 6; i++) { if (i * i / 30 + j * j / 14 > 1) continue; const k = (vy + j) * WW + vx + i; til[k] = T.ROAD; const ob = m.at(vx + i, vy + j); if (ob) m.remove(ob); }
       m.add('rwell', vx, vy, {}); m.add('lamp', vx - 4, vy - 3, {}); m.add('lamp', vx + 4, vy + 3, {}); { const o = m.add('sign', vx + 3, vy - 3, {}); if (o) o.text = 'Юг — берег. Восток — Розовый лес. Запад — Каньон. Север — Врата и снега.'; }
       const hs = [['house1', -16, -10, 3], ['house2', 8, -11, 4], ['workshop', -19, 4, 4], ['house3', 10, 5, 3], ['house1', -6, 10, 4], ['house2', 14, -2, 3], ['house3', -9, -14, 4]];
-      for (const [nm, dx, dy, rf] of hs) { const tp = TPL[nm], x = vx + dx, y = vy + dy; stamp(m, nm, x, y, { roof: rf, ground: T.DGRASS, lore: 5 }); const dj = tp.length - 1, di = tp[dj].indexOf('d'); road(x + di, y + dj + 1, vx, vy, T.DIRT, 1); }
+      for (const [nm, dx, dy, rf] of hs) { const tp = TPL[nm], x = vx + dx, y = vy + dy; stamp(m, nm, x, y, { roof: rf, ground: T.DGRASS, lore: 5 }); const dj = tp.length - 1, di = tp[dj].indexOf('d'); road(x + di, y + dj + 1, vx, vy, T.DIRT, 2, .3); }
       /* заброшенная ферма */
       for (let j = 0; j < 4; j++) for (let i = 0; i < 6; i++) { const x = vx + 4 + i, y = vy + 12 + j; const ob = m.at(x, y); if (ob) m.remove(ob); til[y * WW + x] = T.DGRASS; if ((i + j) % 2 === 0 || r() < .5) { const pl = m.add('plot', x, y, {}); if (pl && r() < .6) { pl.crop = r.pick(['carrot', 'wheat', 'potato', 'cabbage', 'pumpkin']); pl.g = 99999; pl.wild = 1; } } }
       for (let i = -1; i <= 6; i++) { m.add('fence', vx + 4 + i, vy + 11, {}); if (i !== 2) m.add('fence', vx + 4 + i, vy + 16, {}); } for (let j = 0; j < 4; j++) { m.add('fence', vx + 3, vy + 12 + j, {}); m.add('fence', vx + 10, vy + 12 + j, {}); }

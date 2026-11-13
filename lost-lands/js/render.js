@@ -165,11 +165,18 @@
     if (R.roofA > .02) { c.globalAlpha = R.roofA; for (let y = ty0; y <= ty1 + 1; y++) { if (y < 0 || y >= m.h) continue; for (let x = tx0; x <= tx1; x++) { if (x < 0 || x >= m.w) continue; const rf = m.roof[y * m.w + x]; if (!rf) continue; const px = x * TS - ox, py = y * TS - oy - 10, img = A.tiles['roof' + rf];
       c.drawImage(img, ((x * 3 + y) & 3) * 16, 0, 16, 16, px, py, 16, 16);
       const rs = (xx, yy) => m.inb(xx, yy) && m.roof[yy * m.w + xx];
-      if (!rs(x, y + 1)) { c.drawImage(img, 0, 0, 16, 5, px, py + 16, 16, 5); c.fillStyle = 'rgba(20,12,34,.45)'; c.fillRect(px, py + 16, 16, 5); c.fillStyle = '#1b1526'; c.fillRect(px, py + 21, 16, 1); }
-      if (!rs(x, y - 1)) { c.fillStyle = '#1b1526'; c.fillRect(px, py - 1, 16, 1); c.fillStyle = 'rgba(255,246,220,.35)'; c.fillRect(px, py, 16, 1); }
-      const bh = rs(x, y + 1) ? 16 : 22;
-      if (!rs(x - 1, y)) { c.fillStyle = '#1b1526'; c.fillRect(px - 1, py, 1, bh); c.fillStyle = 'rgba(255,246,220,.25)'; c.fillRect(px, py, 1, 16); }
-      if (!rs(x + 1, y)) { c.fillStyle = '#1b1526'; c.fillRect(px + 16, py, 1, bh); c.fillStyle = 'rgba(20,12,34,.3)'; c.fillRect(px + 15, py, 1, 16); }
+      /* двускатная крыша: задний скат темнее, по коньку светлая полоса */
+      let up = 0, dn = 0; while (up < 12 && rs(x, y - up - 1)) up++; while (dn < 12 && rs(x, y + dn + 1)) dn++;
+      const tot = up + dn + 1, ridge = Math.floor(tot / 2);
+      if (up < ridge) { c.fillStyle = 'rgba(20,12,34,.32)'; c.fillRect(px, py, 16, 16); }
+      if (up === ridge && tot > 1) { c.fillStyle = 'rgba(20,12,34,.55)'; c.fillRect(px, py, 16, 1); c.fillStyle = 'rgba(255,246,220,.45)'; c.fillRect(px, py + 1, 16, 2); }
+      /* деревянная обвязка по краям крыши и карниз */
+      const WB = ['#3a2018', '#84502e', '#a86e3c', '#cc9458'], bot = !rs(x, y + 1), L = !rs(x - 1, y), Rr = !rs(x + 1, y), hgt = bot ? 20 : 16;
+      if (bot) { c.fillStyle = WB[1]; c.fillRect(px, py + 14, 16, 4); c.fillStyle = WB[3]; c.fillRect(px, py + 14, 16, 1); c.fillStyle = WB[0]; c.fillRect(px, py + 18, 16, 1); c.fillStyle = 'rgba(13,11,26,.45)'; c.fillRect(px, py + 19, 16, 3); }
+      if (!rs(x, y - 1)) { c.fillStyle = '#0d0b1a'; c.fillRect(px, py - 1, 16, 1); c.fillStyle = WB[2]; c.fillRect(px, py, 16, 2); }
+      if (L) { c.fillStyle = WB[2]; c.fillRect(px, py, 3, hgt - 2); c.fillStyle = WB[3]; c.fillRect(px, py, 1, hgt - 2); c.fillStyle = '#0d0b1a'; c.fillRect(px - 1, py - 1, 1, hgt); }
+      if (Rr) { c.fillStyle = WB[1]; c.fillRect(px + 13, py, 3, hgt - 2); c.fillStyle = WB[0]; c.fillRect(px + 15, py, 1, hgt - 2); c.fillStyle = '#0d0b1a'; c.fillRect(px + 16, py - 1, 1, hgt); }
+      if (bot) { c.fillStyle = '#0d0b1a'; c.fillRect(px - (L ? 1 : 0), py + 18, 16 + (L ? 1 : 0) + (Rr ? 1 : 0), 1); }
     } } c.globalAlpha = 1; }
     if (G.Ent && G.Ent.over) G.Ent.over(c, ox, oy, dt);
     if (G.Weather) G.Weather.draw(c, R, dt);

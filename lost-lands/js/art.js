@@ -18,11 +18,11 @@
 
   /* Палитры: от тёмного к светлому */
   const PAL = {
-    grass: ['#2f6b3a', '#4a9a3a', '#62ae3c', '#86c84a', '#b8e25e'],
+    grass: ['#2f6b3a', '#4c9a36', '#62ae3c', '#7cc448', '#b8e25e'],
     dgrass: ['#245a34', '#3a8436', '#4c9a3a', '#6cb844', '#98d458'],
-    pink: ['#a82850', '#d83a62', '#f04f72', '#ff7a8c', '#ffb4b0'],
+    pink: ['#7c1a3a', '#b02c4c', '#d8465e', '#f06a7a', '#ff9a9a'],
     sand: ['#c98f5e', '#e2ae78', '#f2c894', '#fbdcae', '#fff0cc'],
-    dirt: ['#8a4a2c', '#b8683a', '#e0904e', '#f0aa66', '#fcc888'],
+    dirt: ['#6e3e2a', '#8e5236', '#a8663f', '#c07e52', '#d89a6a'],
     red: ['#5a2c2c', '#7a3e36', '#96503e', '#b0684a', '#cc8860'],
     snow: ['#9fb8d6', '#c6d9ec', '#e4eef8', '#f6fbff', '#ffffff'],
     ice: ['#5aa6d2', '#83c6e8', '#aee0f4', '#d6f3fb', '#f2fdff'],
@@ -113,9 +113,8 @@
     p.r(0, 0, 16, 16, style === 'snow' ? pal[3] : pal[2]);
     const pos = i => [1 + Math.floor(h(i, 1, 9) * 12), 2 + Math.floor(h(i, 2, 9) * 11)];
     if (style === 'grass' || lush) {
-      const n = lush ? 4 : (seed % 4 === 0 ? 0 : seed % 2 ? 1 : 2);
-      for (let i = 0; i < n; i++) { const [x, y] = pos(i), c = h(i, 3, 9) < .55 ? pal[3] : pal[1]; p.d(x, y + 1, c); p.d(x + 1, y + 2, c); p.d(x + 2, y, c); p.d(x + 2, y + 1, c); if (lush && i % 2) p.d(x + 1, y, pal[4]); }
-      if (lush && seed % 3 === 0) { const [x, y] = pos(7); p.d(x, y, '#ffffff'); p.d(x + 1, y + 1, '#ffe066'); p.d(x + 4, y + 3, '#ffffff'); }
+      const n = lush ? 3 : (seed % 4 === 0 ? 0 : seed % 2 ? 1 : 2);
+      for (let i = 0; i < n; i++) { const [x, y] = pos(i), dk = h(i, 3, 9) < .6; const c = dk ? pal[1] : pal[3]; p.d(x, y, c); p.d(x + 2, y, c); p.d(x + 1, y + 1, c); if (lush && i === 0) { p.d(x + 4, y + 3, pal[1]); p.d(x + 5, y + 2, pal[1]); p.d(x + 6, y + 3, pal[1]); } }
     } else if (style === 'sand' || style === 'dirt') {
       for (let i = 0; i < 3; i++) { const [x, y] = pos(i); p.d(x, y, pal[1]); if (i === 0) p.d(x + 1, y, pal[1]); }
       { const [x, y] = pos(5); p.d(x, y, pal[3]); p.d(x + 1, y, pal[3]); if (seed % 3 === 0) { p.d(x + 5, y + 2, pal[0]); p.d(x + 6, y + 2, pal[1]); } }
@@ -148,7 +147,6 @@
         p.d(x, y, c);
       }
       if (kind === 'ruin') for (let i = 0; i < 9; i++) { const x = Math.floor(h(i, 1, 6) * 16), y = Math.floor(h(i, 2, 6) * 16); if (h(i, 3, 6) < .7) { p.d(x, y, PAL.moss[1]); p.d(x + 1, y, PAL.moss[0]); if (h(i, 5, 6) < .5) p.d(x, y + 1, PAL.moss[2]); } }
-      if (kind === 'cobble') for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) if (h(x, y, 8) < .06) p.d(x, y, PAL.dirt[1]);
       if ((kind === 'dfloor' || kind === 'ruin') && seed % 3 === 0) { let x = 3 + (seed % 5), y = 2; for (let i = 0; i < 7; i++) { p.d(x, y, pal[0]); x += h(i, 1, 1) < .5 ? 1 : 0; y += 1; } }
     }
     return p;
@@ -481,5 +479,5 @@
   }
 
   A.P = P; A.S = S;
-  A.init = () => { buildTiles(); buildObjects(); if (A.initChars) A.initChars(); };
+  A.init = () => { buildTiles(); buildObjects(); if (A.initPretty) A.initPretty(); if (A.initChars) A.initChars(); };
 })();
