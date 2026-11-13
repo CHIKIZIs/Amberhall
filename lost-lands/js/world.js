@@ -261,14 +261,15 @@
     }
     /* --- Растительность, камни, руды --- */
     const nearWater = (x, y) => { for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) { const t = m.t(x + i, y + j); if (t === T.WATER || t === T.DEEP) return true; } return false; };
+    const treeNear = (x, y, rr) => { for (let j = -rr; j <= 0; j++) for (let i = -rr - 1; i <= rr + 1; i++) { const o = m.at(x + i, y + j); if (o && G.OBJ[o.t].tree) return true; } return false; };
     const pickW = (list, q) => { let tot = 0; for (const e of list) tot += e[1]; let v = q * tot; for (const e of list) { v -= e[1]; if (v <= 0) return e[0]; } return list[0][0]; };
     const SC = {
-      [T.GRASS]: { trees: [['oak', 40], ['teal', 12], ['pine', 22], ['tpine', 8], ['birch', 14], ['dead', 4]], fd: .2, od: .012, misc: [['tgrass', 50], ['flower', 12], ['stickg', 14], ['pebble', 11], ['bush', 12], ['berry', 9], ['flog', 4], ['chanter', 2], ['amanita', 1.5], ['rock', 7], ['bigrock', 1], ['coalr', 1.3], ['copperr', 1.3], ['mush', 5], ['herbp', 4], ['fiberp', 5]], md: .14 },
-      [T.DGRASS]: { trees: [['doak', 50], ['pine', 32], ['tpine', 14], ['dead', 4]], fd: .3, od: .03, misc: [['tgrass', 30], ['mush', 16], ['herbp', 7], ['berry', 9], ['bush', 12], ['flog', 6], ['chanter', 6], ['amanita', 4], ['rock', 6], ['ironr', 3.5], ['coalr', 3], ['copperr', 2], ['stickg', 14], ['pebble', 8], ['fiberp', 4], ['flower', 5]], md: .1 },
-      [T.PINK]: { trees: [['pinkt', 30], ['crim', 16], ['ppine', 50], ['dead', 4]], fd: .26, od: .02, misc: [['pgrass', 50], ['pbush', 12], ['pberry', 6], ['gflower', 9], ['cryst_p', 1.6], ['goldr', 1.4], ['copperr', 2], ['rock', 8], ['herbp', 6], ['mush', 5], ['gmush', 3], ['stickg', 8], ['pebble', 8]], md: .1 },
-      [T.RED]: { trees: [['dead', 1]], fd: .012, od: .012, misc: [['cactus', 12], ['dbush', 12], ['dgrass', 28], ['granite', 13], ['ironr', 6], ['coalr', 4], ['goldr', 2], ['copperr', 4], ['spire', 10], ['pebble', 12], ['bones', 3], ['stickg', 6]], md: .085 },
-      [T.SNOW]: { trees: [['spine', 1]], fd: .2, od: .015, misc: [['sbush', 14], ['srock', 10], ['icer', 5], ['sironr', 5], ['sgoldr', 3], ['cryst_b', 1.8], ['stickg', 6], ['pebble', 7]], md: .04 },
-      [T.SAND]: { trees: [['palm', 1]], fd: .012, od: .012, misc: [['shell', 8], ['lime', 7], ['stickg', 8], ['pebble', 6], ['rock', 3], ['dgrass', 6]], md: .035 }
+      [T.GRASS]: { trees: [['oak', 40], ['teal', 12], ['pine', 22], ['tpine', 8], ['birch', 14], ['dead', 4]], fd: .2, od: .012, misc: [['tgrass', 50], ['flower', 12], ['stickg', 14], ['pebble', 11], ['bush', 12], ['berry', 9], ['flog', 4], ['chanter', 2], ['amanita', 1.5], ['rock', 7], ['bigrock', 1], ['crag', 1.2], ['coalr', 1.3], ['copperr', 1.3], ['mush', 5], ['herbp', 4], ['fiberp', 5]], md: .14 },
+      [T.DGRASS]: { trees: [['doak', 50], ['pine', 32], ['tpine', 14], ['dead', 4]], fd: .3, od: .03, misc: [['tgrass', 30], ['mush', 16], ['herbp', 7], ['berry', 9], ['bush', 12], ['flog', 6], ['chanter', 6], ['amanita', 4], ['rock', 6], ['crag_p', 1.2], ['crag', .8], ['ironr', 3.5], ['coalr', 3], ['copperr', 2], ['stickg', 14], ['pebble', 8], ['fiberp', 4], ['flower', 5]], md: .1 },
+      [T.PINK]: { trees: [['pinkt', 30], ['crim', 16], ['ppine', 50], ['dead', 4]], fd: .26, od: .02, misc: [['pgrass', 50], ['pbush', 12], ['pberry', 6], ['gflower', 9], ['cryst_p', 1.6], ['crag_p', 1], ['goldr', 1.4], ['copperr', 2], ['rock', 8], ['herbp', 6], ['mush', 5], ['gmush', 3], ['stickg', 8], ['pebble', 8]], md: .1 },
+      [T.RED]: { trees: [['dead', 1]], fd: .012, od: .012, misc: [['cactus', 12], ['dbush', 12], ['dgrass', 28], ['granite', 13], ['crag_d', 3], ['crag_p', 1.5], ['ironr', 6], ['coalr', 4], ['goldr', 2], ['copperr', 4], ['spire', 10], ['pebble', 12], ['bones', 3], ['stickg', 6]], md: .085 },
+      [T.SNOW]: { trees: [['spine', 1]], fd: .2, od: .015, misc: [['sbush', 14], ['srock', 10], ['crag_s', 3], ['icer', 5], ['sironr', 5], ['sgoldr', 3], ['cryst_b', 1.8], ['stickg', 6], ['pebble', 7]], md: .04 },
+      [T.SAND]: { trees: [['palm', 1]], fd: .012, od: .012, misc: [['shell', 8], ['lime', 7], ['stickg', 8], ['pebble', 6], ['rock', 3], ['crag_d', 1.2], ['dgrass', 6]], md: .035 }
     };
     for (let y = 3; y < HH - 3; y++) for (let x = 3; x < WW - 3; x++) {
       const k = y * WW + x, t = til[k], sc = SC[t]; if (!sc || m.grid[k] || m.roof[k] || (m.keep && m.keep[k])) continue;
@@ -276,7 +277,7 @@
       const q = H(x, y, seed + 1), f = fb(x / 9, y / 9, seed + 400, 3), nw = (t !== T.SNOW && t !== T.RED) && nearWater(x, y);
       if (nw && q < .2) { m.add(q < .15 ? 'reed' : 'claypit', x, y, {}); continue; }
       const td2 = f > .56 ? sc.fd : sc.od;
-      if (q < td2) { if (til[k + WW] === t || t === T.SAND) m.add(pickW(sc.trees, H(x, y, seed + 2)), x, y, {}); continue; }
+      if (q < td2) { const tt = pickW(sc.trees, H(x, y, seed + 2)), rr = /pine|palm|dead/.test(tt) ? 1 : 2; if ((til[k + WW] === t || t === T.SAND) && !treeNear(x, y, rr)) m.add(tt, x, y, {}); continue; }
       if (q < td2 + sc.md * (f > .56 ? .7 : 1)) { const fl = fb(x / 6, y / 6, seed + 500, 2); let ty = pickW(sc.misc, H(x, y, seed + 3)); if (t === T.GRASS && fl > .68 && H(x, y, seed + 4) < .6) ty = 'flower'; m.add(ty, x, y, {}); }
     }
     /* клады и плавающие ящики */

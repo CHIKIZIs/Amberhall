@@ -309,7 +309,7 @@
   const RC = [2, 7, 12, 7];
   const rk = (id, n, s, drops, hp, tier, ex) => Ob(id, Object.assign({ n, s, solid: 1, col: RC, sh: 2, res: { tool: 'pick', hp, tier: tier || 1, drops, xp: 5 + (tier || 1) * 3, dead: 'rubble', respawn: 1100 } }, ex || {}));
   rk('rock', 'Валун', ['rock0', 'rock1'], [['stone', 3, 5]], 5);
-  rk('bigrock', 'Большой валун', ['rock2'], [['stone', 6, 9], ['coal', 0, 1]], 8, 1, { sh: 3 });
+  rk('bigrock', 'Большой валун', ['rock2'], [['stone', 6, 9], ['coal', 0, 1]], 8, 1, { sh: 4, size: [2, 1], col: [4, 4, 26, 11] });
   rk('granite', 'Гранит', ['granite0', 'granite1'], [['granite', 3, 5], ['stone', 1, 2]], 7);
   rk('lime', 'Известняк', ['lime0', 'lime1'], [['limestone', 3, 5], ['stone', 0, 1]], 5);
   rk('coalr', 'Угольная жила', ['coalr'], [['coal', 2, 4], ['stone', 1, 2]], 6);
@@ -319,11 +319,16 @@
   rk('srock', 'Снежный валун', ['srock'], [['stone', 3, 5], ['ice_shard', 0, 1]], 6);
   rk('sironr', 'Железная жила', ['sironr'], [['iron_ore', 2, 4], ['stone', 1, 2]], 8);
   rk('sgoldr', 'Золотая жила', ['sgoldr'], [['gold_ore', 2, 3], ['stone', 1, 2]], 10, 2);
-  rk('icer', 'Ледяная глыба', ['icer'], [['ice_shard', 2, 4]], 8, 2);
+  rk('icer', 'Ледяная глыба', ['icer'], [['ice_shard', 2, 4]], 8, 2, { size: [2, 1], col: [4, 4, 26, 11], sh: 4 });
   rk('meteor', 'Метеорит', ['meteor'], [['star_ore', 2, 4], ['stone', 1, 3]], 12, 2, { light: [30, '#a583f5', .5], res: { tool: 'pick', hp: 12, tier: 2, drops: [['star_ore', 2, 4], ['stone', 1, 3]], xp: 30, respawn: 0 } });
   const cr = (id, s, c) => rk(id, 'Кристаллы', [s], [['crystal', 2, 3]], 8, 2, { light: [34, c, .6], col: [3, 9, 10, 6] });
   cr('cryst_g', 'cryst_g', '#3dd49a'); cr('cryst_p', 'cryst_p', '#e06af0'); cr('cryst_b', 'cryst_b', '#62b0f5');
   Ob('flog', { n: 'Упавшее бревно', s: ['flog0', 'flog1', 'flog2', 'flog3'], size: [2, 1], solid: 1, col: [3, 4, 26, 10], sh: 3, res: { tool: 'axe', hp: 3, drops: [['wood', 2, 3], ['bark', 1, 2], ['resin', 0, 1], ['mushroom', 0, 1, .3]], xp: 5, respawn: 0 } });
+  const cg = (id, n, s, drops) => Ob(id, { n, s, size: [3, 2], solid: 1, col: [5, 12, 38, 18], sh: 5, big: 1, res: { tool: 'pick', hp: 14, drops, xp: 16, dead: 'rubble', respawn: 1500 } });
+  cg('crag', 'Скала', ['crag1', 'crag2', 'crag5'], [['stone', 7, 11], ['coal', 0, 2], ['copper_ore', 0, 1]]);
+  cg('crag_p', 'Тёмная скала', ['crag0', 'crag3'], [['granite', 4, 7], ['stone', 3, 5], ['iron_ore', 0, 2]]);
+  cg('crag_s', 'Заснеженные камни', ['crag4'], [['stone', 6, 9], ['ice_shard', 1, 2]]);
+  cg('crag_d', 'Песчаник', ['crag6'], [['limestone', 4, 7], ['stone', 2, 4]]);
   Ob('spire', { n: 'Каменный столб', s: ['spire0', 'spire1'], solid: 1, col: [3, 8, 10, 7], sh: 2 });
   // руины
   const wl = (id, n, s, ex) => Ob(id, Object.assign({ n, s, solid: 1, col: [0, 0, 16, 16], wall: 1 }, ex || {}));
