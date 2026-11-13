@@ -206,7 +206,9 @@
       else { rim(p); c = p.outline(OUT).can(); }
       A.iconPos[id] = [n % cols, Math.floor(n / cols)]; A.iconCv[id] = c; cx.drawImage(c, (n % cols) * 16, Math.floor(n / cols) * 16); n++;
     };
-    for (const id of ids) { const it = G.ITEMS[id], p = P(16, 16), fn = IC[it.ic[0]]; if (fn) fn(p, it.ic[1], it.ic[2]); else p.r(4, 4, 8, 8, '#ff00ff'); put(id, p); }
+    const putCv = (id, c) => { A.iconPos[id] = [n % cols, Math.floor(n / cols)]; A.iconCv[id] = c; cx.drawImage(c, (n % cols) * 16, Math.floor(n / cols) * 16); n++; };
+    const userIcon = ic => { const c = A.userSprite(ic[1], ic[2], true); if (ic[3]) { const x = c.getContext('2d'); x.globalCompositeOperation = 'source-atop'; x.globalAlpha = .38; x.fillStyle = ic[3]; x.fillRect(0, 0, c.width, c.height); } return c; };
+    for (const id of ids) { const it0 = G.ITEMS[id]; if (it0.ic[0] === 'user') { putCv(id, userIcon(it0.ic)); continue; } const it = it0, p = P(16, 16), fn = IC[it.ic[0]]; if (fn) fn(p, it.ic[1], it.ic[2]); else p.r(4, 4, 8, 8, '#ff00ff'); put(id, p); }
     for (const id of uis) { const p = P(16, 16); UI[id](p); put(id, p); }
     A.iconAtlas = cv;
   };

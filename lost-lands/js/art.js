@@ -471,7 +471,7 @@
     { const p = P(16, 16); for (let y = 1; y < 15; y++) for (let x = 0; x < 16; x++) { let c = '#963030'; if (y === 1 || y === 14) c = PAL.gold[2]; else if (y === 2 || y === 13) c = '#6a1f26'; else if ((x + y) % 6 === 0 || (x - y + 16) % 6 === 0) c = PAL.gold[3]; else if (H(x, y, 4) < .1) c = '#c0463a'; p.d(x, y, c); } sd('rug', p); }
     { const p = P(20, 30), w = PAL.wood; p.r(9, 8, 2, 21, w[1]); p.r(2, 12, 16, 2, w[2]); p.r(5, 10, 10, 9, '#4479a8'); p.r(5, 10, 10, 1, '#68a0cc'); p.r(7, 19, 6, 2, '#2d5680'); p.e(10, 5.5, 4, 4, PAL.copper[3]); p.d(8, 5, OUT); p.d(11, 5, OUT); p.r(8, 7, 4, 1, OUT); p.r(6, 0, 8, 2, PAL.thatch[2]); p.r(4, 2, 12, 1, PAL.thatch[1]); p.d(1, 13, PAL.thatch[3]); p.d(18, 13, PAL.thatch[3]); sd('scarecrow', p.outline(OUT)); }
     /* посевы: 4 стадии */
-    const crops = { carrot: ['#56aa52', '#e5741f'], potato: ['#3e8c47', '#c9a66b'], wheat: ['#b8a25c', '#f5d76a'], cabbage: ['#56aa52', '#a8e072'], berry: ['#3b8c49', '#e23a5c'], pumpkin: ['#3e8c47', '#f08a24'], herb: ['#3d9c6a', '#d6ffd8'] };
+    const crops = { carrot: ['#56aa52', '#e5741f'], potato: ['#3e8c47', '#c9a66b'], wheat: ['#b8a25c', '#f5d76a'], cabbage: ['#56aa52', '#a8e072'], berry: ['#3b8c49', '#e23a5c'], pumpkin: ['#3e8c47', '#f08a24'], herb: ['#3d9c6a', '#d6ffd8'], eggplant: ['#3f8a36', '#7a3aa0'], radish: ['#3f8a36', '#e8e0e0'], corn: ['#4c9a36', '#f2c23e'], chili: ['#3f8a36', '#c82a2a'], turnip: ['#3f8a36', '#a04a8a'], leek: ['#4c9a36', '#e8f0d0'] };
     for (const id in crops) for (let st = 0; st < 4; st++) {
       const [g, f] = crops[id], p = P(16, 18), gd = dark(g, .3), gl = lite(g, .3);
       if (st === 0) { for (const x of [4, 8, 12]) { p.d(x, 13, gl); p.d(x, 14, g); } }

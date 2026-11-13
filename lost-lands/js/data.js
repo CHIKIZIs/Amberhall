@@ -42,18 +42,30 @@
   const seed = (crop, name, c) => I('seed_' + crop, name, 'misc', 50, ['seed', c], { seed: crop, desc: 'Посадите на грядку.' });
   seed('carrot', 'Семена моркови', '#e5741f'); seed('potato', 'Клубни картофеля', '#c9a66b'); seed('wheat', 'Зёрна пшеницы', '#f5d76a'); seed('cabbage', 'Семена капусты', '#a8e072');
   seed('berry', 'Семена ягод', '#e23a5c'); seed('pumpkin', 'Семена тыквы', '#f08a24'); seed('herb', 'Семена трав', '#8fe0a0');
+  seed('eggplant', 'Семена баклажана', '#7a3aa0'); seed('radish', 'Семена редиса', '#e8e0e0'); seed('corn', 'Зёрна кукурузы', '#f2c23e'); seed('chili', 'Семена чили', '#c82a2a'); seed('turnip', 'Семена репы', '#a04a8a'); seed('leek', 'Семена лука-порея', '#cfe8a0');
   // еда
   const F = (id, name, stack, ic, food, ex) => I(id, name, 'food', stack, ic, Object.assign({ food }, ex || {}));
   F('berries', 'Ягоды', 30, ['berry', '#e23a5c'], { hunger: 8, thirst: 5 });
-  F('mushroom', 'Гриб', 30, ['mush', '#b06a36'], { hunger: 7 });
+  F('mushroom', 'Шампиньон', 30, ['user', 'food8', 1], { hunger: 7 });
   F('herb', 'Лекарственная трава', 30, ['leaf', '#8fe0a0'], { hp: 10 });
   F('cactus', 'Мякоть кактуса', 30, ['lump', '#4ba24f'], { thirst: 16, hunger: 3 });
   F('raw_meat', 'Сырое мясо', 20, ['meat', '#d8556a', '#f0a0a8'], { hunger: 10, hp: -8 }, { desc: 'Лучше пожарить.' });
   F('raw_fish', 'Рыба', 20, ['fish', '#7fb7d6'], { hunger: 8, hp: -5 }, { desc: 'Лучше пожарить.' });
-  F('carrot', 'Морковь', 30, ['carrot'], { hunger: 11 });
+  F('carrot', 'Морковь', 30, ['user', 'food6', 1], { hunger: 11 });
   F('potato', 'Картофель', 30, ['lump', '#c9a66b'], { hunger: 8 });
   F('cabbage', 'Капуста', 30, ['cabbage'], { hunger: 12, thirst: 4 });
-  F('pumpkin', 'Тыква', 20, ['pumpkin'], { hunger: 15 });
+  F('pumpkin', 'Тыква', 20, ['user', 'food8', 7], { hunger: 15 });
+  F('eggplant', 'Баклажан', 30, ['user', 'food6', 0], { hunger: 12 });
+  F('radish', 'Редис', 30, ['user', 'food6', 2], { hunger: 8, thirst: 5 });
+  F('corn', 'Кукуруза', 30, ['user', 'food8', 2], { hunger: 10 });
+  F('chili', 'Перец чили', 30, ['user', 'food8', 3], { hunger: 4, warm: 60 }, { desc: 'Жжётся! Согревает в стужу.' });
+  F('turnip', 'Репа', 30, ['user', 'food8', 4], { hunger: 10 });
+  F('leek', 'Лук-порей', 30, ['user', 'food8', 5], { hunger: 8, hp: 4 });
+  F('chanterelle', 'Лисички', 30, ['user', 'mush', 11], { hunger: 9 }, { desc: 'Вкуснее жареные.' });
+  F('amanita', 'Мухомор', 20, ['user', 'mush', 5], { hunger: 2, hp: -18 }, { desc: 'Ядовит! Лучше не есть.' });
+  F('grilled_corn', 'Жареная кукуруза', 20, ['user', 'food8', 2, '#7a3a14'], { hunger: 26, hp: 4 });
+  F('fried_chanterelle', 'Жареные лисички', 20, ['user', 'mush', 9, '#6a2a10'], { hunger: 28, hp: 6 });
+  F('ratatouille', 'Рататуй', 10, ['bowl', '#c8502a'], { hunger: 55, thirst: 10, hp: 15, warm: 60 }, { desc: 'Сытно и согревает.' });
   F('cooked_meat', 'Жареное мясо', 20, ['meat', '#a8643a', '#d99a5c'], { hunger: 36, hp: 10 });
   F('cooked_fish', 'Жареная рыба', 20, ['fish', '#c98f4f'], { hunger: 28, hp: 8 });
   F('baked_potato', 'Печёный картофель', 20, ['lump', '#b98a52'], { hunger: 24, hp: 4 });
@@ -226,6 +238,10 @@
   Rc('cooked_fish', 1, { raw_fish: 1 }, 'campfire', 'food', 3);
   Rc('baked_potato', 1, { potato: 1 }, 'campfire', 'food', 3);
   Rc('flatbread', 1, { wheat: 2 }, 'campfire', 'food', 3);
+  Rc('grilled_corn', 1, { corn: 1 }, 'campfire', 'food', 3);
+  Rc('fried_chanterelle', 1, { chanterelle: 2 }, 'campfire', 'food', 3);
+  Rc('ratatouille', 1, { eggplant: 1, chili: 1, leek: 1 }, 'kitchen', 'food', 6);
+  Rc('mushroom_soup', 1, { chanterelle: 3, flask_clean: 1 }, 'kitchen', 'food', 5, { ret: { flask: 1 }, note: 'из лисичек' });
   Rc('flask_clean', 1, { flask_dirty: 1 }, 'campfire', 'food', 3, { note: 'Кипячение' });
   Rc('mushroom_soup', 1, { mushroom: 3, flask_clean: 1 }, 'kitchen', 'food', 5, { ret: { flask: 1 } });
   Rc('veg_stew', 1, { carrot: 1, potato: 1, cabbage: 1 }, 'kitchen', 'food', 6);
@@ -242,7 +258,10 @@
     carrot: { name: 'Морковь', time: 200, out: 'carrot', n: [2, 3] }, potato: { name: 'Картофель', time: 240, out: 'potato', n: [2, 4] },
     wheat: { name: 'Пшеница', time: 170, out: 'wheat', n: [2, 4] }, cabbage: { name: 'Капуста', time: 280, out: 'cabbage', n: [1, 2] },
     berry: { name: 'Ягоды', time: 220, out: 'berries', n: [3, 5] }, pumpkin: { name: 'Тыква', time: 360, out: 'pumpkin', n: [1, 2] },
-    herb: { name: 'Лекарственные травы', time: 210, out: 'herb', n: [2, 3] }
+    herb: { name: 'Лекарственные травы', time: 210, out: 'herb', n: [2, 3] },
+    eggplant: { name: 'Баклажан', time: 260, out: 'eggplant', n: [2, 3] }, radish: { name: 'Редис', time: 150, out: 'radish', n: [2, 4] },
+    corn: { name: 'Кукуруза', time: 300, out: 'corn', n: [2, 3] }, chili: { name: 'Чили', time: 240, out: 'chili', n: [2, 4] },
+    turnip: { name: 'Репа', time: 200, out: 'turnip', n: [2, 3] }, leek: { name: 'Лук-порей', time: 190, out: 'leek', n: [2, 3] }
   };
 
   /* ---------- ОБЪЕКТЫ МИРА ---------- */
@@ -270,7 +289,7 @@
   pk('pberry', 'Сияющая ягода', ['pberry1'], [], { solid: 1, col: [3, 9, 10, 5], sh: 2, pick: { drops: [['berries', 3, 5], ['glow_flower', 1, 1, .2]], xp: 4, respawn: 420, dead: 'pberry0' } });
   pk('dbush', 'Сухой куст', ['dbush'], [['stick', 1, 2], ['fiber', 0, 2]], { sh: 2 });
   pk('cactus', 'Кактус', ['cactus0', 'cactus1'], [['cactus', 1, 2], ['fiber', 0, 1]], { solid: 1, col: [5, 10, 6, 5], sh: 1, pick: { drops: [['cactus', 1, 2], ['fiber', 0, 1]], xp: 3, respawn: 500, keep: 1 } });
-  const seeds = [['seed_carrot', 1, 1, .05], ['seed_wheat', 1, 1, .06], ['seed_potato', 1, 1, .04], ['seed_cabbage', 1, 1, .03], ['seed_pumpkin', 1, 1, .02]];
+  const seeds = [['seed_carrot', 1, 1, .05], ['seed_wheat', 1, 1, .06], ['seed_potato', 1, 1, .04], ['seed_cabbage', 1, 1, .03], ['seed_pumpkin', 1, 1, .02], ['seed_radish', 1, 1, .03], ['seed_corn', 1, 1, .02], ['seed_turnip', 1, 1, .03], ['seed_leek', 1, 1, .02], ['seed_eggplant', 1, 1, .015], ['seed_chili', 1, 1, .015]];
   pk('tgrass', 'Высокая трава', ['tgrass0', 'tgrass1'], [['grass', 1, 2], ['fiber', 0, 1]].concat(seeds), { anim: 2 });
   pk('pgrass', 'Розовая трава', ['pgrass0', 'pgrass1'], [['grass', 1, 2], ['fiber', 1, 1], ['seed_herb', 1, 1, .06]], { anim: 2 });
   pk('dgrass', 'Сухая трава', ['dgrass0', 'dgrass1'], [['grass', 1, 1], ['fiber', 1, 2]], { anim: 2 });
@@ -279,7 +298,9 @@
   pk('gflower', 'Светоцвет', ['gflower'], [['glow_flower', 1, 1]], { light: [28, '#58d6c4', .5], pick: { drops: [['glow_flower', 1, 1]], xp: 5, respawn: 600 } });
   pk('herbp', 'Лекарственная трава', ['herbp'], [['herb', 1, 2], ['seed_herb', 1, 1, .15]]);
   pk('fiberp', 'Дикий лён', ['fiberp'], [['fiber', 2, 4]]);
-  pk('mush', 'Грибы', ['mush0', 'mush1'], [['mushroom', 1, 2]]);
+  pk('mush', 'Шампиньоны', ['umush0', 'umush2', 'umush1'], [['mushroom', 1, 2]]);
+  pk('amanita', 'Мухоморы', ['umush5', 'umush7', 'umush6'], [['amanita', 1, 2]]);
+  pk('chanter', 'Лисички', ['umush11', 'umush9', 'umush8'], [['chanterelle', 1, 3]]);
   pk('gmush', 'Светящиеся грибы', ['gmush'], [['glow_mushroom', 1, 2]], { light: [26, '#3aa8f0', .55] });
   pk('stickg', 'Сухие ветки', ['stickg'], [['stick', 1, 2]], { pick: { drops: [['stick', 1, 2]], xp: 1, respawn: 360 } });
   pk('pebble', 'Камешки', ['pebble'], [['stone', 1, 2]], { pick: { drops: [['stone', 1, 2]], xp: 1, respawn: 480 } });
@@ -382,7 +403,7 @@
   G.LOOT = {
     crate: { n: [1, 2], l: [['stick', 1, 3, 4], ['rope', 1, 2, 3], ['cloth', 1, 2, 2], ['berries', 2, 4, 2], ['plank', 1, 3, 3], ['arrow', 2, 5, 2], ['coal', 1, 2, 2], ['seed_carrot', 1, 2, 1], ['seed_wheat', 1, 2, 1]] },
     urn: { n: [1, 2], l: [['bone', 1, 2, 3], ['crystal', 1, 1, 1], ['gear', 1, 1, 1], ['gold_ore', 1, 2, 1], ['coal', 1, 3, 3], ['key', 1, 1, .4], ['glow_mushroom', 1, 2, 2]] },
-    shelf: { n: [1, 2], l: [['cloth', 1, 2, 3], ['rope', 1, 2, 3], ['bread', 1, 1, 2], ['seed_potato', 1, 3, 2], ['seed_cabbage', 1, 2, 2], ['seed_pumpkin', 1, 2, 1], ['resin', 1, 2, 2], ['torch', 1, 3, 3], ['leather', 1, 2, 2]] },
+    shelf: { n: [1, 2], l: [['cloth', 1, 2, 3], ['rope', 1, 2, 3], ['bread', 1, 1, 2], ['seed_potato', 1, 3, 2], ['seed_cabbage', 1, 2, 2], ['seed_pumpkin', 1, 2, 1], ['seed_eggplant', 1, 2, 1], ['seed_chili', 1, 2, 1], ['seed_corn', 1, 2, 1], ['seed_leek', 1, 2, 1], ['resin', 1, 2, 2], ['torch', 1, 3, 3], ['leather', 1, 2, 2]] },
     flotsam: { n: [2, 3], l: [['plank', 2, 4, 4], ['rope', 1, 2, 3], ['cloth', 1, 2, 2], ['raw_fish', 1, 2, 2], ['copper_ingot', 1, 1, 1], ['arrow', 3, 6, 2], ['flask', 1, 1, 1]] },
     dig: { n: [1, 1], l: [['clay', 1, 2, 6], ['stone', 1, 2, 4], ['bone', 1, 1, 2], ['seed_potato', 1, 1, 1], ['copper_ore', 1, 1, 1], ['shellx', 0, 0, 0]] },
     treasure: { n: [4, 5], l: [['gold_ingot', 1, 2, 3], ['crystal', 2, 3, 3], ['iron_ingot', 2, 4, 3], ['potion_heal', 1, 2, 2], ['gear', 1, 2, 2], ['key', 1, 1, 2], ['arrow', 8, 14, 2]] },

@@ -150,6 +150,11 @@
     b('icer', ICE, 14, { w: 22, h: 19, tall: 1, tufts: false }); b('meteor', STAR, 15, { ore: ORE.star, n: 8, w: 22, h: 18, tufts: false });
     { const p = boulder(ROCK, 31, { w: 12, h: 9, tufts: false }); S('pebble', p); }
     for (let i = 0; i < 4; i++) S('flog' + i, fallenLog(i + 3, i >= 2, i % 2));
+    /* грибы из картинки автора */
+    for (let i = 0; i < 12; i++) { const c = A.userSprite('mush', i); A.spr['umush' + i] = { c, w: c.width, h: c.height }; }
+    /* спелая грядка показывает сам овощ */
+    const RIPE = { carrot: ['food6', 1], eggplant: ['food6', 0], radish: ['food6', 2], corn: ['food8', 2], chili: ['food8', 3], turnip: ['food8', 4], leek: ['food8', 5], pumpkin: ['food8', 7] };
+    for (const id in RIPE) { const c = A.userSprite(RIPE[id][0], RIPE[id][1], true); const z = document.createElement('canvas'); z.width = 16; z.height = 18; z.getContext('2d').drawImage(c, 0, 1); A.spr['crop_' + id + '3'] = { c: z, w: 16, h: 18 }; }
   };
 })();
 /* Сундук по референсу автора: деревянная крышка с красной полосой, железные полосы, кольца, замок */
