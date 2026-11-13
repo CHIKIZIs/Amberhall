@@ -18,15 +18,17 @@ class TsdfVolume(
     val voxelSize: Float,
     val minDepth: Float,
     val maxDepth: Float,
+    /** Область сканирования (minX, minY, minZ, maxX, maxY, maxZ) или null — без ограничений. */
+    val roi: FloatArray? = null,
 ) {
     class Block {
         val tsdf = FloatArray(BLOCK_VOXELS) { 1f }
-        val weight = ByteArray(BLOCK_VOXELS)
+        val weight = FloatArray(BLOCK_VOXELS)
         val rgb = ByteArray(BLOCK_VOXELS * 3)
         val colorWeight = ByteArray(BLOCK_VOXELS)
     }
 
-    val truncation = max(3.5f * voxelSize, 0.03f)
+    val truncation = max(3.5f * voxelSize, 0.025f)
     private val blockSize = voxelSize * BLOCK
     private val blocks = HashMap<Long, Block>()
 
@@ -58,6 +60,7 @@ class TsdfVolume(
                     val wx = m[0] * xc + m[4] * yc + m[8] * zc + ox
                     val wy = m[1] * xc + m[5] * yc + m[9] * zc + oy
                     val wz = m[2] * xc + m[6] * yc + m[10] * zc + oz
+                    if (!inRoi(wx, wy, wz, truncation)) { u += stride; continue }
                     var dx = wx - ox; var dy = wy - oy; var dz = wz - oz
                     val len = sqrt(dx * dx + dy * dy + dz * dz)
                     if (len > 1e-6f) {
@@ -94,6 +97,12 @@ class TsdfVolume(
         }
     }
 
+    private fun inRoi(x: Float, y: Float, z: Float, margin: Float): Boolean {
+        val r = roi ?: return true
+        return x >= r[0] - margin && y >= r[1] - margin && z >= r[2] - margin &&
+            x <= r[3] + margin && y <= r[4] + margin && z <= r[5] + margin
+    }
+
     private fun integrateBlock(key: Long, b: Block, f: DepthFrame, depth: FloatArray) {
         val m = f.camToWorld
         val bx = unpackX(key); val by = unpackY(key); val bz = unpackZ(key)
@@ -126,14 +135,18 @@ class TsdfVolume(
                         val uf = f.dfx * cx / z + f.dcx + 0.5f
                         val vf = f.dcy - f.dfy * cy / z + 0.5f
                         if (uf >= 0f && vf >= 0f && uf < w && vf < h) {
-                            val d = depth[vf.toInt() * w + uf.toInt()]
+                            val pi = vf.toInt() * w + uf.toInt()
+                            val d = depth[pi]
                             if (d > 0f) {
                                 val sdf = d - z
                                 if (sdf >= -trunc) {
                                     val t = min(1f, sdf / trunc)
-                                    val wOld = b.weight[idx].toInt()
-                                    b.tsdf[idx] = (b.tsdf[idx] * wOld + t) / (wOld + 1)
-                                    b.weight[idx] = min(wOld + 1, MAX_WEIGHT).toByte()
+                                    // Вес наблюдения: уверенность ARCore и падение точности с расстоянием.
+                                    val conf = f.confidence?.get(pi) ?: 1f
+                                    val wNew = conf * conf * min(1f, 0.64f / (d * d))
+                                    val wOld = b.weight[idx]
+                                    b.tsdf[idx] = (b.tsdf[idx] * wOld + t * wNew) / (wOld + wNew)
+                                    b.weight[idx] = min(wOld + wNew, MAX_WEIGHT)
                                     if (abs(sdf) < colorBand) {
                                         val cu = (f.cfx * cx / z + f.ccx).toInt()
                                         val cv = (f.ccy - f.cfy * cy / z).toInt()
@@ -195,7 +208,12 @@ class TsdfVolume(
      * без таблиц): по одной вершине на ячейку, пересекаемую поверхностью,
      * и по квадрату на каждое ребро решётки со сменой знака.
      */
-    fun extractMesh(minWeight: Int = 2, progress: (Float) -> Unit = {}): Mesh? {
+    fun extractMesh(
+        minWeight: Float = 1.2f,
+        removeSupport: Boolean = false,
+        smoothIterations: Int = 2,
+        progress: (Float) -> Unit = {},
+    ): Mesh? {
         val keys = blocks.keys.toLongArray()
         if (keys.isEmpty()) return null
 
@@ -206,7 +224,7 @@ class TsdfVolume(
 
         val P = BLOCK + 1
         val pv = FloatArray(P * P * P)
-        val pw = IntArray(P * P * P)
+        val pw = FloatArray(P * P * P)
         val pc = IntArray(P * P * P)
         val neighbors = arrayOfNulls<Block>(8)
         val cv = FloatArray(8)
@@ -227,10 +245,10 @@ class TsdfVolume(
             for (k in 0 until P) for (j in 0 until P) for (i in 0 until P) {
                 val nb = neighbors[(i / BLOCK) + 2 * (j / BLOCK) + 4 * (k / BLOCK)]
                 val pi = i + P * (j + P * k)
-                if (nb == null) { pw[pi] = 0; continue }
+                if (nb == null) { pw[pi] = 0f; continue }
                 val li = (i % BLOCK) + BLOCK * ((j % BLOCK) + BLOCK * (k % BLOCK))
                 pv[pi] = nb.tsdf[li]
-                pw[pi] = nb.weight[li].toInt()
+                pw[pi] = nb.weight[li]
                 pc[pi] = if (nb.colorWeight[li].toInt() == 0) -1 else
                     ((nb.rgb[li * 3].toInt() and 0xFF) shl 16) or
                         ((nb.rgb[li * 3 + 1].toInt() and 0xFF) shl 8) or
@@ -362,11 +380,32 @@ class TsdfVolume(
         if (idx.size == 0) return null
         progress(0.92f)
 
+        var positions = pos.toArray()
+        var colors = col.toArray()
+        var indices = idx.toArray()
+
+        roi?.let {
+            val (p2, c2, i2) = Mesh.cropToBox(positions, colors, indices, it)
+            positions = p2; colors = c2; indices = i2
+        }
+        if (removeSupport && indices.isNotEmpty()) {
+            Mesh.findSupportPlane(positions, indices)?.let { planeY ->
+                val cut = planeY + max(0.008f, voxelSize * 1.2f)
+                val (p2, c2, i2) = Mesh.filterTriangles(positions, colors, indices) { a, b, c ->
+                    positions[a * 3 + 1] > cut || positions[b * 3 + 1] > cut || positions[c * 3 + 1] > cut
+                }
+                positions = p2; colors = c2; indices = i2
+            }
+        }
+        if (indices.isEmpty()) return null
+        progress(0.95f)
+
         val (cp, cc, ci) = Mesh.removeSmallComponents(
-            pos.toArray(), col.toArray(), idx.toArray(),
-            minTriangles = 80, minFraction = 0.004f,
+            positions, colors, indices,
+            minTriangles = 80, minFraction = if (removeSupport) 0.05f else 0.004f,
         )
         if (ci.isEmpty()) return null
+        Mesh.taubinSmooth(cp, ci, smoothIterations)
         Mesh.recenter(cp)
         val normals = Mesh.computeNormals(cp, ci)
         progress(1f)
@@ -376,7 +415,7 @@ class TsdfVolume(
     companion object {
         const val BLOCK = 8
         const val BLOCK_VOXELS = BLOCK * BLOCK * BLOCK
-        const val MAX_WEIGHT = 64
+        const val MAX_WEIGHT = 64f
         const val MAX_COLOR_WEIGHT = 32
         /** Максимальный скачок TSDF на ребре, при котором пересечение считается настоящим. */
         const val MAX_JUMP = 1.0f

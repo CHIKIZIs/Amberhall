@@ -61,7 +61,7 @@ class ReconstructionTest {
         val uP = ByteArray(cw * ch / 4) { 100.toByte() }
         val vP = ByteArray(cw * ch / 4) { 170.toByte() }
         return DepthFrame(
-            w, h, depth, fxp, fyp, cx, cy,
+            w, h, depth, null, fxp, fyp, cx, cy,
             cw, ch, yP, cw, 1, uP, vP, cw / 2, 1,
             fxp * 2, fyp * 2, cx * 2, cy * 2, m,
         )
@@ -132,6 +132,66 @@ class ReconstructionTest {
         assertEquals(mesh.triangleCount, back.triangleCount)
         assertEquals(mesh.positions[123], back.positions[123], 0f)
         assertEquals(mesh.indices.last(), back.indices.last())
+    }
+
+
+    /** Пересечение луча с коробкой (slab-метод), возвращает t или -1. */
+    private fun rayBox(o: FloatArray, d: FloatArray, mn: FloatArray, mx: FloatArray): Float {
+        var t0 = -Float.MAX_VALUE; var t1 = Float.MAX_VALUE
+        for (a in 0..2) {
+            if (abs(d[a]) < 1e-9f) { if (o[a] < mn[a] || o[a] > mx[a]) return -1f; continue }
+            var ta = (mn[a] - o[a]) / d[a]; var tb = (mx[a] - o[a]) / d[a]
+            if (ta > tb) { val x = ta; ta = tb; tb = x }
+            t0 = maxOf(t0, ta); t1 = minOf(t1, tb)
+        }
+        return if (t0 <= t1 && t0 > 0) t0 else -1f
+    }
+
+    /**
+     * Реалистичная сцена: пенал 22×6×10 см на столе, сзади стена, глубина шумная (1,5%)
+     * и с пропусками. С областью сканирования и удалением стола должен остаться только пенал.
+     */
+    @Test
+    fun objectOnTableIsIsolated() {
+        val boxMin = floatArrayOf(-0.11f, 0f, -0.05f); val boxMax = floatArrayOf(0.11f, 0.06f, 0.05f)
+        val rnd = java.util.Random(42)
+        val roi = floatArrayOf(-0.25f, -0.2f, -0.25f, 0.25f, 0.3f, 0.25f)
+        val vol = TsdfVolume(voxelSize = 0.006f, minDepth = 0.15f, maxDepth = 1.2f, roi = roi)
+        val target = floatArrayOf(0f, 0.03f, 0f)
+        val w = 160; val h = 120; val f = 130f
+        for (i in 0 until 60) {
+            val ang = 2 * Math.PI * i / 60
+            val eye = floatArrayOf((0.5 * cos(ang)).toFloat(), 0.35f + 0.1f * sin(ang * 3).toFloat(), (0.5 * sin(ang)).toFloat())
+            val m = lookAt(eye, target)
+            val depth = FloatArray(w * h); val conf = FloatArray(w * h)
+            for (v in 0 until h) for (u in 0 until w) {
+                if (rnd.nextFloat() < 0.4f) continue // пропуски сырой глубины
+                val dx = (u - 80f) / f; val dy = (60f - v) / f
+                val d = floatArrayOf(m[0] * dx + m[4] * dy - m[8], m[1] * dx + m[5] * dy - m[9], m[2] * dx + m[6] * dy - m[10])
+                var t = Float.MAX_VALUE
+                val tb = rayBox(eye, d, boxMin, boxMax); if (tb > 0) t = minOf(t, tb)
+                if (d[1] < 0) { val tt = -eye[1] / d[1]; if (tt > 0) t = minOf(t, tt) }        // стол y=0
+                if (d[2] < 0) { val tw = (-1.0f - eye[2]) / d[2]; if (tw > 0) t = minOf(t, tw) } // стена z=-1
+                if (t == Float.MAX_VALUE) continue
+                depth[v * w + u] = t * (1f + 0.015f * rnd.nextGaussian().toFloat())
+                conf[v * w + u] = 0.5f + 0.5f * rnd.nextFloat()
+            }
+            val cw = 320; val ch = 240
+            val frame = DepthFrame(
+                w, h, depth, conf, f, f, 80f, 60f,
+                cw, ch, ByteArray(cw * ch) { 40 }, cw, 1, ByteArray(cw * ch / 4) { 128.toByte() }, ByteArray(cw * ch / 4) { 128.toByte() }, cw / 2, 1,
+                f * 2, f * 2, 160f, 120f, m,
+            )
+            vol.integrate(frame, null)
+        }
+        val mesh = vol.extractMesh(removeSupport = true, smoothIterations = 3)!!
+        val b = mesh.bounds()
+        println("object: tris=${mesh.triangleCount} size=${b[3] - b[0]} x ${b[4] - b[1]} x ${b[5] - b[2]}")
+        MeshIO.writeGlb(mesh, File(File("build/test-out").apply { mkdirs() }, "object.glb"))
+        assertEquals(0.22f, b[3] - b[0], 0.025f)
+        assertEquals(0.10f, b[5] - b[2], 0.025f)
+        // Высота: 6 см минус срезанные у стола ~1 см.
+        assertTrue("height ${b[4] - b[1]}", (b[4] - b[1]) in 0.035f..0.07f)
     }
 
     @Test

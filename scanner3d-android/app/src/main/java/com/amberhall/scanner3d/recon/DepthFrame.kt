@@ -13,6 +13,8 @@ class DepthFrame(
     val depthW: Int,
     val depthH: Int,
     val depth: FloatArray,
+    // Уверенность каждого пикселя глубины 0..1 (null — считать полной)
+    val confidence: FloatArray?,
     val dfx: Float, val dfy: Float, val dcx: Float, val dcy: Float,
     // Цветное изображение YUV_420_888
     val colorW: Int,
