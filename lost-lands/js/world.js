@@ -102,12 +102,18 @@
 
   /* ---------- ВЕРХНИЙ МИР ---------- */
   W.genWorld = seed => {
-    const WW = 400, HH = 320, m = new GMap('world', WW, HH), til = m.tiles, bio = m.biome, r = G.rng(seed);
+    const WW = 320, HH = 256, m = new GMap('world', WW, HH), til = m.tiles, bio = m.biome, r = G.rng(seed);
+    /* раскладка из сида: зеркало и плавное искривление двигают биомы и места интереса вместе */
+    const flip = r() < .5, rot = Math.floor(r() * 4), ph = [r() * 6.28, r() * 6.28, r() * 6.28, r() * 6.28], amp = [.045 + r() * .04, .04 + r() * .035];
+    const shape = r(), bays = 1 + Math.floor(r() * 3);
+    const L = (fx, fy) => { if (flip) fx = 1 - fx; if (rot === 1) [fx, fy] = [1 - fy, fx]; else if (rot === 2) [fx, fy] = [1 - fx, 1 - fy]; else if (rot === 3) [fx, fy] = [fy, 1 - fx]; return [fx + Math.sin(fy * 5.1 + ph[0]) * amp[0] + Math.sin(fy * 9.3 + ph[1]) * amp[0] * .4, fy + Math.sin(fx * 4.7 + ph[2]) * amp[1] + Math.sin(fx * 8.9 + ph[3]) * amp[1] * .4]; };
+    m.layout = { flip, rot };
     const fb = G.fbm, H = G.hash;
     const cen = [[.5, .76, BI.green], [.36, .8, BI.green], [.64, .8, BI.green], [.5, .46, BI.village], [.8, .5, BI.pink], [.78, .72, BI.pink], [.2, .5, BI.canyon], [.22, .72, BI.canyon], [.24, .2, BI.north], [.5, .18, BI.north], [.76, .2, BI.north]];
+    for (const c of cen) { const q = L(c[0], c[1]); c[0] = q[0]; c[1] = q[1]; }
     const land = new Float32Array(WW * HH);
     for (let y = 0; y < HH; y++) for (let x = 0; x < WW; x++) {
-      const k = y * WW + x, nx = x / WW * 2 - 1, ny = y / HH * 2 - 1, d = 1 - (1 - nx * nx) * (1 - ny * ny);
+      const k = y * WW + x, wx0 = (fb(x / 46, y / 46, seed + 5, 2) - .5) * .55, wy0 = (fb(x / 46, y / 46, seed + 6, 2) - .5) * .55, nx = x / WW * 2 - 1 + wx0, ny = y / HH * 2 - 1 + wy0, dRect = 1 - (1 - nx * nx) * (1 - ny * ny), dRad = Math.min(1.4, Math.hypot(nx, ny) * .92), bay = Math.max(0, Math.sin(Math.atan2(ny, nx) * bays + ph[1]) - .55) * .55 * Math.hypot(nx, ny), d = Math.min(1.5, dRect * (1 - shape) + dRad * shape + bay);
       const v = .62 + (fb(x / 30, y / 30, seed, 4) - .5) * .6 - d * d * d * 1.3; land[k] = v;
       const wx = x + (fb(x / 36, y / 36, seed + 11, 3) - .5) * 56, wy = y + (fb(x / 36, y / 36, seed + 23, 3) - .5) * 56;
       let b1 = 0, d1 = 1e9, d2 = 1e9, b2 = 0;
@@ -139,12 +145,36 @@
       for (const [i, j] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (til[k + j * WW + i] === T.CLIFF) n++;
       if (n <= 1) til[k] = [T.GRASS, T.GRASS, T.PINK, T.RED, T.DGRASS, T.SNOW][bio[k]] || T.GRASS;
     }
+    /* реки */
+    { const nR = 4 + Math.floor(r() * 3);
+      for (let k = 0; k < nR; k++) {
+        let x = 0, y = 0, ok = false;
+        for (let a = 0; a < 200 && !ok; a++) { x = 20 + Math.floor(r() * (WW - 40)); y = 20 + Math.floor(r() * (HH - 40)); const kk = y * WW + x; ok = land[kk] > .5 && TD[til[kk]].pass === 1 && bio[kk] !== BI.canyon; }
+        if (!ok) continue;
+        let dir = r() * 6.28, len = 0, wide = r() < .5;
+        while (len++ < 260) {
+          const kk = y * WW + x; if (til[kk] === T.DEEP || (til[kk] === T.WATER && len > 4)) break;
+          /* следующий шаг — вниз по склону с извилинами */
+          let best = null, bv = 1e9; for (let a = 0; a < 8; a++) { const an = dir + (a - 3.5) * .45, nx = Math.round(x + Math.cos(an)), ny = Math.round(y + Math.sin(an)); if (nx < 2 || ny < 2 || nx >= WW - 2 || ny >= HH - 2) continue; const v = land[ny * WW + nx] + Math.abs(a - 3.5) * .006 + (r() - .5) * .02; if (v < bv) { bv = v; best = [nx, ny, an]; } }
+          if (!best) break; x = best[0]; y = best[1]; dir = best[2] * .7 + dir * .3;
+          const deep = wide && len > 12;
+          for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) { const X = x + i, Y = y + j, k2 = Y * WW + X; if (X < 1 || Y < 1 || X >= WW - 1 || Y >= HH - 1) continue; const t = til[k2]; if (t === T.CLIFF) continue; const centre = !i && !j; if (centre) til[k2] = deep ? T.DEEP : T.WATER; else if (Math.abs(i) + Math.abs(j) === 1 && (deep || r() < .45) && t !== T.DEEP) til[k2] = T.WATER; else if (t !== T.WATER && t !== T.DEEP && r() < .5 && bio[k2] !== BI.north) til[k2] = T.SAND; }
+        }
+      }
+    }
     /* старт: южный берег зелёного острова */
-    let sx = Math.floor(WW * .5), sy = HH - 10;
-    for (let y = HH - 5; y > HH * .6; y--) { if (TD[til[y * WW + sx]].pass === 1 && TD[til[(y - 3) * WW + sx]].pass === 1) { sy = y - 2; break; } }
+    /* старт: ближайший к зелёному побережью берег */
+    let [sx, sy] = (() => { const q = L(.5, .9); return [Math.floor(q[0] * WW), Math.floor(q[1] * HH)]; })();
+    { let best = null, bd = 1e9; const tx = sx, ty = sy;
+      for (let y = 6; y < HH - 6; y++) for (let x = 6; x < WW - 6; x++) { const k = y * WW + x; if (bio[k] !== BI.green || TD[til[k]].pass !== 1 || til[k] === T.CLIFF) continue; let wet = false, dry = 0; for (let j = -3; j <= 3; j++) for (let i = -3; i <= 3; i++) { const t = til[k + j * WW + i]; if (t === T.DEEP) wet = true; if (TD[t].pass === 1) dry++; } if (!wet || dry < 30) continue; const d = (x - tx) * (x - tx) + (y - ty) * (y - ty); if (d < bd) { bd = d; best = [x, y]; } }
+      if (best) [sx, sy] = best; }
     m.start = [sx, sy];
     /* дороги: гарантируют проход между биомами */
+    const fits = (x, y, w, h) => { if (x < 5 || y < 5 || x + w >= WW - 5 || y + h >= HH - 5) return false; for (let j = -1; j <= h; j++) for (let i = -1; i <= w; i++) { const t = til[(y + j) * WW + x + i]; if (t === T.DEEP || t === T.WATER || t === T.BRIDGE || t === T.SBRIDGE || t === T.RUIN || t === T.WOODF || t === T.CLIFF) return false; } return true; };
+    /* место под постройку: сначала случайно рядом, потом кольцами наружу до ближайшей суши */
+    const spot = (cx, cy, w, h, rad) => { for (let a = 0; a < 160; a++) { const R = Math.min(rad, 4 + a / 4), x = cx + Math.floor((r() - .5) * 2 * R), y = cy + Math.floor((r() - .5) * 2 * R); if (fits(x, y, w, h)) return [x, y]; } for (let R = 1; R < 120; R++) for (let a = 0; a < R * 6; a++) { const an = a / (R * 6) * 6.283, x = Math.round(cx + Math.cos(an) * R), y = Math.round(cy + Math.sin(an) * R); if (fits(x, y, w, h)) return [x, y]; } return [cx, cy]; };
     const road = (x0, y0, x1, y1, kind, wid, wig) => {
+      [x0, y0] = spot(x0, y0, 1, 1, 2); [x1, y1] = spot(x1, y1, 1, 1, 2);
       let x = x0, y = y0, guard = 0; const pts = [];
       while ((Math.abs(x - x1) > 1 || Math.abs(y - y1) > 1) && guard++ < 3000) {
         const ang = Math.atan2(y1 - y, x1 - x) + (fb(x / 9, y / 9, seed + 300, 2) - .5) * (wig == null ? 1.5 : wig);
@@ -152,19 +182,19 @@
       }
       for (const [px, py] of pts) for (let j = 0; j < (wid || 2); j++) for (let i = 0; i < (wid || 2); i++) {
         const X = px + i, Y = py + j; if (!m.inb(X, Y)) continue; const k = Y * WW + X, t = til[k];
+        if ((t === T.DEEP || t === T.WATER) && land[k] < .26) continue;
         if (t === T.DEEP || t === T.WATER) til[k] = bio[k] === BI.pink ? T.SBRIDGE : T.BRIDGE;
         else if (t === T.ICE || t === T.BRIDGE || t === T.SBRIDGE || t === T.ROAD || t === T.RUIN) { }
         else til[k] = kind || (bio[k] === BI.north ? T.SNOW : bio[k] === BI.canyon ? T.RED : T.DIRT);
       }
     };
-    const P = (fx, fy) => [Math.floor(fx * WW), Math.floor(fy * HH)];
+    const P = (fx, fy) => { const q = L(fx, fy); return [Math.floor(q[0] * WW), Math.floor(q[1] * HH)]; };
     const vil = P(.5, .47), pinkC = P(.8, .56), canC = P(.2, .56), norC = P(.5, .2), heartC = P(.5, .385);
     road(sx, sy - 2, vil[0], vil[1] + 8); road(vil[0] + 8, vil[1], pinkC[0], pinkC[1]); road(vil[0] - 8, vil[1], canC[0], canC[1]);
     road(vil[0], vil[1] - 8, heartC[0], heartC[1] + 7); road(heartC[0] + 10, heartC[1], norC[0] + 6, norC[1]); road(norC[0], norC[1], P(.26, .2)[0], P(.26, .2)[1]); road(norC[0], norC[1], P(.74, .2)[0], P(.74, .2)[1]);
     road(pinkC[0], pinkC[1], P(.79, .74)[0], P(.79, .74)[1]); road(canC[0], canC[1], P(.21, .74)[0], P(.21, .74)[1]);
-    const cryptC = [sx + 34, sy - 26]; road(sx + 2, sy - 6, cryptC[0], cryptC[1] + 8);
+    const cryptC = [sx + (flip ? -30 : 30), sy - 24]; road(sx + 2, sy - 6, cryptC[0], cryptC[1] + 8);
     /* поиск подходящего места рядом с точкой */
-    const spot = (cx, cy, w, h, rad) => { for (let a = 0; a < 300; a++) { const x = cx + Math.floor((r() - .5) * 2 * Math.min(rad, 4 + a / 4)), y = cy + Math.floor((r() - .5) * 2 * Math.min(rad, 4 + a / 4)); let ok = x > 4 && y > 4 && x + w < WW - 4 && y + h < HH - 4; for (let j = -1; ok && j <= h; j++) for (let i = -1; ok && i <= w; i++) { const t = til[(y + j) * WW + x + i]; if (t === T.DEEP || t === T.WATER || t === T.BRIDGE || t === T.SBRIDGE || t === T.RUIN || t === T.WOODF) ok = false; } if (ok) return [x, y]; } return [cx, cy]; };
     const poi = (type, name, x, y, icon) => m.pois.push({ type, name, x, y, icon: icon || 'ruin', found: 0 });
     const gnd = (x, y) => [T.GRASS, T.GRASS, T.PINK, T.RED, T.DGRASS, T.SNOW][bio[y * WW + x]];
 

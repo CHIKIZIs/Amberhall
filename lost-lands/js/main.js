@@ -7,6 +7,7 @@
 
   G.applySettings = () => {
     const S = G.settings; if (G.R.cv) G.R.setZoom(S.zoom); G.Audio.vol();
+    const k = G.$('keys'); if (k) k.style.display = S.keys === false ? 'none' : '';
     let f = G.$('fps'); if (S.fps && !f) { f = G.el('div'); f.id = 'fps'; document.body.appendChild(f); } else if (!S.fps && f) f.remove();
   };
   const uiScale = () => { const u = G.clamp(Math.min(innerHeight / 330, innerWidth / 600), 1.4, 3.6); document.documentElement.style.setProperty('--u', u.toFixed(2) + 'px'); };
@@ -27,13 +28,13 @@
   };
 
   /* ---------- новая игра / загрузка ---------- */
-  function freshState(seed) { return { seed, lvl: 1, xp: 0, sp: 0, skills: {}, quests: { active: {}, done: [] }, biomes: ['green'], lore: [], dungeons: [], marks: [], maps: {}, dexp: {} }; }
-  G.startGame = isNew => {
+  function freshState(seed, name, seedText) { return { seed, name: name || 'Мой остров', seedText: seedText == null ? String(seed) : seedText, lvl: 1, xp: 0, sp: 0, skills: {}, quests: { active: {}, done: [] }, biomes: ['green'], lore: [], dungeons: [], marks: [], maps: {}, dexp: {} }; }
+  G.startGame = (isNew, opts) => {
     G.$('loading').style.display = 'flex'; G.$('loading').textContent = 'Создание мира...';
     setTimeout(() => {
       G.maps = {}; G.dexp = {}; G.map = null;
       let S = !isNew && G.Save.load();
-      if (!S) { G.Save.clear(); S = freshState(Math.floor(Math.random() * 1e9)); isNew = true; }
+      if (!S) { G.Save.clear(); opts = opts || {}; const sd = G.seedOf(opts.seed); S = freshState(sd, opts.name, opts.seed ? String(opts.seed).trim() : String(sd)); isNew = true; }
       S.marks = S.marks || []; S.dexp = S.dexp || {};
       G.S = S; G.time = { total: S.time || 0, clock: 8, day: 0 }; G.Time.update(0); G.flags = S.flags || {};
       G.inv = S.inv || { slots: new Array(40).fill(null), eq: { head: null, body: null, hands: null, feet: null, back: null }, sel: 0 };
@@ -50,7 +51,7 @@
       G.running = true; G.paused = false; G.player.sense && G.Player.sense();
       if (isNew) {
         G.Inv.add('berries', 3, true);
-        G.paused = true; G.UI.intro(() => { G.paused = false; G.Quest.start('s1'); G.UI.banner('Зелёный остров', 'Выживите. Исследуйте. Раскройте тайну.'); G.Save.save(); });
+        G.paused = true; G.UI.intro(() => { G.paused = false; G.Quest.start('s1'); G.UI.banner(G.S.name, 'Сид: ' + G.S.seedText); G.Save.save(); });
       } else G.UI.toast('С возвращением! День ' + (G.time.day + 1), 'ui_sun');
       lastSave = performance.now();
     }, 60);

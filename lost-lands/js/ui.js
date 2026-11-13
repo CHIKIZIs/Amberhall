@@ -238,8 +238,9 @@
   /* --- Настройки --- */
   R.settings = () => {
     const S = G.settings, rng = (k, lab, min, max, step) => '<div class="set"><span>' + lab + '</span><input type="range" data-k="' + k + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + S[k] + '"></div>';
-    frame('Настройки', '<div class="scroll" style="flex:1">' + rng('music', 'Музыка', 0, 1, .05) + rng('sfx', 'Звуки', 0, 1, .05) + rng('zoom', 'Масштаб', -1, 2, 1) + rng('fx', 'Частицы и погода', .3, 1, .1) + '<div class="set"><span>Показывать FPS</span><button class="btn" id="fpsb">' + (S.fps ? 'Вкл' : 'Выкл') + '</button></div><div class="set"><span>Управление с клавиатуры</span><small style="color:var(--dim);text-align:right">WASD — ходьба, Shift — бег, мышь — прицел, ЛКМ — атака (удерживать — сильная), ПКМ — блок, Пробел — рывок, E — взаимодействие, Q/F — применить, 1–8 и колесо — предметы, I — инвентарь, C — крафт, B — стройка, J — задания, N — навыки, M — карта, Esc — меню. В стройке: ЛКМ — поставить, ПКМ — выйти, R — повернуть, T — материал</small></div></div><div class="col" style="width:calc(var(--u)*100)"><button class="btn gold" id="svnow">Сохранить</button>' + (G.running ? '<button class="btn" id="tomenu">Выйти в меню</button>' : '') + '<button class="btn" id="fullsc">Во весь экран (F11)</button></div>');
+    frame('Настройки', '<div class="scroll" style="flex:1">' + rng('music', 'Музыка', 0, 1, .05) + rng('sfx', 'Звуки', 0, 1, .05) + rng('zoom', 'Масштаб', -1, 2, 1) + rng('fx', 'Частицы и погода', .3, 1, .1) + '<div class="set"><span>Мир</span><span>' + (G.S && G.running ? G.S.name + ' · сид <b style="color:var(--hi);user-select:text">' + G.S.seedText + '</b>' : '—') + '</span></div><div class="set"><span>Подсказки клавиш</span><button class="btn" id="keysb">' + (S.keys === false ? 'Выкл' : 'Вкл') + '</button></div><div class="set"><span>Показывать FPS</span><button class="btn" id="fpsb">' + (S.fps ? 'Вкл' : 'Выкл') + '</button></div><div class="set"><span>Управление с клавиатуры</span><small style="color:var(--dim);text-align:right">WASD — ходьба, Shift — бег, мышь — прицел, ЛКМ — атака (удерживать — сильная), ПКМ — блок, Пробел — рывок, E — взаимодействие, Q/F — применить, 1–8 и колесо — предметы, I — инвентарь, C — крафт, B — стройка, J — задания, N — навыки, M — карта, Esc — меню. В стройке: ЛКМ — поставить, ПКМ — выйти, R — повернуть, T — материал</small></div></div><div class="col" style="width:calc(var(--u)*100)"><button class="btn gold" id="svnow">Сохранить</button>' + (G.running ? '<button class="btn" id="tomenu">Выйти в меню</button>' : '') + '<button class="btn" id="fullsc">Во весь экран (F11)</button></div>');
     document.querySelectorAll('.set input').forEach(i => i.oninput = () => { S[i.dataset.k] = +i.value; G.applySettings(); G.Save.settings(); });
+    $('keysb').onclick = () => { S.keys = S.keys === false; G.applySettings(); G.Save.settings(); R.settings(); };
     $('fpsb').onclick = () => { S.fps = !S.fps; G.applySettings(); G.Save.settings(); R.settings(); };
     $('svnow').onclick = () => { if (G.running && G.Save.save()) UI.toast('Игра сохранена', 'ui_ok'); };
     if ($('tomenu')) $('tomenu').onclick = () => { G.Save.save(); UI.close(); G.toMenu(); };
@@ -314,11 +315,21 @@
     G.menuOpen = true; layer.innerHTML = '<div id="menu"><canvas id="menuhero" width="24" height="30"></canvas><div class="logo"><h1>PIXEL SURVIVAL</h1><h2>LOST LANDS</h2></div><button class="btn gold" id="m-cont">Продолжить</button><button class="btn" id="m-new">Новая игра</button><button class="btn" id="m-set">Настройки</button><button class="btn" id="m-cred">Авторы</button><div class="ver">v' + G.VERSION + '.0</div></div>';
     $('hud').classList.add('hidden');
     const hc = $('menuhero').getContext('2d'); hc.imageSmoothingEnabled = false; let f = 0; const anim = () => { if (!$('menuhero')) return; hc.clearRect(0, 0, 24, 30); f++; const leg = Math.floor(f / 8) % 4; hc.drawImage(G.Art.charFrame(G.Art.lookOf(null), 3, leg, [0, 1, 0, 2][leg], leg % 2, 0), 0, 0); requestAnimationFrame(anim); }; anim();
-    const has = G.Save.has(); if (!has) $('m-cont').classList.add('off');
+    const has = G.Save.has(); if (!has) $('m-cont').classList.add('off'); else { try { const sv = JSON.parse(localStorage.getItem('lostlands_save_v1')); if (sv && sv.name) $('m-cont').textContent = 'Продолжить: ' + sv.name; } catch (e) { } }
     $('m-cont').onclick = () => { G.Audio.unlock(); G.startGame(false); };
-    $('m-new').onclick = () => { G.Audio.unlock(); if (has) UI.dialog('Новая игра', 'Текущее сохранение будет удалено. Начать заново?', [['Отмена', null], ['Начать', () => G.startGame(true), 'red']]); else G.startGame(true); };
+    $('m-new').onclick = () => { G.Audio.unlock(); UI.newWorld(has); };
     $('m-set').onclick = () => { G.Audio.unlock(); UI.win = null; settingsFromMenu(); };
     $('m-cred').onclick = () => UI.dialog('Авторы', 'Pixel Survival: Lost Lands\n\nИдея и главный герой — автор проекта.\nКод, процедурная пиксельная графика, звук и музыка генерируются прямо в игре.\nШрифт — пиксельный шрифт проекта Эмберхолл.');
+  };
+  /* экран «Новый мир»: название и сид */
+  UI.newWorld = has => {
+    const old = $('dlg'); if (old) old.remove();
+    const d = el('div', 'px', '<h3>Новый мир</h3><div class="nw"><label for="nw-name">Название мира</label><input id="nw-name" maxlength="24" value="Мой остров"><label for="nw-seed">Сид (число или любой текст; пусто — случайный)</label><div class="nwr"><input id="nw-seed" maxlength="32" placeholder="случайный"><button class="btn" id="nw-rnd">Случайный</button></div>' + (has ? '<p class="warn">Текущее сохранение будет заменено.</p>' : '') + '</div><div class="acts"><button class="btn" id="nw-cancel">Отмена</button><button class="btn gold" id="nw-go">Создать мир</button></div>');
+    d.id = 'dlg'; document.body.appendChild(d); $('nw-name').focus();
+    $('nw-rnd').onclick = () => { $('nw-seed').value = String(Math.floor(Math.random() * 2147483647)); G.Audio.sfx('ui'); };
+    $('nw-cancel').onclick = () => d.remove();
+    $('nw-go').onclick = () => { const name = $('nw-name').value.trim() || 'Мой остров', seed = $('nw-seed').value; d.remove(); G.startGame(true, { name, seed }); };
+    d.querySelectorAll('input').forEach(i => i.onkeydown = e => { e.stopPropagation(); if (e.key === 'Enter') $('nw-go').click(); if (e.key === 'Escape') d.remove(); });
   };
   function settingsFromMenu() { const keep = layer.innerHTML; G.running = false; R.settings(); const x = $('wx'); x.onclick = $('shade').onclick = () => { UI.menu(); }; }
   UI.intro = done => {

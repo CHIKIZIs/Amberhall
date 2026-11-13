@@ -53,6 +53,7 @@ G.bus = {
   emit(e, d) { const l = this.h[e]; if (l) for (let i = 0; i < l.length; i++) l[i](d); }
 };
 
+G.seedOf = str => { str = String(str == null ? '' : str).trim(); if (!str) return Math.floor(Math.random() * 2147483647); if (/^-?\d{1,15}$/.test(str)) return Math.abs(Number(str)) % 2147483647; let h = 0; for (let i = 0; i < str.length; i++) h = (Math.imul(h, 31) + str.charCodeAt(i)) | 0; return Math.abs(h) % 2147483647; };
 G.fmt = n => String(Math.round(n));
 G.el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 G.$ = id => document.getElementById(id);

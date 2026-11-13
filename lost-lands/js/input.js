@@ -22,6 +22,7 @@
     const K = I.keys;
     addEventListener('keydown', e => {
       const k = e.key.toLowerCase(), code = e.code; G.Audio.unlock();
+      if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
       if (['Space', 'Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(code)) e.preventDefault();
       if (e.repeat) return; K[code] = true;
       if (G.UI.keyDown && G.UI.keyDown(k, e)) return;
