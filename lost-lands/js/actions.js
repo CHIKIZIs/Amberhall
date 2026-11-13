@@ -25,8 +25,8 @@
       if (r.loot) for (const it of G.rollLoot(r.loot)) G.Ent.drop(it.id, it.n, x, y);
       G.Prog.xp(r.xp || 3);
       if (d.secret) { G.UI.toast('Тайный проход!', 'ui_pin'); G.Audio.sfx('secret'); G.Prog.xp(20); }
-      if (r.dead && r.respawn) { o.dead = 1; o.last = G.time.total; m.deadList.push(o); }
-      else { (m.gone || (m.gone = [])).push(key(m, o)); m.remove(o); }
+      if (r.dead && r.respawn) { o.dead = 1; o.last = G.time.total; m.deadList.push(o); G.Net.obj(m, o); }
+      else { (m.gone || (m.gone = [])).push(key(m, o)); m.remove(o); G.Net.del(m, o.x, o.y); }
       bus.emit('harvest', o.t);
     },
     pickup(o) {
@@ -34,10 +34,11 @@
       if (pk.loot) for (const it of G.rollLoot(pk.loot)) G.Ent.drop(it.id, it.n, x, y);
       Act.dropList(pk.drops, x, y); G.Prog.xp(pk.xp || 1); G.Audio.sfx('gather');
       G.Ent.burst(x, y - 4, ['#86c84a', '#d0f070', '#ffffff'], 6, 40);
-      if (pk.respawn) { o.dead = 1; o.last = G.time.total; m.deadList.push(o); } else { (m.gone || (m.gone = [])).push(key(m, o)); m.remove(o); }
+      if (pk.respawn) { o.dead = 1; o.last = G.time.total; m.deadList.push(o); G.Net.obj(m, o); } else { (m.gone || (m.gone = [])).push(key(m, o)); m.remove(o); G.Net.del(m, o.x, o.y); }
     },
     gather(fn) { const p = G.player; p.state = 'gather'; p.st = 0; p.gatherFn = fn; },
-    interact() {
+    interact() { const o0 = G.player.target, m0 = G.map; try { Act.interact0(); } finally { if (o0 && m0.objs[o0.i - 1] === o0) G.Net.obj(m0, o0); } },
+    interact0() {
       const p = G.player, o = p.target, m = G.map;
       if (!o) { if (isWater(...front()) || nearTile(isWater, 1)) { p.thirst = Math.min(100, p.thirst + 12); G.Player.hurt(2, null, null, true); G.Audio.sfx('drink'); G.UI.toast('Сырая вода утоляет жажду, но вредна. Вскипятите её во фляге.', 'flask_dirty', null, 1); return; } return; }
       const d = G.OBJ[o.t];
@@ -67,8 +68,8 @@
           G.Audio.sfx('drink'); return; }
         case 'travel': Act.travel(o); return;
         case 'unlock': { if (o.open) return; if (!G.Inv.count('key')) { G.UI.toast('Заперто. Нужен ключ', 'key', 'bad'); return; } G.Inv.remove('key', 1); o.open = 1; G.Audio.sfx('unlock'); G.UI.toast('Дверь открыта', 'key'); return; }
-        case 'lever': { o.open = o.open ? 0 : 1; G.Audio.sfx('lever'); for (const g of m.objs) if (g && g.t === 'gate' && g.link === o.link) g.open = o.open; G.UI.toast(o.open ? 'Где-то поднялась решётка' : 'Решётка опустилась', 'ui_pin'); return; }
-        case 'mech': { if (o.open) return; if (G.Inv.count('gear') < 2) { G.UI.toast('Механизму не хватает двух шестерней', 'gear', 'bad'); return; } G.Inv.remove('gear', 2); o.open = 1; G.Audio.sfx('mech'); for (const g of m.objs) if (g && g.t === 'gate' && g.link === o.link) g.open = 1; G.UI.toast('Механизм ожил!', 'gear'); G.Prog.xp(40); return; }
+        case 'lever': { o.open = o.open ? 0 : 1; G.Audio.sfx('lever'); for (const g of m.objs) if (g && g.t === 'gate' && g.link === o.link) { g.open = o.open; G.Net.obj(m, g); } G.UI.toast(o.open ? 'Где-то поднялась решётка' : 'Решётка опустилась', 'ui_pin'); return; }
+        case 'mech': { if (o.open) return; if (G.Inv.count('gear') < 2) { G.UI.toast('Механизму не хватает двух шестерней', 'gear', 'bad'); return; } G.Inv.remove('gear', 2); o.open = 1; G.Audio.sfx('mech'); for (const g of m.objs) if (g && g.t === 'gate' && g.link === o.link) { g.open = 1; G.Net.obj(m, g); } G.UI.toast('Механизм ожил!', 'gear'); G.Prog.xp(40); return; }
         case 'brazier': {
           if (o.open) return; const hasFire = G.Inv.count('torch') || (G.Inv.selDef() && G.Inv.selDef().light); if (!hasFire) { G.UI.toast('Нужен факел, чтобы зажечь', 'torch', 'bad'); return; }
           o.open = 1; G.Audio.sfx('fire');
@@ -85,7 +86,7 @@
     },
     plot(o) {
       const s = G.Inv.sel(), def = s ? IT[s.id] : null;
-      if (o.crop) { const cr = G.CROPS[o.crop]; if ((o.g || 0) >= cr.time) { Act.gather(() => { G.Inv.give(cr.out, G.rndi(cr.n[0], cr.n[1]) + (Math.random() < G.Prog.rank('yield') * .2 ? 1 : 0)); if (Math.random() < .55) G.Inv.give('seed_' + o.crop, 1); o.crop = null; o.g = 0; o.wild = 0; G.Prog.xp(8); bus.emit('use', 'harvest'); G.Audio.sfx('gather'); }); return; }
+      if (o.crop) { const cr = G.CROPS[o.crop]; if ((o.g || 0) >= cr.time) { Act.gather(() => { G.Inv.give(cr.out, G.rndi(cr.n[0], cr.n[1]) + (Math.random() < G.Prog.rank('yield') * .2 ? 1 : 0)); if (Math.random() < .55) G.Inv.give('seed_' + o.crop, 1); o.crop = null; o.g = 0; o.wild = 0; G.Net.obj(G.map, o); G.Prog.xp(8); bus.emit('use', 'harvest'); G.Audio.sfx('gather'); }); return; }
         if (def && def.tool && def.tool.type === 'can') { Act.water(); return; }
         G.UI.toast(cr.name + ': ' + Math.floor((o.g || 0) / cr.time * 100) + '%' + ((o.wet || 0) > G.time.total ? ', полито' : ', нужен полив'), 'seed_' + o.crop, null, 1); return; }
       if (def && def.seed) { if (G.Inv.remove(s.id, 1)) { o.crop = def.seed; o.g = 0; o.wild = 0; G.Audio.sfx('plant'); G.UI.toast('Посажено: ' + G.CROPS[def.seed].name, s.id, null, 1); } return; }
@@ -117,13 +118,13 @@
       if (nearTile(isWater, 2)) { s.d = 8; G.Audio.sfx('drink'); G.UI.toast('Лейка наполнена (8 поливов)', 'watering_can', null, 1); G.bus.emit('inv'); return; }
       const pl = nearTile((x, y) => { const o = G.map.at(x, y); return o && o.t === 'plot'; }, 1); if (!pl) { G.UI.toast('Подойдите к грядке или к воде', 'watering_can', null, 1); return; }
       if (!(s.d > 0)) { G.UI.toast('Лейка пуста. Наполните у воды', 'watering_can', 'bad', 1); return; }
-      s.d--; let n = 0; for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) { const o = G.map.at(pl[0] + i, pl[1] + j); if (o && o.t === 'plot') { o.wet = G.time.total + G.Time.DAY * .6; n++; } }
+      s.d--; let n = 0; for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) { const o = G.map.at(pl[0] + i, pl[1] + j); if (o && o.t === 'plot') { o.wet = G.time.total + G.Time.DAY * .6; n++; G.Net.obj(G.map, o); } }
       G.Ent.burst(pl[0] * TS + 8, pl[1] * TS + 6, ['#6aa2d6', '#b4f4f0'], 10, 40); G.Audio.sfx('water'); G.bus.emit('inv');
     },
     dig() {
       const [x, y] = front(), m = G.map, o = m.at(x, y), t = m.t(x, y), px = x * TS + 8, py = y * TS + 10;
       G.Inv.wear(1);
-      if (o && o.t === 'xmark') { m.remove(o); (m.gone || (m.gone = [])).push(y * m.w + x); for (const it of G.rollLoot('treasure')) G.Ent.drop(it.id, it.n, px, py); G.UI.banner('Клад найден!', ''); G.Audio.sfx('secret'); G.Prog.xp(60); bus.emit('use', 'treasure'); return; }
+      if (o && o.t === 'xmark') { m.remove(o); G.Net.del(m, x, y); (m.gone || (m.gone = [])).push(y * m.w + x); for (const it of G.rollLoot('treasure')) G.Ent.drop(it.id, it.n, px, py); G.UI.banner('Клад найден!', ''); G.Audio.sfx('secret'); G.Prog.xp(60); bus.emit('use', 'treasure'); return; }
       if (o) { G.UI.toast('Здесь не покопать', null, null, 1); return; }
       if (![T.SAND, T.DIRT, T.GRASS, T.DGRASS, T.PINK, T.RED, T.SNOW].includes(t)) { G.UI.toast('Здесь не покопать', null, null, 1); return; }
       m.dug = m.dug || {}; const k = y * m.w + x; G.Ent.burst(px, py, t === T.SAND ? ['#e2ae78', '#f2c894'] : ['#96503e', '#b8683a'], 8, 50); G.Audio.sfx('dig');
@@ -141,7 +142,7 @@
     },
     fishUpdate(dt) { const f = G.player.fish; if (!f) { G.player.state = 'idle'; return; } f.t -= dt; if (!f.bite && f.t <= 0) { f.bite = 1; f.t = 1.1; G.Audio.sfx('bite'); G.Ent.burst(f.x, f.y, ['#ffffff', '#b4f4f0'], 6, 30); G.UI.toast('Клюёт! Жмите ЛКМ!', 'raw_fish', null, 1); } else if (f.bite && f.t <= 0) { f.bite = 0; f.t = 3 + Math.random() * 6; G.UI.toast('Сорвалась...', null, null, 1); } },
     fishPull() { const p = G.player, f = p.fish; if (!f) return; if (f.bite) { const r = Math.random(); if (r < .08) { for (const it of G.rollLoot('flotsam')) G.Ent.drop(it.id, it.n, p.x, p.y - 4); G.UI.toast('Вы выловили сундучок!', 'crate'); } else G.Inv.give('raw_fish', Math.random() < .2 ? 2 : 1); G.Prog.xp(6); G.Audio.sfx('splash'); G.Inv.wear(1); } else G.Audio.sfx('splash'); G.Ent.burst(f.x, f.y, ['#ffffff', '#b4f4f0'], 8, 40); p.state = 'idle'; p.fish = null; },
-    damageBuilt(o, dmg) { const d = G.OBJ[o.t], mx = (d.hp || 40) * (1 + G.Prog.rank('sturdy') * .4); if (o.hp == null || o.maxhp !== mx) { o.maxhp = mx; if (o.hp == null) o.hp = mx; } o.hp -= dmg; o.hpShow = 2; o.shake = .2; G.Audio.sfx('thud'); if (o.hp <= 0) { G.map.remove(o); G.Ent.burst(o.x * TS + 8, o.y * TS + 8, ['#b38655', '#a09ca8'], 12, 60); G.UI.toast(d.n + ' разрушен(а)!', null, 'bad'); } },
+    damageBuilt(o, dmg) { const d = G.OBJ[o.t], mx = (d.hp || 40) * (1 + G.Prog.rank('sturdy') * .4); if (o.hp == null || o.maxhp !== mx) { o.maxhp = mx; if (o.hp == null) o.hp = mx; } o.hp -= dmg; o.hpShow = 2; o.shake = .2; G.Audio.sfx('thud'); if (o.hp <= 0) { G.map.remove(o); G.Net.del(G.map, o.x, o.y); G.Ent.burst(o.x * TS + 8, o.y * TS + 8, ['#b38655', '#a09ca8'], 12, 60); G.UI.toast(d.n + ' разрушен(а)!', null, 'bad'); } },
     bossDown(m) {
       const mp = G.map; for (const o of mp.objs) if (o && o.sealed) o.unsealed = 1;
       if (m.def.boss === 'heart') setTimeout(() => G.UI.ending(), 2500);
@@ -159,7 +160,7 @@
       /* ловушки: шипы под игроком */
       if (!p.dead && p.state !== 'roll') { const o = m.at(Math.floor(p.x / TS), Math.floor((p.y - 3) / TS)); if (o && o.t === 'spike' && Traps.up(o) && p.inv <= 0) { G.Player.hurt(12, p.x, p.y + 10); G.Audio.sfx('spike'); } }
       /* случайные события */
-      if (m.id === 'world') { const E = Act.events; E.t -= dt; if (E.t <= 0) { E.t = 90 + Math.random() * 120; randomEvent(); } }
+      if (m.id === 'world' && G.Net.mode !== 'client') { const E = Act.events; E.t -= dt; if (E.t <= 0) { E.t = 90 + Math.random() * 120; randomEvent(); } }
       if (G.flags.bloodmoon && !G.Time.isNight() && G.time.clock > 6 && G.time.clock < 12) { G.flags.bloodmoon = 0; G.UI.toast('Кровавая луна зашла', 'ui_sun'); }
     }
   };
@@ -172,7 +173,7 @@
   function randomEvent() {
     const p = G.player, m = G.map, r = Math.random(), night = G.Time.isNight();
     if (night && r < .3) {
-      for (let a = 0; a < 30; a++) { const x = Math.floor(p.x / TS + (Math.random() - .5) * 60), y = Math.floor(p.y / TS + (Math.random() - .5) * 40); if (m.inb(x, y) && TD[m.t(x, y)].pass === 1 && !m.at(x, y) && Math.hypot(x - p.x / TS, y - p.y / TS) > 10) { m.add('meteor', x, y, {}); (m.extra || (m.extra = [])).push({ t: 'meteor', x, y }); G.R.cam.shake = 5; G.Audio.sfx('thunder'); G.UI.toast('С неба упал метеорит! Он где-то рядом', 'star_ore'); G.Ent.burst(x * TS + 8, y * TS + 8, ['#a583f5', '#ffffff', '#ff8a24'], 30, 120); return; } }
+      for (let a = 0; a < 30; a++) { const x = Math.floor(p.x / TS + (Math.random() - .5) * 60), y = Math.floor(p.y / TS + (Math.random() - .5) * 40); if (m.inb(x, y) && TD[m.t(x, y)].pass === 1 && !m.at(x, y) && Math.hypot(x - p.x / TS, y - p.y / TS) > 10) { G.Net.add(m, m.add('meteor', x, y, {})); (m.extra || (m.extra = [])).push({ t: 'meteor', x, y }); G.R.cam.shake = 5; G.Audio.sfx('thunder'); G.UI.toast('С неба упал метеорит! Он где-то рядом', 'star_ore'); G.Ent.burst(x * TS + 8, y * TS + 8, ['#a583f5', '#ffffff', '#ff8a24'], 30, 120); return; } }
     } else if (night && r < .42 && G.S.lvl >= 4 && !G.flags.bloodmoon) { G.flags.bloodmoon = 1; G.UI.banner('Кровавая луна', 'Этой ночью чудовища яростнее'); G.Audio.sfx('boss'); }
     else if (r < .7) {
       for (let a = 0; a < 40; a++) { const x = Math.floor(p.x / TS + (Math.random() - .5) * 50), y = Math.floor(p.y / TS + (Math.random() - .5) * 34); if (m.inb(x, y) && m.t(x, y) === T.WATER && !m.at(x, y)) { let shore = false; for (const [i, j] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (TD[m.t(x + i, y + j)].pass === 1) shore = true; if (!shore) continue; m.add('flotsam', x, y, {}); return; } }

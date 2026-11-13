@@ -16,7 +16,7 @@
   G.getMap = id => {
     let m = G.maps[id]; if (m) return m;
     m = id === 'world' ? G.World.genWorld(G.S.seed) : id.startsWith('h_') ? G.World.genInterior(id, G.S.seed) : G.World.genDungeon(id, G.S.seed);
-    G.Save.applyMap(m, G.S.maps && G.S.maps[id]);
+    G.Save.applyMap(m, G.S.maps && G.S.maps[id]); if (G.Net) G.Net.flushPending(m);
     if (id !== 'world' && !G.dexp[id]) G.dexp[id] = G.S.dexp && G.S.dexp[id] ? G.Save.unb64(G.S.dexp[id], (m.w * m.h + 7) >> 3) : new Uint8Array((m.w * m.h + 7) >> 3);
     return G.maps[id] = m;
   };
@@ -33,7 +33,7 @@
     G.$('loading').style.display = 'flex'; G.$('loading').textContent = 'Создание мира...';
     setTimeout(() => {
       G.maps = {}; G.dexp = {}; G.map = null;
-      let S = !isNew && G.Save.load();
+      opts = opts || {}; let S = opts.net ? Object.assign(freshState(opts.net.seed, opts.net.name, opts.net.seedText), { maps: opts.net.maps, time: opts.net.time, weather: opts.net.weather, guest: 1 }) : (!isNew && G.Save.load());
       if (!S) { G.Save.clear(); opts = opts || {}; const sd = G.seedOf(opts.seed); S = freshState(sd, opts.name, opts.seed ? String(opts.seed).trim() : String(sd)); isNew = true; }
       S.marks = S.marks || []; S.dexp = S.dexp || {};
       G.S = S; G.time = { total: S.time || 0, clock: 8, day: 0 }; G.Time.update(0); G.flags = S.flags || {};
@@ -49,14 +49,15 @@
       G.$('loading').style.display = 'none'; G.UI.close(); G.$('layer').innerHTML = ''; G.menuOpen = false; G.$('hud').classList.remove('hidden');
       G.UI.init(); G.applySettings(); G.R.follow(G.player.x, G.player.y - 8, 1, true);
       G.running = true; G.paused = false; G.player.sense && G.Player.sense();
-      if (isNew) {
+      if (opts.net) { if (opts.net.pos) { G.player.x = opts.net.pos[0] + 20; G.player.y = opts.net.pos[1]; } G.Inv.add('berries', 3, true); G.Quest.start('s1'); G.UI.banner(G.S.name, 'Сетевая игра'); }
+      else if (isNew) {
         G.Inv.add('berries', 3, true);
         G.paused = true; G.UI.intro(() => { G.paused = false; G.Quest.start('s1'); G.UI.banner(G.S.name, 'Сид: ' + G.S.seedText); G.Save.save(); });
       } else G.UI.toast('С возвращением! День ' + (G.time.day + 1), 'ui_sun');
       lastSave = performance.now();
     }, 60);
   };
-  G.toMenu = () => { G.running = false; G.Build.exit(); G.UI.sleep(false); G.UI.menu(); };
+  G.toMenu = () => { G.Net.stop(); G.running = false; G.Build.exit(); G.UI.sleep(false); G.UI.menu(); };
 
   /* ---------- цикл ---------- */
   let last = performance.now(), lastSave = 0, acc = 0, frames = 0, fpsT = 0, dexpT = 0, menuT = 0;
@@ -68,10 +69,11 @@
     if (G.running) {
       G.Input.update();
       if (!G.paused) {
-        G.Time.update(dt); G.Weather.update(dt); G.Ent.update(dt); G.Surv.update(dt); G.Craft.update(dt); G.Build.update(); G.Audio.update(dt);
+        G.Time.update(dt); if (!G.S.guest) G.Weather.update(dt); G.Ent.update(dt); G.Surv.update(dt); G.Craft.update(dt); G.Build.update(); G.Audio.update(dt);
         dexpT -= dt; if (dexpT <= 0 && G.map.id !== 'world') { dexpT = .3; const E = G.dexp[G.map.id], m = G.map, tx = Math.floor(G.player.x / TS), ty = Math.floor(G.player.y / TS); for (let j = -7; j <= 7; j++) for (let i = -9; i <= 9; i++) { const x = tx + i, y = ty + j; if (!m.inb(x, y)) continue; const k = y * m.w + x; E[k >> 3] |= 1 << (k & 7); } G.exploredVer++; }
         if (t - lastSave > 60000) { lastSave = t; G.saveNow(); }
       }
+      G.Net.update(dt);
       const p = G.player; G.R.follow(p.x, p.y - 10, dt);
       G.R.draw(G.paused ? 0 : dt); G.UI.update(dt);
     } else {

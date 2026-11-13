@@ -238,7 +238,7 @@
       for (const o of m.objs) if (o && o.dead) m.deadList.push(o);
     },
     save() {
-      if (!G.player || G.player.dead || !G.running) return false;
+      if (!G.player || G.player.dead || !G.running || G.S.guest) return false;
       const p = G.player, S = G.S;
       S.p = { x: Math.round(p.x), y: Math.round(p.y), hp: p.hp, hunger: p.hunger, thirst: p.thirst, stam: p.stam, temp: p.temp, map: G.map.id, wx: p.wx, wy: p.wy, home: p.home };
       S.time = G.time.total; S.inv = G.inv; S.flags = G.flags; S.weather = [Weather.type, Weather.t];

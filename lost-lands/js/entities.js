@@ -371,6 +371,7 @@
     for (const m of Ent.mobs) if (!m.dead && !m.gone && m.x > x0 && m.x < x1 && m.y > y0 && m.y < y1) R.push(m.y + (m.def.fly ? 4 : 0), drawMob, m);
     for (const d of Ent.drops) if (d.x > x0 && d.x < x1 && d.y > y0 && d.y < y1) R.push(d.y, drawDrop, d);
     for (const q of Ent.proj) R.push(q.y + 8, drawProj, q);
+    if (G.Net) G.Net.gather(R);
   };
   Ent.over = (c, ox, oy, dt) => {
     const R = G.R; if (!G.running) return;

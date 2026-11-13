@@ -1,0 +1,9 @@
+{
+  "name": "lost-lands-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Сервер-ретранслятор для сетевой игры Pixel Survival: Lost Lands",
+  "main": "relay.js",
+  "scripts": { "start": "node relay.js" },
+  "dependencies": { "ws": "^8.18.0" }
+}

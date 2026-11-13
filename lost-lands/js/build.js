@@ -39,28 +39,28 @@
       if (Build.mode === 'place' || Build.carry) {
         if (!Build.check()) { G.UI.toast(Build.reason(), null, 'bad', 1); G.Audio.sfx('deny'); return; }
         const id = Build.carry ? Build.carry.t : Build.sel, b = G.BUILD[id], x = Build.tx, y = Build.ty, k = y * m.w + x;
-        if (Build.carry) { const c = Build.carry; c.x = x; c.y = y; c.rot = Build.rot; m.add(c.t, x, y, c); Build.carry = null; Build.mode = 'move'; G.Audio.sfx('build'); bus.emit('buildmode'); return; }
+        if (Build.carry) { const c = Build.carry; c.x = x; c.y = y; c.rot = Build.rot; m.add(c.t, x, y, c); G.Net.add(m, c); Build.carry = null; Build.mode = 'move'; G.Audio.sfx('build'); bus.emit('buildmode'); return; }
         if (G.Inv.count(id) > 0) G.Inv.remove(id, 1); else G.Inv.take(Build.cost(id));
         m.tmods = m.tmods || {}; m.rmods = m.rmods || {};
-        if (b.kind === 'tile') { const old = m.tmods[k] ? m.tmods[k][1] : m.tiles[k]; m.tmods[k] = [T[b.tile], old]; m.setTile(x, y, T[b.tile]); }
-        else if (b.kind === 'roof') { m.rmods[k] = b.roof; m.roof[k] = b.roof; }
-        else { const o = m.add(id, x, y, { b: 1, rot: G.OBJ[id].act === 'door' || b.rot ? Build.rot : undefined }); if (id === 'bed') o.v = Build.rot & 1; if (G.OBJ[id].light || G.OBJ[id].fire || id === 'campfire') { (m.safe || (m.safe = [])).push({ x, y }); } if (id === 'bed' || id === 'tent') { G.player.home = [x * TS + 8, (y + Build.size()[1]) * TS + 10]; G.UI.toast('Точка возрождения сохранена', 'ui_zzz', null, 1); } }
+        if (b.kind === 'tile') { const old = m.tmods[k] ? m.tmods[k][1] : m.tiles[k]; m.tmods[k] = [T[b.tile], old]; m.setTile(x, y, T[b.tile]); G.Net.tile(m, x, y, T[b.tile], old); }
+        else if (b.kind === 'roof') { m.rmods[k] = b.roof; m.roof[k] = b.roof; G.Net.roof(m, k, b.roof); }
+        else { const o = m.add(id, x, y, { b: 1, rot: G.OBJ[id].act === 'door' || b.rot ? Build.rot : undefined }); if (id === 'bed') o.v = Build.rot & 1; G.Net.add(m, o); if (G.OBJ[id].light || G.OBJ[id].fire || id === 'campfire') { (m.safe || (m.safe = [])).push({ x, y }); } if (id === 'bed' || id === 'tent') { G.player.home = [x * TS + 8, (y + Build.size()[1]) * TS + 10]; G.UI.toast('Точка возрождения сохранена', 'ui_zzz', null, 1); } }
         G.Audio.sfx('build'); G.Prog.xp(3); bus.emit('build', { id }); G.Ent.burst(x * TS + 8, y * TS + 12, ['#d9d3be', '#b38655'], 10, 50);
         if (!Build.affordable(id)) G.UI.toast('Материалы закончились', null, null, 1);
         return;
       }
       const t = Build.pick(); if (!t) { G.UI.toast('Здесь нет ваших построек', null, null, 1); return; }
       if (Build.mode === 'remove') {
-        if (t.o) { const o = t.o; if (o.inv && o.inv.some(Boolean)) { G.UI.toast('Сначала опустошите сундук', null, 'bad'); return; } if (o.crop) { G.UI.toast('На грядке растёт урожай', null, 'bad'); return; } m.remove(o); Build.refund(o.t); }
-        else if (t.roof != null) { const id = m.rmods[t.roof] === 2 ? 'roof_stone' : 'roof_wood'; m.roof[t.roof] = 0; delete m.rmods[t.roof]; Build.refund(id); }
-        else { const [nw, old] = m.tmods[t.tile]; delete m.tmods[t.tile]; m.setTile(t.tile % m.w, Math.floor(t.tile / m.w), old); const id = Object.keys(G.BUILD).find(i => G.BUILD[i].tile && T[G.BUILD[i].tile] === nw); if (id) Build.refund(id); }
+        if (t.o) { const o = t.o; if (o.inv && o.inv.some(Boolean)) { G.UI.toast('Сначала опустошите сундук', null, 'bad'); return; } if (o.crop) { G.UI.toast('На грядке растёт урожай', null, 'bad'); return; } m.remove(o); G.Net.del(m, o.x, o.y); Build.refund(o.t); }
+        else if (t.roof != null) { const id = m.rmods[t.roof] === 2 ? 'roof_stone' : 'roof_wood'; m.roof[t.roof] = 0; delete m.rmods[t.roof]; G.Net.roof(m, t.roof, 0); Build.refund(id); }
+        else { const [nw, old] = m.tmods[t.tile]; delete m.tmods[t.tile]; m.setTile(t.tile % m.w, Math.floor(t.tile / m.w), old); G.Net.tile(m, t.tile % m.w, Math.floor(t.tile / m.w), old, null); const id = Object.keys(G.BUILD).find(i => G.BUILD[i].tile && T[G.BUILD[i].tile] === nw); if (id) Build.refund(id); }
         G.Audio.sfx('break'); return;
       }
-      if (Build.mode === 'move') { if (!t.o) { G.UI.toast('Переносить можно только предметы', null, 'bad', 1); return; } if (t.o.inv && t.o.inv.some(Boolean)) { G.UI.toast('Сначала опустошите сундук', null, 'bad'); return; } Build.carry = t.o; m.remove(t.o); Build.rot = t.o.rot || 0; G.Audio.sfx('ui'); bus.emit('buildmode'); return; }
+      if (Build.mode === 'move') { if (!t.o) { G.UI.toast('Переносить можно только предметы', null, 'bad', 1); return; } if (t.o.inv && t.o.inv.some(Boolean)) { G.UI.toast('Сначала опустошите сундук', null, 'bad'); return; } Build.carry = t.o; m.remove(t.o); G.Net.del(m, t.o.x, t.o.y); Build.rot = t.o.rot || 0; G.Audio.sfx('ui'); bus.emit('buildmode'); return; }
       if (Build.mode === 'upgrade') {
         if (!t.o) return; const b = G.BUILD[t.o.t]; if (!b || !b.up) { G.UI.toast('Эту постройку нельзя улучшить', null, null, 1); return; }
         const up = b.up, c = Build.cost(up); if (!G.Inv.has(c)) { G.UI.toast('Нужно: ' + Object.keys(c).map(k => G.ITEMS[k].name + ' ×' + c[k]).join(', '), null, 'bad'); return; }
-        G.Inv.take(c); const o = t.o, x = o.x, y = o.y; m.remove(o); m.add(up, x, y, { b: 1 }); G.Audio.sfx('build'); G.UI.toast('Улучшено: ' + G.BUILD[up].name, up, null, 1); bus.emit('build', { id: up });
+        G.Inv.take(c); const o = t.o, x = o.x, y = o.y; m.remove(o); G.Net.add(m, m.add(up, x, y, { b: 1 })); G.Audio.sfx('build'); G.UI.toast('Улучшено: ' + G.BUILD[up].name, up, null, 1); bus.emit('build', { id: up });
       }
     },
     refund(id) { const b = G.BUILD[id]; if (!b) return; for (const k in b.cost) { const n = Math.floor(b.cost[k] / 2); if (n) G.Inv.give(k, n); } },
