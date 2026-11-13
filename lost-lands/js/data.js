@@ -302,6 +302,7 @@
   rk('meteor', 'Метеорит', ['meteor'], [['star_ore', 2, 4], ['stone', 1, 3]], 12, 2, { light: [30, '#a583f5', .5], res: { tool: 'pick', hp: 12, tier: 2, drops: [['star_ore', 2, 4], ['stone', 1, 3]], xp: 30, respawn: 0 } });
   const cr = (id, s, c) => rk(id, 'Кристаллы', [s], [['crystal', 2, 3]], 8, 2, { light: [34, c, .6], col: [3, 9, 10, 6] });
   cr('cryst_g', 'cryst_g', '#3dd49a'); cr('cryst_p', 'cryst_p', '#e06af0'); cr('cryst_b', 'cryst_b', '#62b0f5');
+  Ob('flog', { n: 'Упавшее бревно', s: ['flog0', 'flog1', 'flog2', 'flog3'], size: [2, 1], solid: 1, col: [3, 4, 26, 10], sh: 3, res: { tool: 'axe', hp: 3, drops: [['wood', 2, 3], ['bark', 1, 2], ['resin', 0, 1], ['mushroom', 0, 1, .3]], xp: 5, respawn: 0 } });
   Ob('spire', { n: 'Каменный столб', s: ['spire0', 'spire1'], solid: 1, col: [3, 8, 10, 7], sh: 2 });
   // руины
   const wl = (id, n, s, ex) => Ob(id, Object.assign({ n, s, solid: 1, col: [0, 0, 16, 16], wall: 1 }, ex || {}));

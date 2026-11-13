@@ -123,7 +123,7 @@
   const SHIRT = 'rRq', HAIR = 'HhdD', SKIN = 'sS';
   const VIEW = ['down', 'up', 'left', 'right'];
   /* граница ног: первая строка, где начинаются штаны/обувь */
-  const legTop = {}; for (const k in MAPS) { const m = MAPS[k]; let y = m.length - 1; for (let i = 0; i < m.length; i++) if (/[pP]/.test(m[i])) { y = i; break; } legTop[k] = y; }
+  const legTop = {}; for (const k in MAPS) { const m = MAPS[k]; let y = m.length - 1; for (let i = Math.floor(m.length * .6); i < m.length; i++) if (/[pP]/.test(m[i])) { y = i; break; } legTop[k] = y; }
   const cache = {};
   /* d: 0 вниз, 1 вверх, 2 влево, 3 вправо; leg 0..3 — фаза шага; arm: 0 покой, 1/2 мах, 3 руки вверх, 4 вперёд, 5 присел */
   A.charFrame = (look, d, leg, arm, bob, crouch) => {
@@ -171,5 +171,16 @@
     const L = { body: b ? b.c : null, boots: f ? f.c : null, gloves: ha ? ha.c : null, pack: bk ? bk.c : null, helm: h ? h.c : null };
     L.k = [L.body, L.boots, L.gloves, L.pack, L.helm].join(','); return L;
   };
+  /* точка кисти для предмета в руке (в координатах кадра 24×30) по пикселям кожи рядом с туловищем */
+  const HAND = {};
+  VIEW.forEach((name, d) => {
+    const map = MAPS[name], h = map.length, w = map[0].length, lt = legTop[name], ox = 2 + ((20 - w) >> 1), oy = 28 - h, pts = [];
+    for (let y = lt - 4; y <= lt + 1; y++) for (let x = 0; x < w; x++) if (SKIN.includes(map[y] && map[y][x])) pts.push([x, y]);
+    let pick = pts;
+    if (pts.length) { const ext = d === 0 || d === 2 ? Math.min(...pts.map(q => q[0])) : Math.max(...pts.map(q => q[0])); pick = pts.filter(q => Math.abs(q[0] - ext) <= 1); }
+    const ax = pick.length ? pick.reduce((s, q) => s + q[0], 0) / pick.length : w / 2, ay = pick.length ? pick.reduce((s, q) => s + q[1], 0) / pick.length : lt - 3;
+    HAND[d] = [ox + ax + .5, oy + ay + .5];
+  });
+  A.handAt = d => HAND[d];
   A.heroPal = PAL; A.heroMaps = MAPS;
 })();

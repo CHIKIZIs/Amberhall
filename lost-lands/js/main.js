@@ -37,8 +37,8 @@
       if (!S) { G.Save.clear(); opts = opts || {}; const sd = G.seedOf(opts.seed); S = freshState(sd, opts.name, opts.seed ? String(opts.seed).trim() : String(sd)); isNew = true; }
       S.marks = S.marks || []; S.dexp = S.dexp || {};
       G.S = S; G.time = { total: S.time || 0, clock: 8, day: 0 }; G.Time.update(0); G.flags = S.flags || {};
-      G.inv = S.inv || { slots: new Array(40).fill(null), eq: { head: null, body: null, hands: null, feet: null, back: null }, sel: 0 };
-      if (G.inv.slots.length < 40) G.inv.slots.length = 40; for (let i = 0; i < 40; i++) if (G.inv.slots[i] === undefined) G.inv.slots[i] = null;
+      G.inv = S.inv || { slots: new Array(60).fill(null), eq: { head: null, body: null, hands: null, feet: null, back: null }, sel: 0 };
+      if (G.inv.slots.length < 60) G.inv.slots.length = 60; for (let i = 0; i < 60; i++) if (G.inv.slots[i] === undefined) G.inv.slots[i] = null;
       const w = G.getMap('world'); G.explored = S.explored ? G.Save.unb64(S.explored, (w.w * w.h + 7) >> 3) : new Uint8Array((w.w * w.h + 7) >> 3);
       const P = S.p, mid = P && P.map ? P.map : 'world';
       G.player = G.Player.create(w.start[0] * TS + 8, w.start[1] * TS + 10);

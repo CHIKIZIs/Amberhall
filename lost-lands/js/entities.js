@@ -134,7 +134,7 @@
     draw(c, p, ox, oy) {
       const x = Math.round(p.x - ox), y = Math.round(p.y - oy), s = G.Inv.sel(), def = s ? IT[s.id] : null, look = Player.look();
       if (p.state === 'sleep' && p.hide) return;
-      let leg = 0, arm = 0, bob = 0, cr = 0, d = p.dir, rot = 0, wAng = null, wFront = d !== 1;
+      let leg = 0, arm = 0, bob = 0, cr = 0, d = p.dir, rot = 0, wAng = null, wFront = d === 0 || ((p.state === 'attack' || p.charging || p.state === 'block') && d !== 1);
       const st = p.state;
       if (st === 'idle') { bob = Math.floor(p.anim * 2) % 2; if (G.Craft.queue.length && !G.Build.on) arm = Math.floor(p.anim * 5) % 2 ? 3 : 0; }
       else if (st === 'walk' || st === 'run' || st === 'block') { leg = Math.floor(p.anim * (st === 'run' ? 13 : 8)) % 4; arm = [0, 1, 0, 2][leg]; bob = leg % 2; if (G.Input.mag < .12) leg = arm = 0; if (st === 'block') arm = 4; }
@@ -152,9 +152,10 @@
       const hand = () => {
         if (p.swim) return;
         if (!def || st === 'roll' || st === 'dead' || st === 'sleep' || st === 'gather') return; if (!(def.weapon || def.tool)) return;
-        const ic = A.iconCv[s.id]; let ang = wAng; const hx = x + [3, -3, -5, 5][d], hy = y - 10 + (bob ? 1 : 0);
-        if (ang == null) { if (p.charging && p.charge > .15) ang = (def.weapon && (def.weapon.kind === 'bow' || def.weapon.kind === 'staff')) ? p.aim : p.aim - 2.1; else if (st === 'block') ang = -1.57 + (d === 2 ? -.5 : .5); else if (st === 'fish') ang = Math.atan2(p.fish.y - p.y, p.fish.x - p.x) - .5; else ang = [-1.1, -2.0, -2.2, -.95][d]; }
-        c.save(); c.translate(hx, hy); c.rotate(ang + .785); c.drawImage(ic, -3, -13); c.restore();
+        const ic = A.iconCv[s.id]; let ang = wAng; const hp = A.handAt(d), hx = x - 12 + hp[0], hy = y - 29 + hp[1] + (bob ? 1 : 0);
+        if (ang == null) { if (p.charging && p.charge > .15) ang = (def.weapon && (def.weapon.kind === 'bow' || def.weapon.kind === 'staff')) ? p.aim : p.aim - 2.1; else if (st === 'block') ang = -1.57 + (d === 2 ? -.5 : .5); else if (st === 'fish') ang = Math.atan2(p.fish.y - p.y, p.fish.x - p.x) - .5; else ang = [2.05, -1.1, 2.55, .6][d]; }
+        /* предмет уменьшен и держится за рукоять (левый нижний угол иконки) */
+        const k = .68; c.save(); c.translate(hx, hy); c.rotate(ang + .785); c.drawImage(ic, -2.5 * k, -13.5 * k, 16 * k, 16 * k); c.restore();
       };
       if (!wFront) hand();
       if (rot) { c.save(); c.translate(x, y - 12); c.rotate(rot); if (st === 'roll') c.scale(.85, .85); c.drawImage(cv, -12, -17); c.restore(); }

@@ -57,7 +57,7 @@
 
   /* ================= INVENTORY SYSTEM ================= */
   const Inv = G.Inv = {
-    BASE: 24, HOT: 8,
+    BASE: 36, HOT: 8,
     size() { const b = G.inv.eq.back; return Inv.BASE + (b ? IT[b.id].equip.slots : 0); },
     mk(id, n) { const it = IT[id], o = { id, n: n || 1 }; if (it.dur) o.d = it.dur; if (it.charges) o.d = 0; return o; },
     count(id) { let n = 0; for (const s of G.inv.slots) if (s && s.id === id) n += s.n; return n; },
