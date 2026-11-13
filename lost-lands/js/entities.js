@@ -5,10 +5,10 @@
   const Ent = G.Ent = { mobs: [], drops: [], proj: [], parts: [], amb: [], foot: [], spawnT: 0, bossRef: null };
 
   /* ---------- Физика ---------- */
-  const blocked = Ent.blocked = (m, x, y, hw, hh, fly) => {
+  const blocked = Ent.blocked = (m, x, y, hw, hh, fly, swim) => {
     const x0 = Math.floor((x - hw) / TS), x1 = Math.floor((x + hw) / TS), y0 = Math.floor((y - hh) / TS), y1 = Math.floor((y + hh) / TS);
     for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
-      const t = m.t(tx, ty), ps = TD[t].pass; if (ps === 0 && !(fly && t === T.DEEP)) return true;
+      const t = m.t(tx, ty), ps = TD[t].pass; if (ps === 0 && !((fly || swim) && t === T.DEEP)) return true;
       if (!m.inb(tx, ty)) continue; const gi = m.grid[ty * m.w + tx]; if (!gi) continue; const o = m.objs[gi - 1]; if (!o) continue; const d = G.OBJ[o.t];
       if (!d.solid || o.open || (fly && !d.wall)) continue; if (o.dead && !(d.tree)) continue;
       const cs = d.cols || [d.col];
@@ -17,10 +17,10 @@
     return false;
   };
   const move = Ent.move = (e, dx, dy) => {
-    const m = G.map, hw = e.hw || 4, hh = 3, fly = e.fly; let moved = 0;
-    if (blocked(m, e.x, e.y - 3, hw, hh, fly)) { e.x += dx; e.y += dy; return 1; } // застряли — даём выйти
-    if (dx && !blocked(m, e.x + dx, e.y - 3, hw, hh, fly)) { e.x += dx; moved += Math.abs(dx); }
-    if (dy && !blocked(m, e.x, e.y + dy - 3, hw, hh, fly)) { e.y += dy; moved += Math.abs(dy); }
+    const m = G.map, hw = e.hw || 4, hh = 3, fly = e.fly, sw = e.canSwim; let moved = 0;
+    if (blocked(m, e.x, e.y - 3, hw, hh, fly, sw)) { e.x += dx; e.y += dy; return 1; } // застряли — даём выйти
+    if (dx && !blocked(m, e.x + dx, e.y - 3, hw, hh, fly, sw)) { e.x += dx; moved += Math.abs(dx); }
+    if (dy && !blocked(m, e.x, e.y + dy - 3, hw, hh, fly, sw)) { e.y += dy; moved += Math.abs(dy); }
     return moved;
   };
 
@@ -36,7 +36,7 @@
   /* ---------- Игрок ---------- */
   const DIRV = [[0, 1], [0, -1], [-1, 0], [1, 0]];
   const Player = G.Player = {
-    create(x, y) { return { x, y, dir: 0, aim: Math.PI / 2, state: 'idle', st: 0, anim: 0, hp: 100, hunger: 85, thirst: 85, stam: 100, temp: 50, stamCd: 0, inv: 0, flash: 0, biome: 1, hw: 4, cd: 0, rollCd: 0, kx: 0, ky: 0, probe: 0, stepT: 0, movedAcc: 0, warmBuff: 0, buff: 0, home: null }; },
+    create(x, y) { return { x, y, dir: 0, aim: Math.PI / 2, state: 'idle', st: 0, anim: 0, hp: 100, hunger: 85, thirst: 85, stam: 100, temp: 50, stamCd: 0, inv: 0, flash: 0, biome: 1, hw: 4, cd: 0, rollCd: 0, kx: 0, ky: 0, probe: 0, stepT: 0, movedAcc: 0, warmBuff: 0, buff: 0, home: null, canSwim: 1, swim: 0, drownT: 0 }; },
     look() { const p = G.player; if (!p._look || p._lookV !== G.invVer) { p._look = A.lookOf(G.inv.eq); p._lookV = G.invVer; } return p._look; },
     busy() { const s = G.player.state; return s === 'attack' || s === 'roll' || s === 'gather' || s === 'dead' || s === 'sleep'; },
     hurt(dmg, sx, sy, raw) {
@@ -70,7 +70,17 @@
       if (p.state === 'fish') { G.Act.fishUpdate(dt); if (I.mag > .3) { p.state = 'idle'; p.fish = null; } else { if (I.atkP) G.Act.fishPull(); I.clear(); return; } }
       /* движение */
       let sp = 58 + G.Inv.bonus('speed'); const mag = I.mag; let st = 'idle';
-      p.wade = TD[m.t(Math.floor(p.x / TS), Math.floor((p.y - 2) / TS))].pass === 2;
+      const ft = m.t(Math.floor(p.x / TS), Math.floor((p.y - 2) / TS));
+      p.wade = TD[ft].pass === 2;
+      /* плавание: медленно, тратит выносливость, без сил — тонем */
+      const wasSwim = p.swim; p.swim = ft === T.DEEP;
+      if (p.swim) {
+        if (!wasSwim) { G.Ent.burst(p.x, p.y - 4, ['#ffffff', '#b4f4f0'], 10, 50); G.Audio.sfx('splash'); if (!G.S.swimTip) { G.S.swimTip = 1; G.UI.toast('Вы плывёте: выносливость тратится. Без сил начнёте тонуть!', 'ui_water'); } }
+        p.charging = 0; p.stam = Math.max(0, p.stam - 6.5 * dt); p.stamCd = 1; p.warmBuff = 0; p.temp -= dt * .6;
+        if (p.stam <= 0) { p.drownT -= dt; if (p.drownT <= 0) { p.drownT = .9; G.Player.hurt(5, null, null, true); G.UI.toast('Вы тонете! Плывите к берегу!', null, 'bad', 1); } }
+        if (mag > .12) { const mv = move(p, I.mx * 34 * dt, I.my * 34 * dt); p.dir = Math.abs(I.mx) > Math.abs(I.my) ? (I.mx < 0 ? 2 : 3) : (I.my < 0 ? 1 : 0); p.aim = Math.atan2(I.my, I.mx); p.movedAcc += mv; if (Math.random() < dt * 6) G.Ent.part(p.x + (Math.random() - .5) * 10, p.y - 3, 0, -6, '#d6faff', .5, { g: 0 }); }
+        p.state = mag > .12 ? 'walk' : 'idle'; if (I.interP) G.Act.interact(); I.clear(); return;
+      }
       if (I.block && p.stam > 0 && !p.charging) { st = 'block'; sp = 24; }
       else if (mag > .12) { st = 'walk'; if (I.run && p.stam > 1 && !p.wade && !p.charging && !p.tired) { st = 'run'; sp = 98; p.stam -= 8.5 * dt; p.stamCd = .7; if (p.stam <= 1) p.tired = 1; } else sp *= Math.min(1, .45 + mag * .7); }
       if (p.tired && p.stam > 25) p.tired = 0;
@@ -135,10 +145,12 @@
       else if (st === 'dead') rot = Math.min(1, p.st * 3) * 1.57;
       else if (st === 'sleep') rot = 1.57;
       if (p.charging && p.charge > .15) arm = 3;
-      const sh = A.spr.sh1; if (st !== 'roll') c.drawImage(sh.c, x - 6, y - 3);
-      if (p.wade && st !== 'dead') { c.save(); c.beginPath(); c.rect(x - 14, y - 34, 28, 30); c.clip(); }
+      const sh = A.spr.sh1; if (st !== 'roll' && !p.swim) c.drawImage(sh.c, x - 6, y - 3);
+      if (p.swim && st !== 'dead') { const k = Math.sin(G.R.time * 4) * .8; c.strokeStyle = 'rgba(214,250,255,.8)'; c.lineWidth = 1; c.beginPath(); c.ellipse(x + .5, y - 9.5, 9 + k, 3.5, 0, 0, 6.283); c.stroke(); c.save(); c.beginPath(); c.rect(x - 14, y - 34, 28, 24 + Math.round(k)); c.clip(); }
+      else if (p.wade && st !== 'dead') { c.save(); c.beginPath(); c.rect(x - 14, y - 34, 28, 30); c.clip(); }
       const cv = A.charFrame(look, d, leg, arm, bob, cr);
       const hand = () => {
+        if (p.swim) return;
         if (!def || st === 'roll' || st === 'dead' || st === 'sleep' || st === 'gather') return; if (!(def.weapon || def.tool)) return;
         const ic = A.iconCv[s.id]; let ang = wAng; const hx = x + [3, -3, -5, 5][d], hy = y - 10 + (bob ? 1 : 0);
         if (ang == null) { if (p.charging && p.charge > .15) ang = (def.weapon && (def.weapon.kind === 'bow' || def.weapon.kind === 'staff')) ? p.aim : p.aim - 2.1; else if (st === 'block') ang = -1.57 + (d === 2 ? -.5 : .5); else if (st === 'fish') ang = Math.atan2(p.fish.y - p.y, p.fish.x - p.x) - .5; else ang = [-1.1, -2.0, -2.2, -.95][d]; }
@@ -149,7 +161,7 @@
       else if (p.inv > 0 && !p.dead && Math.floor(p.inv * 14) % 2) { c.globalAlpha = .45; c.drawImage(cv, x - 12, y - 29); c.globalAlpha = 1; }
       else c.drawImage(cv, x - 12, y - 29);
       if (wFront) hand();
-      if (p.wade && st !== 'dead') c.restore();
+      if ((p.wade || p.swim) && st !== 'dead') c.restore();
       if (st === 'fish' && p.fish) { const f = p.fish, bx = Math.round(f.x - ox), by2 = Math.round(f.y - oy + (f.bite ? 2 : Math.sin(G.R.time * 3) * 1)); c.strokeStyle = '#e8e4d4'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + [3, -3, -9, 9][d], y - 22); c.lineTo(bx + .5, by2); c.stroke(); c.drawImage(A.spr.bobber.c, bx - 2, by2 - 3); }
       if (p.charging && p.charge > .15) { const k = Math.min(1, p.charge / .5); c.fillStyle = '#1b1526'; c.fillRect(x - 8, y - 35, 16, 3); c.fillStyle = k >= 1 ? '#ffd23e' : '#e8eef4'; c.fillRect(x - 7, y - 34, Math.round(14 * k), 1); }
       if (st === 'sleep') { const z = A.iconCv.ui_zzz; c.drawImage(z, x + 4, y - 30 - Math.round((G.R.time * 6) % 6), 10, 10); }
