@@ -2,15 +2,14 @@
 /* Точка входа: состояние игры, новая игра/продолжение, переходы между картами, игровой цикл, автосохранение. */
 (() => {
   const TS = 16, bus = G.bus;
-  G.settings = { music: .55, sfx: .8, zoom: 0, fx: 1, joy: 56, fps: false };
+  G.settings = { music: .55, sfx: .8, zoom: 0, fx: 1, fps: false };
   G.time = { total: 0, clock: 8, day: 0 }; G.flags = {}; G.maps = {}; G.dexp = {}; G.exploredVer = 0; G.running = false; G.paused = false;
 
   G.applySettings = () => {
     const S = G.settings; if (G.R.cv) G.R.setZoom(S.zoom); G.Audio.vol();
-    document.documentElement.style.setProperty('--joy', S.joy);
     let f = G.$('fps'); if (S.fps && !f) { f = G.el('div'); f.id = 'fps'; document.body.appendChild(f); } else if (!S.fps && f) f.remove();
   };
-  const uiScale = () => { const u = G.clamp(Math.min(innerHeight / 215, innerWidth / 400), 1.15, 4); document.documentElement.style.setProperty('--u', u.toFixed(2) + 'px'); };
+  const uiScale = () => { const u = G.clamp(Math.min(innerHeight / 330, innerWidth / 600), 1.4, 3.6); document.documentElement.style.setProperty('--u', u.toFixed(2) + 'px'); };
 
   /* ---------- карты ---------- */
   G.getMap = id => {
@@ -88,6 +87,10 @@
     G.Art.init(); G.R.init(G.$('game')); G.Input.init();
     G.S = freshState(20261113); G.map = G.World.genWorld(G.S.seed); G.time = { total: 300, clock: 8, day: 0 }; G.Time.update(0); G.Weather.set('clear', 999);
     G.Quest.init();
+    /* пиксельный прицел вместо системного курсора */
+    { const c = document.createElement('canvas'); c.width = c.height = 22; const x = c.getContext('2d'), O = '#0d0b1a', W = '#f6eedc';
+      const plus = (col, w) => { x.fillStyle = col; for (const [a, b, cw, ch] of [[10 - w, 1 - w, 2 + w * 2, 6 + w * 2], [10 - w, 15 - w, 2 + w * 2, 6 + w * 2], [1 - w, 10 - w, 6 + w * 2, 2 + w * 2], [15 - w, 10 - w, 6 + w * 2, 2 + w * 2], [10 - w, 10 - w, 2 + w * 2, 2 + w * 2]]) x.fillRect(a, b, cw, ch); };
+      plus(O, 1); plus(W, 0); document.documentElement.style.setProperty('--cur', 'url(' + c.toDataURL() + ') 11 11, crosshair'); }
     G.$('loading').style.display = 'none'; G.applySettings(); G.UI.menu();
     requestAnimationFrame(loop);
     bus.on('build', () => { clearTimeout(G._bs); G._bs = setTimeout(G.saveNow, 1500); });

@@ -53,6 +53,7 @@
       Object.assign(p, { x: hx, y: hy, hp: G.Prog.maxHp() * .6, hunger: Math.max(p.hunger, 45), thirst: Math.max(p.thirst, 45), stam: 100, temp: 50, dead: 0, state: 'idle', inv: 2, kx: 0, ky: 0 });
       G.S.xp = Math.floor(G.S.xp * .8); Ent.mobs.length = 0; G.R.follow(p.x, p.y - 8, 1, true); bus.emit('xp');
     },
+    face(a) { const p = G.player; p.aim = a; const cx = Math.cos(a), cy = Math.sin(a); p.dir = Math.abs(cx) > Math.abs(cy) * 1.15 ? (cx < 0 ? 2 : 3) : (cy < 0 ? 1 : 0); },
     wake() { const p = G.player; if (p.state === 'sleep') { p.state = 'idle'; G.UI.sleep(false); } },
     selItem() { return G.Inv.sel(); },
     update(dt) {
@@ -71,18 +72,19 @@
       let sp = 58 + G.Inv.bonus('speed'); const mag = I.mag; let st = 'idle';
       p.wade = TD[m.t(Math.floor(p.x / TS), Math.floor((p.y - 2) / TS))].pass === 2;
       if (I.block && p.stam > 0 && !p.charging) { st = 'block'; sp = 24; }
-      else if (mag > .12) { st = 'walk'; if (mag > .82 && p.stam > 1 && !p.wade && !p.charging && !p.tired) { st = 'run'; sp = 98; p.stam -= 8.5 * dt; p.stamCd = .7; if (p.stam <= 1) p.tired = 1; } else sp *= Math.min(1, .45 + mag * .7); }
+      else if (mag > .12) { st = 'walk'; if (I.run && p.stam > 1 && !p.wade && !p.charging && !p.tired) { st = 'run'; sp = 98; p.stam -= 8.5 * dt; p.stamCd = .7; if (p.stam <= 1) p.tired = 1; } else sp *= Math.min(1, .45 + mag * .7); }
       if (p.tired && p.stam > 25) p.tired = 0;
       if (p.wade) sp *= .55; if (p.charging) sp *= .6; if (p.hunger < 12 || p.temp < 20) sp *= .85;
       if (mag > .12) {
         const mvd = move(p, I.mx * sp * dt, I.my * sp * dt);
-        p.aim = Math.atan2(I.my, I.mx); if (!p.charging) p.dir = Math.abs(I.mx) > Math.abs(I.my) ? (I.mx < 0 ? 2 : 3) : (I.my < 0 ? 1 : 0);
+        if (!p.charging && st !== 'block') { p.aim = Math.atan2(I.my, I.mx); p.dir = Math.abs(I.mx) > Math.abs(I.my) ? (I.mx < 0 ? 2 : 3) : (I.my < 0 ? 1 : 0); }
         p.movedAcc += mvd; if (p.movedAcc > 16) { bus.emit('moved', p.movedAcc / 16); p.movedAcc = 0; }
         p.stepT -= dt * (st === 'run' ? 1.6 : 1); if (p.stepT <= 0 && mvd > 0) { p.stepT = .32; const tt = m.t(Math.floor(p.x / TS), Math.floor((p.y - 2) / TS)), step = TD[tt].step; G.Audio.step(step); if (step === 'sand' || step === 'snow') Ent.foot.push({ x: p.x, y: p.y, t: 0, h: Math.abs(I.mx) > Math.abs(I.my) }); if (p.wade) Ent.burst(p.x, p.y - 2, ['#b4f4f0', '#ffffff'], 3, 26, { g: 120 }); else if (st === 'run' && step !== 'stone' && step !== 'wood') Ent.part(p.x, p.y - 1, -I.mx * 14, -8, step === 'snow' ? '#ffffff' : step === 'sand' ? '#e2ae78' : '#86c84a', .3, { g: 60 }); }
       }
+      if (G.Input.sx >= 0 && (mag <= .12 || p.charging || st === 'block')) Player.face(G.Input.aim());
       if (st !== 'block' || p.state !== 'block') { if (p.state !== st) { p.state = st; if (st === 'idle') p.st = 0; } }
       /* действия */
-      if (I.dodgeP && p.rollCd <= 0) { const cost = 22 * (1 - G.Prog.rank('dodge') * .2); if (p.stam >= cost) { p.stam -= cost; p.stamCd = .8; let dx = I.mx, dy = I.my; if (mag < .15) { dx = DIRV[p.dir][0]; dy = DIRV[p.dir][1]; } const l = Math.hypot(dx, dy) || 1; p.rx = dx / l * 175; p.ry = dy / l * 175; p.rollDur = .34 + G.Prog.rank('dodge') * .04; p.state = 'roll'; p.st = 0; p.rollCd = .55; p.charging = 0; G.Audio.sfx('roll'); Ent.burst(p.x, p.y - 2, ['#ffffff', '#d9d3be'], 4, 24, { g: 20 }); I.clear(); return; } else G.UI.toast('Нет сил для уклонения', null, 'bad', 1); }
+      if (I.dodgeP && p.rollCd <= 0) { const cost = 22 * (1 - G.Prog.rank('dodge') * .2); if (p.stam >= cost) { p.stam -= cost; p.stamCd = .8; let dx = I.mx, dy = I.my; if (mag < .15) { dx = Math.cos(p.aim); dy = Math.sin(p.aim); } const l = Math.hypot(dx, dy) || 1; p.rx = dx / l * 175; p.ry = dy / l * 175; p.rollDur = .34 + G.Prog.rank('dodge') * .04; p.state = 'roll'; p.st = 0; p.rollCd = .55; p.charging = 0; G.Audio.sfx('roll'); Ent.burst(p.x, p.y - 2, ['#ffffff', '#d9d3be'], 4, 24, { g: 20 }); I.clear(); return; } else G.UI.toast('Нет сил для уклонения', null, 'bad', 1); }
       if (G.Build.on) { I.clear(); return; }
       if (I.atkP && p.cd <= 0) {
         const tool = def && def.tool ? def.tool.type : null;
@@ -92,15 +94,15 @@
       if (p.charging) { p.charge += dt; if (!I.atk) { p.charging = 0; Player.startAttack(p.charge >= .5); } }
       if (I.interP) G.Act.interact();
       if (I.useP) G.Act.use();
-      if (I.swapP) { const sl = G.inv.slots; for (let k = 1; k <= 8; k++) { const i = (G.inv.sel + k) % 8; if (sl[i]) { G.inv.sel = i; bus.emit('inv'); G.Audio.sfx('ui'); break; } } }
+      if (false) { const sl = G.inv.slots; for (let k = 1; k <= 8; k++) { const i = (G.inv.sel + k) % 8; if (sl[i]) { G.inv.sel = i; bus.emit('inv'); G.Audio.sfx('ui'); break; } } }
       I.clear();
     },
     startAttack(heavy, kind) {
       const p = G.player, s = G.Inv.sel(), def = s ? IT[s.id] : null, w = def && def.weapon ? def.weapon : { dmg: 2, cd: .36, range: 14 };
       if (heavy) { if (p.stam < 14) { heavy = false; } else { p.stam -= 14; p.stamCd = .8; } }
       /* автоприцел: ближайший враг или подходящий ресурс перед игроком */
-      const tg = G.Combat.autoAim(w); if (tg != null) { p.aim = tg; const cx = Math.cos(tg), cy = Math.sin(tg); p.dir = Math.abs(cx) > Math.abs(cy) ? (cx < 0 ? 2 : 3) : (cy < 0 ? 1 : 0); }
-      else { const v = DIRV[p.dir]; if (G.Input.mag < .15) p.aim = Math.atan2(v[1], v[0]); }
+      if (G.Input.sx >= 0) Player.face(G.Input.aim());
+      const tg = G.Combat.autoAim(w); if (tg != null) Player.face(tg);
       const dur = (w.cd || .4) * (heavy ? 1.35 : 1);
       p.atk = { dur, heavy, done: 0, w, kind: kind || w.kind || 'melee', id: s ? s.id : null }; p.state = 'attack'; p.st = 0; p.cd = dur + .04;
       if (p.atk.kind === 'melee' || p.atk.kind === 'dig') G.Audio.sfx(heavy ? 'swingh' : 'swing');
@@ -160,7 +162,7 @@
     dmgMul() { return 1 + G.Prog.rank('dmg') * .1 + G.Inv.bonus('dmg') + (G.player.buff > 0 ? .2 : 0); },
     autoAim(w) {
       const p = G.player, rng = (w.kind ? w.range : (w.range || 16) + 14), cx = p.x, cy = p.y - 8; let best = null, bd = 1e9; const cur = p.aim;
-      for (const m of Ent.mobs) { if (m.dead) continue; const d = Math.hypot(m.x - cx, m.y - m.def.h * .4 - cy) - m.def.r; if (d > rng) continue; const a = Math.atan2(m.y - m.def.h * .4 - cy, m.x - cx); let da = Math.abs(((a - cur + 9.42) % 6.283) - 3.1416); const sc = d + da * (w.kind ? 40 : 14); if (da > (w.kind ? 1.2 : 2.6) && G.Input.mag > .2) continue; if (sc < bd) { bd = sc; best = a; } }
+      for (const m of Ent.mobs) { if (m.dead) continue; const d = Math.hypot(m.x - cx, m.y - m.def.h * .4 - cy) - m.def.r; if (d > rng) continue; const a = Math.atan2(m.y - m.def.h * .4 - cy, m.x - cx); let da = Math.abs(((a - cur + 9.42) % 6.283) - 3.1416); const sc = d + da * (w.kind ? 40 : 14); if (da > (w.kind ? .35 : .8)) continue; if (sc < bd) { bd = sc; best = a; } }
       if (best != null || w.kind) return best;
       const o = Combat.findRes(cur, true); if (o) { const d = G.OBJ[o.t], sz = d.size || [1, 1]; return Math.atan2((o.y + sz[1] * .5) * TS + 2 - cy - 4, (o.x + sz[0] * .5) * TS - cx); }
       return null;

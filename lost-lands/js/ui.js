@@ -35,8 +35,7 @@
     const tb = [['craft', 'ui_craft', 'Крафт (C)'], ['build', 'ui_build', 'Стройка (B)'], ['inv', 'ui_bag', 'Инвентарь (I)'], ['quests', 'ui_quest', 'Задания (J)'], ['skills', 'ui_skill', 'Навыки (N)'], ['map', 'ui_map', 'Карта (M)'], ['settings', 'ui_cog', 'Настройки (Esc)']];
     $('topbtns').innerHTML = tb.map(([k, ic, t]) => '<button class="btn" id="tb-' + k + '" title="' + t + '">' + icon(ic) + '</button>').join('');
     for (const [k] of tb) $('tb-' + k).onclick = () => { G.Audio.unlock(); G.Audio.sfx('ui'); if (k === 'build') { G.Build.on ? G.Build.exit() : G.Build.start(); } else UI.open(k); };
-    $('b-atk').innerHTML = icon('ui_atk'); $('b-dodge').innerHTML = icon('ui_roll') + '<span>Рывок</span>'; $('b-inter').innerHTML = icon('ui_hand'); $('b-use').innerHTML = icon('ui_use') + '<span>Исп.</span>';
-    $('b-block').innerHTML = icon('ui_block'); $('b-swap').innerHTML = icon('ui_swap');
+    $('keys').innerHTML = [['ЛКМ', 'атака'], ['ПКМ', 'блок'], ['Пробел', 'рывок'], ['Shift', 'бег'], ['E', 'действие'], ['Q', 'применить']].map(([k, t]) => '<span><kbd>' + k + '</kbd>' + t + '</span>').join('');
     $('qtrack').onclick = () => $('qtrack').classList.toggle('open');
     bus.on('inv', () => { G.invVer = (G.invVer || 0) + 1; UI.hotbar(); if (UI.win === 'inv' || UI.win === 'chest') UI.refresh(); if (UI.win === 'craft') UI.refresh(); if (G.Build.on) UI.buildBar(true); });
     bus.on('quest', UI.track); bus.on('xp', UI.xp); bus.on('level', () => { UI.xp(); UI.dots(); }); bus.on('skill', UI.dots);
@@ -49,8 +48,7 @@
     for (let i = 0; i < 8; i++) { const it = G.inv.slots[i]; s += '<div class="slot' + (i === G.inv.sel ? ' sel' : '') + '" data-i="' + i + '"><span class="k">' + (i + 1) + '</span>' + slotInner(it) + '</div>'; }
     h.innerHTML = s;
     h.querySelectorAll('.slot').forEach(e => { e.onpointerdown = ev => { ev.preventDefault(); const i = +e.dataset.i; if (G.inv.sel === i && G.inv.slots[i]) { const it = IT[G.inv.slots[i].id]; if (it.food || it.equip || it.place) { G.Act.use(); return; } } G.inv.sel = i; G.Audio.sfx('ui'); UI.hotbar(); }; });
-    const d = G.Inv.selDef(); $('b-use').innerHTML = (d ? icon(G.inv.slots[G.inv.sel].id) : icon('ui_use')) + '<span>Исп.</span>';
-    const at = d && (d.weapon || d.tool) ? G.inv.slots[G.inv.sel].id : 'ui_atk'; if (!G.Build.on) $('b-atk').innerHTML = icon(at);
+    const cur = G.inv.slots[G.inv.sel]; $('selname').textContent = cur ? tip(cur.id) : '';
   };
   const slotInner = it => { if (!it) return ''; const d = IT[it.id]; let s = icon(it.id); if (it.n > 1) s += '<span class="n">' + it.n + '</span>'; if (d.dur && it.d != null && !d.charges) s += '<div class="du"><i style="width:' + Math.round(it.d / d.dur * 100) + '%;background:' + (it.d / d.dur < .25 ? '#e8484e' : '#7bd05a') + '"></i></div>'; if (d.charges) s += '<div class="du"><i style="width:' + Math.round((it.d || 0) / 8 * 100) + '%;background:#5aa8e8"></i></div>'; return s; };
   UI.xp = () => { const S = G.S; if (!S) return; $('xpbar').firstChild.style.width = (S.xp / G.Prog.need(S.lvl) * 100) + '%'; $('lvl').textContent = 'Ур. ' + S.lvl + (S.sp ? '  · очки навыков: ' + S.sp : ''); };
@@ -62,14 +60,15 @@
     if (q.story && G.S.quests.done.length < 4) box.classList.add('open');
   };
   UI.target = o => {
-    const b = $('b-inter'), pr = $('prompt');
-    if (o) { const d = G.OBJ[o.t]; let lab = d.label || (d.pick ? 'Собрать' : ''); if (o.t === 'door' || o.t === 'fgate') lab = o.open ? 'Закрыть' : 'Открыть'; if (o.t === 'plot') lab = o.crop ? (o.g >= G.CROPS[o.crop].time ? 'Собрать' : 'Грядка') : 'Посадить'; pr.textContent = (d.n ? d.n + ': ' : '') + lab; pr.classList.remove('hidden'); b.classList.add('hint'); }
-    else { pr.classList.add('hidden'); b.classList.remove('hint'); }
+    const pr = $('prompt');
+    if (o) { const d = G.OBJ[o.t]; let lab = d.label || (d.pick ? 'Собрать' : ''); if (o.t === 'door' || o.t === 'fgate') lab = o.open ? 'Закрыть' : 'Открыть'; if (o.t === 'plot') lab = o.crop ? (o.g >= G.CROPS[o.crop].time ? 'Собрать' : 'Грядка') : 'Посадить'; pr.innerHTML = '<kbd>E</kbd>' + lab + (d.n ? ' <small>' + d.n + '</small>' : ''); pr.classList.remove('hidden'); }
+    else pr.classList.add('hidden');
   };
   UI.cq = () => { const q = G.Craft.queue, box = $('craftq'); box.innerHTML = q.map((c, i) => '<div class="slot">' + icon(c.r.out) + (c.r.n > 1 ? '<span class="n">' + c.r.n + '</span>' : '') + (i === 0 ? '<div class="pg" style="width:0"></div>' : '') + '</div>').join(''); };
   let hudT = 0;
   UI.update = dt => {
     const p = G.player; if (!p) return; hudT -= dt;
+    const tg = p.target, pr = $('prompt'); if (tg && !pr.classList.contains('hidden')) { const R = G.R, r = R.cv.getBoundingClientRect(), d = G.OBJ[tg.t], sz = d.size || [1, 1], s = G.Art.spr[d.s[0]], top = (tg.y + sz[1]) * 16 - (s && !d.flat ? s.h : 16) - 4; pr.style.left = ((tg.x + sz[0] / 2) * 16 - R.cam.sx) / R.vw * r.width + 'px'; pr.style.top = (top - R.cam.sy) / R.vh * r.height + 'px'; }
     const mh = G.Prog.maxHp(), set = (k, v, max) => { const b = $('bar-' + k); b.querySelector('.fl').style.width = G.clamp(v / max * 100, 0, 100) + '%'; b.classList.toggle('low', v / max < .2); };
     set('hp', p.hp, mh); set('hunger', p.hunger, 100); set('thirst', p.thirst, 100); set('stam', p.stam, 100);
     const tb = $('bar-temp'); tb.querySelector('.mk').style.left = G.clamp(p.temp, 0, 100) + '%'; tb.classList.toggle('low', p.temp < 22 || p.temp > 85);
@@ -239,7 +238,7 @@
   /* --- Настройки --- */
   R.settings = () => {
     const S = G.settings, rng = (k, lab, min, max, step) => '<div class="set"><span>' + lab + '</span><input type="range" data-k="' + k + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + S[k] + '"></div>';
-    frame('Настройки', '<div class="scroll" style="flex:1">' + rng('music', 'Музыка', 0, 1, .05) + rng('sfx', 'Звуки', 0, 1, .05) + rng('zoom', 'Масштаб', -1, 2, 1) + rng('fx', 'Частицы и погода', .3, 1, .1) + rng('joy', 'Размер джойстика', 40, 80, 4) + '<div class="set"><span>Показывать FPS</span><button class="btn" id="fpsb">' + (S.fps ? 'Вкл' : 'Выкл') + '</button></div><div class="set"><span>Управление с клавиатуры</span><small style="color:var(--dim);text-align:right">WASD — ходьба (Shift — бег), Пробел — атака (удерживать — сильная), Ctrl/L — рывок, K — блок, E — взаимодействие, Q — применить, Tab/1-8 — предметы, I/C/B/J/N/M — окна, R — поворот постройки</small></div></div><div class="col" style="width:calc(var(--u)*100)"><button class="btn gold" id="svnow">Сохранить</button>' + (G.running ? '<button class="btn" id="tomenu">Выйти в меню</button>' : '') + '<button class="btn" id="fullsc">Во весь экран</button></div>');
+    frame('Настройки', '<div class="scroll" style="flex:1">' + rng('music', 'Музыка', 0, 1, .05) + rng('sfx', 'Звуки', 0, 1, .05) + rng('zoom', 'Масштаб', -1, 2, 1) + rng('fx', 'Частицы и погода', .3, 1, .1) + '<div class="set"><span>Показывать FPS</span><button class="btn" id="fpsb">' + (S.fps ? 'Вкл' : 'Выкл') + '</button></div><div class="set"><span>Управление с клавиатуры</span><small style="color:var(--dim);text-align:right">WASD — ходьба, Shift — бег, мышь — прицел, ЛКМ — атака (удерживать — сильная), ПКМ — блок, Пробел — рывок, E — взаимодействие, Q/F — применить, 1–8 и колесо — предметы, I — инвентарь, C — крафт, B — стройка, J — задания, N — навыки, M — карта, Esc — меню. В стройке: ЛКМ — поставить, ПКМ — выйти, R — повернуть, T — материал</small></div></div><div class="col" style="width:calc(var(--u)*100)"><button class="btn gold" id="svnow">Сохранить</button>' + (G.running ? '<button class="btn" id="tomenu">Выйти в меню</button>' : '') + '<button class="btn" id="fullsc">Во весь экран (F11)</button></div>');
     document.querySelectorAll('.set input').forEach(i => i.oninput = () => { S[i.dataset.k] = +i.value; G.applySettings(); G.Save.settings(); });
     $('fpsb').onclick = () => { S.fps = !S.fps; G.applySettings(); G.Save.settings(); R.settings(); };
     $('svnow').onclick = () => { if (G.running && G.Save.save()) UI.toast('Игра сохранена', 'ui_ok'); };
@@ -275,10 +274,9 @@
 
   /* ---------- строительство: панель ---------- */
   UI.buildBar = on => {
-    const bb = $('buildbar'), bt = $('buildtools'), hb = $('hotbar'), atk = $('b-atk');
-    bb.classList.toggle('hidden', !on); bt.classList.toggle('hidden', !on); $('qtrack').style.visibility = on ? 'hidden' : ''; hb.classList.toggle('hidden', on); atk.classList.toggle('build', on);
+    const bb = $('buildbar'), bt = $('buildtools'), hb = $('hotbar');
+    bb.classList.toggle('hidden', !on); bt.classList.toggle('hidden', !on); $('qtrack').style.visibility = on ? 'hidden' : ''; hb.classList.toggle('hidden', on); $('keys').classList.toggle('hidden', on); $('selname').classList.toggle('hidden', on);
     if (!on) { UI.hotbar(); return; }
-    atk.innerHTML = icon('ui_ok');
     const B = G.Build, cats = G.BCATS.map(([k, n]) => '<button class="btn tab' + (UI.btab === k ? ' on' : '') + '" data-c="' + k + '">' + n + '</button>').join('');
     const items = G.BUILD_LIST.filter(id => G.BUILD[id].cat === UI.btab).map(id => '<div class="slot bi' + (B.sel === id ? ' sel' : '') + (B.affordable(id) && !B.locked(id) ? '' : ' no') + '" data-b="' + id + '">' + icon(id) + (G.Inv.count(id) ? '<span class="n">' + G.Inv.count(id) + '</span>' : '') + '</div>').join('');
     const b = G.BUILD[B.sel], c = B.cost(B.sel);
@@ -304,9 +302,9 @@
 
   UI.keyDown = (k, e) => {
     if (!G.running) return false;
-    const map = { i: 'inv', 'ш': 'inv', c: 'craft', 'с': 'craft', j: 'quests', 'о': 'quests', n: 'skills', 'т': 'skills', m: 'map', 'ь': 'map' };
+    const map = { KeyI: 'inv', KeyC: 'craft', KeyJ: 'quests', KeyN: 'skills', KeyM: 'map', Tab: 'inv' }; k = e.code === 'Escape' ? 'escape' : e.code === 'KeyB' ? 'b' : e.code;
     if (k === 'escape') { if ($('dlg')) { $('dlg').remove(); G.paused = !!UI.win; return true; } if (UI.win) UI.close(); else if (G.Build.on) G.Build.exit(); else UI.open('settings'); return true; }
-    if (k === 'b' || k === 'и') { if (UI.win) UI.close(); G.Build.on ? G.Build.exit() : G.Build.start(); return true; }
+    if (k === 'b') { if (UI.win) UI.close(); G.Build.on ? G.Build.exit() : G.Build.start(); return true; }
     if (map[k]) { UI.open(map[k]); return true; }
     return !!UI.win;
   };

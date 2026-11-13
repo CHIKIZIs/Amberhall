@@ -12,8 +12,8 @@
     exit() { if (!Build.on) return; if (Build.carry) { const c = Build.carry; G.map.add(c.t, c.x, c.y, c); Build.carry = null; } Build.on = false; G.UI.buildBar(false); bus.emit('buildmode'); },
     setMode(m) { if (Build.carry && m !== 'move') { const c = Build.carry; G.map.add(c.t, c.x, c.y, c); Build.carry = null; } Build.mode = m; bus.emit('buildmode'); },
     aim() { const p = G.player, a = p.aim; Build.tx = Math.floor((p.x + Math.cos(a) * 22) / TS); Build.ty = Math.floor((p.y - 4 + Math.sin(a) * 22) / TS); },
-    /* курсор следует за персонажем, пока игрок не указал клетку пальцем */
-    update() { if (!Build.on) return; if (G.Input.mag > .15 && !Build.pinned) Build.aim(); },
+    /* курсор следует за персонажем, пока игрок не указал клетку мышью */
+    update() { if (!Build.on) return; const I = G.Input; if (I.sx >= 0) { I.toWorld(); const [w, h] = Build.mode === 'place' || Build.carry ? Build.size() : [1, 1]; Build.tx = Math.floor(I.wx / 16 - (w - 1) / 2); Build.ty = Math.floor(I.wy / 16 - (h - 1) / 2); } else if (G.Input.mag > .15) Build.aim(); },
     tapWorld(wx, wy) { Build.tx = Math.floor(wx / TS); Build.ty = Math.floor(wy / TS); Build.pinned = 1; setTimeout(() => { Build.pinned = 0; }, 2500); },
     def() { return G.BUILD[Build.carry ? Build.carry.t : Build.sel]; },
     size() { const o = G.OBJ[Build.carry ? Build.carry.t : Build.sel]; const s = (o && o.size) || [1, 1]; return (Build.rot & 1) && s[0] !== s[1] ? [s[1], s[0]] : s; },

@@ -2,13 +2,8 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0d0b1a">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.webmanifest">
 <title>Pixel Survival: Lost Lands</title>
 <style>
 @font-face{font-family:PX;src:url(assets/pixel.woff) format('woff')}
@@ -57,8 +52,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 #qtrack .g.ok{color:var(--grn)}
 #qtrack .hint{color:var(--dim);margin-top:calc(var(--u)*2);display:none}
 #qtrack.open .hint{display:block}
-#hotbar{position:absolute;left:calc(50% - var(--u)*28);bottom:calc(var(--u)*4 + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:calc(var(--u)*2);padding:calc(var(--u)*2)}
-.slot{position:relative;width:calc(var(--u)*21);height:calc(var(--u)*21);background:#1a1430;box-shadow:0 0 0 var(--u) var(--ink),inset var(--u) var(--u) 0 #120d22,inset calc(var(--u)*-1) calc(var(--u)*-1) 0 #3a2e58;border-radius:calc(var(--u)*2);display:flex;align-items:center;justify-content:center;flex:none}
+#hotbar{position:absolute;left:50%;bottom:calc(var(--u)*4 + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:calc(var(--u)*2);padding:calc(var(--u)*2)}
+.slot{position:relative;width:calc(var(--u)*22);height:calc(var(--u)*22);background:#1a1430;box-shadow:0 0 0 var(--u) var(--ink),inset var(--u) var(--u) 0 #120d22,inset calc(var(--u)*-1) calc(var(--u)*-1) 0 #3a2e58;border-radius:calc(var(--u)*2);display:flex;align-items:center;justify-content:center;flex:none}
 .slot .ic{width:calc(var(--u)*16);height:calc(var(--u)*16);pointer-events:none}
 .slot .n{position:absolute;right:var(--u);bottom:0;font-size:calc(var(--u)*6);text-shadow:var(--u) 0 var(--ink),calc(var(--u)*-1) 0 var(--ink),0 var(--u) var(--ink),0 calc(var(--u)*-1) var(--ink);pointer-events:none}
 .slot .k{position:absolute;left:calc(var(--u)*2);top:0;font-size:calc(var(--u)*5);color:var(--dim);pointer-events:none}
@@ -69,26 +64,13 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .slot.hot{background:#231b3e}
 .slot.drop{box-shadow:0 0 0 var(--u) var(--ink),0 0 0 calc(var(--u)*2) var(--grn)}
 .slot .ph{opacity:.25;filter:grayscale(1)}
-#joyzone{position:absolute;left:0;bottom:0;width:42%;height:62%}
-#joy{position:absolute;width:calc(var(--u)*var(--joy,56));height:calc(var(--u)*var(--joy,56));margin:calc(var(--u)*var(--joy,56)/-2) 0 0 calc(var(--u)*var(--joy,56)/-2);left:28%;top:62%;border-radius:50%;background:rgba(13,11,26,.35);box-shadow:0 0 0 var(--u) rgba(13,11,26,.6),inset 0 0 0 calc(var(--u)*2) rgba(255,255,255,.22);opacity:.55;transition:opacity .2s;pointer-events:none}
-#joy.on{opacity:.9}
-#joyk{position:absolute;left:50%;top:50%;width:44%;height:44%;margin:-22% 0 0 -22%;border-radius:50%;background:rgba(246,238,220,.55);box-shadow:0 0 0 var(--u) var(--ink),inset 0 calc(var(--u)*-2) 0 rgba(0,0,0,.25)}
-#acts{position:absolute;right:calc(var(--u)*8 + env(safe-area-inset-right));bottom:calc(var(--u)*8 + env(safe-area-inset-bottom));width:calc(var(--u)*110);height:calc(var(--u)*100)}
-.ab{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;background:rgba(42,33,64,.82);box-shadow:0 0 0 var(--u) var(--ink),inset 0 calc(var(--u)*-3) 0 rgba(0,0,0,.35),inset 0 var(--u) 0 rgba(255,255,255,.18);touch-action:none}
-.ab.pr{transform:scale(.93);background:rgba(76,61,112,.95)}
-.ab .ic{width:calc(var(--u)*14);height:calc(var(--u)*14);pointer-events:none}
-.ab span{font-size:calc(var(--u)*5);color:var(--dim);pointer-events:none;margin-top:calc(var(--u)*-1)}
-#b-atk{right:0;bottom:0;width:calc(var(--u)*44);height:calc(var(--u)*44);background:rgba(168,48,58,.85)}
-#b-atk .ic{width:calc(var(--u)*22);height:calc(var(--u)*22)}
-#b-atk.build{background:rgba(63,138,54,.9)}
-#b-inter{right:calc(var(--u)*48);bottom:calc(var(--u)*2);width:calc(var(--u)*32);height:calc(var(--u)*32)}
-#b-inter.hint{background:rgba(201,138,30,.92);animation:pulse 1s ease-in-out infinite}
-@keyframes pulse{50%{transform:scale(1.07)}}
-#b-dodge{right:calc(var(--u)*6);bottom:calc(var(--u)*48);width:calc(var(--u)*30);height:calc(var(--u)*30)}
-#b-use{right:calc(var(--u)*40);bottom:calc(var(--u)*38);width:calc(var(--u)*28);height:calc(var(--u)*28)}
-#b-block{right:calc(var(--u)*82);bottom:calc(var(--u)*30);width:calc(var(--u)*24);height:calc(var(--u)*24)}
-#b-swap{right:calc(var(--u)*80);bottom:calc(var(--u)*0);width:calc(var(--u)*22);height:calc(var(--u)*22)}
-#prompt{position:absolute;right:calc(var(--u)*56);bottom:calc(var(--u)*38);background:rgba(13,11,26,.8);padding:var(--u) calc(var(--u)*4);border-radius:calc(var(--u)*2);font-size:calc(var(--u)*6);white-space:nowrap;pointer-events:none;transform:translateX(50%)}
+#prompt{position:absolute;transform:translate(-50%,-100%);background:rgba(13,11,26,.88);padding:calc(var(--u)*1.5) calc(var(--u)*4);border-radius:calc(var(--u)*2);box-shadow:0 0 0 var(--u) var(--ink);font-size:calc(var(--u)*6);white-space:nowrap;pointer-events:none;display:flex;align-items:center;gap:calc(var(--u)*3)}
+#prompt small{color:var(--dim);font-size:calc(var(--u)*5)}
+kbd{font:inherit;display:inline-block;min-width:calc(var(--u)*9);padding:0 calc(var(--u)*2);text-align:center;background:#f6eedc;color:var(--ink);border-radius:var(--u);box-shadow:0 var(--u) 0 #a99cc4;font-size:calc(var(--u)*5.5);line-height:calc(var(--u)*9)}
+#keys{position:absolute;right:calc(var(--u)*6);bottom:calc(var(--u)*5);display:flex;flex-direction:column;align-items:flex-end;gap:calc(var(--u)*2);font-size:calc(var(--u)*5.5);color:var(--dim);pointer-events:none;text-shadow:0 var(--u) 0 var(--ink)}
+#keys span{display:flex;align-items:center;gap:calc(var(--u)*3);background:rgba(13,11,26,.55);padding:var(--u) calc(var(--u)*3);border-radius:calc(var(--u)*2)}
+#selname{position:absolute;left:50%;bottom:calc(var(--u)*31);transform:translateX(-50%);font-size:calc(var(--u)*6);color:var(--txt);text-shadow:0 var(--u) 0 var(--ink),var(--u) 0 0 var(--ink),calc(var(--u)*-1) 0 0 var(--ink);pointer-events:none}
+#game{cursor:var(--cur,crosshair)}
 #toasts{position:absolute;left:50%;top:calc(var(--u)*48);transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*2);pointer-events:none}
 .toast{padding:calc(var(--u)*2) calc(var(--u)*6);display:flex;align-items:center;gap:calc(var(--u)*3);background:rgba(20,15,36,.9);box-shadow:0 0 0 var(--u) var(--ink);border-radius:calc(var(--u)*2);animation:tin .2s ease-out;max-width:70vw}
 .toast.bad{color:#ffb0a8}
@@ -186,10 +168,6 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 #fade{position:fixed;inset:0;background:#0d0b1a;opacity:0;pointer-events:none;transition:opacity .45s}
 #fade.on{opacity:1;pointer-events:auto}
 #sleepo{position:fixed;inset:0;background:rgba(13,11,26,.55);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:calc(var(--u)*6);font-size:calc(var(--u)*9)}
-#rotate{position:fixed;inset:0;background:#0d0b1a;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;text-align:center;padding:30px;font-size:20px;z-index:99}
-@media (orientation:portrait) and (max-width:900px){#rotate{display:flex}}
-#rotate .ph{width:60px;height:100px;border:6px solid #f6eedc;border-radius:10px;animation:rot 2s ease-in-out infinite}
-@keyframes rot{50%{transform:rotate(-90deg)}}
 #fps{position:fixed;left:50%;bottom:2px;font-size:10px;color:#7bd05a;transform:translateX(-50%);pointer-events:none}
 #drag{position:fixed;pointer-events:none;z-index:50;width:calc(var(--u)*20);height:calc(var(--u)*20);margin:calc(var(--u)*-10) 0 0 calc(var(--u)*-10)}
 #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fbe27a;background:#0d0b1a}
@@ -207,25 +185,17 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   <div id="picks"></div>
   <div id="banner"></div>
   <div id="craftq"></div>
-  <div id="joyzone"><div id="joy"><div id="joyk"></div></div></div>
   <div id="hotbar" class="px"></div>
   <div id="buildbar" class="px hidden"></div>
   <div id="buildtools" class="hidden"></div>
-  <div id="acts">
-    <div id="prompt" class="hidden"></div>
-    <div class="ab" id="b-swap"></div>
-    <div class="ab" id="b-block"></div>
-    <div class="ab" id="b-use"></div>
-    <div class="ab" id="b-dodge"></div>
-    <div class="ab" id="b-inter"></div>
-    <div class="ab" id="b-atk"></div>
-  </div>
+  <div id="prompt" class="hidden"></div>
+  <div id="selname"></div>
+  <div id="keys"></div>
   <div id="saved">Сохранено</div>
 </div>
 <div id="hurt"></div>
 <div id="layer"></div>
 <div id="fade"></div>
-<div id="rotate"><div class="ph"></div><div>Поверните телефон горизонтально</div></div>
 <div id="loading">Загрузка...</div>
 <script src="js/core.js"></script>
 <script src="js/art.js"></script>

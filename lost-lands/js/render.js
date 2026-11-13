@@ -15,7 +15,7 @@
   };
   R.resize = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 3), pw = Math.round(window.innerWidth * dpr), ph = Math.round(window.innerHeight * dpr);
-    let base = Math.max(1, Math.round(ph / 205)); R.S = G.clamp(base + R.zoom, Math.max(1, base - 1), base + 2);
+    let base = Math.max(1, Math.round(ph / 262)); R.S = G.clamp(base + R.zoom, Math.max(1, base - 1), base + 2);
     R.vw = Math.ceil(pw / R.S); R.vh = Math.ceil(ph / R.S);
     R.cv.width = R.vw; R.cv.height = R.vh; R.cv.style.width = (R.vw * R.S / dpr) + 'px'; R.cv.style.height = (R.vh * R.S / dpr) + 'px';
     R.lm.width = Math.ceil(R.vw / 2) + 1; R.lm.height = Math.ceil(R.vh / 2) + 1;
