@@ -14,7 +14,7 @@
   const rgb = hex => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
   const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return '#' + h2(Math.round(A[0] + (B[0] - A[0]) * t)) + h2(Math.round(A[1] + (B[1] - A[1]) * t)) + h2(Math.round(A[2] + (B[2] - A[2]) * t)); };
   const dark = (c, t) => mix(c, '#140f26', t), lite = (c, t) => mix(c, '#fff6dc', t);
-  const OUT = '#1b1526';
+  const OUT = '#0d0b1a';
 
   /* Палитры: от тёмного к светлому */
   const PAL = {
@@ -75,7 +75,7 @@
     e(cx, cy, rx, ry, c) { for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) { const dx = (x + .5 - cx) / rx, dy = (y + .5 - cy) / ry; if (dx * dx + dy * dy <= 1) this.d(x, y, c); } return this; }
     /* Объёмная «клякса» из эллипсов с освещением сверху-слева и зернистой текстурой */
     blob(cs, pal, o) {
-      o = o || {}; const seed = o.seed || 0, nz = o.noise == null ? 0.22 : o.noise, lx = -0.5, ly = -0.68, lz = 0.54, n = pal.length;
+      o = o || {}; const seed = o.seed || 0, nz = (o.noise == null ? 0.22 : o.noise) * 0.25, flatK = o.flat || 4, lx = -0.5, ly = -0.68, lz = 0.54, n = pal.length;
       let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
       for (const c of cs) { const rx = c[2], ry = c[3] || c[2]; x0 = Math.min(x0, c[0] - rx); x1 = Math.max(x1, c[0] + rx); y0 = Math.min(y0, c[1] - ry); y1 = Math.max(y1, c[1] + ry); }
       for (let y = Math.floor(y0); y <= Math.ceil(y1); y++) for (let x = Math.floor(x0); x <= Math.ceil(x1); x++) {
@@ -83,7 +83,7 @@
         for (const c of cs) { const rx = c[2], ry = c[3] || c[2], dx = (x + .5 - c[0]) / rx, dy = (y + .5 - c[1]) / ry, hh = 1 - dx * dx - dy * dy; if (hh > best) { best = hh; bx = dx; by = dy; } }
         if (best < 0) continue;
         let v = (bx * lx + by * ly + Math.sqrt(best) * lz) * 0.5 + 0.5;
-        if (o.flat) v = Math.floor(v * o.flat + .5) / o.flat;
+        v = Math.floor(v * flatK + .5) / flatK;
         v += (H(x, y, seed) - .5) * nz;
         this.d(x, y, pal[G.clamp(Math.floor(v * n), 0, n - 1)]);
       }
@@ -246,7 +246,7 @@
     /* блики-листья и тени-просветы */
     for (let i = 0; i < 16; i++) { const x = 6 + Math.floor(r() * 24), y = 5 + Math.floor(r() * 20); if (!(p.g(x, y) >>> 24) || !(p.g(x + 1, y) >>> 24)) continue; if (r() < .55 && y < 17) { p.d(x, y, pal[4]); p.d(x + 1, y, pal[3]); } else if (y > 12) { p.d(x, y, pal[0]); p.d(x + 1, y + 1, pal[0]); } }
     if (o.fruit) for (let i = 0; i < 5; i++) { const x = 8 + Math.floor(r() * 20), y = 8 + Math.floor(r() * 16); if (p.g(x, y) >>> 24) p.d(x, y, o.fruit); }
-    return p.outline(dark(pal[0], .45));
+    return p.outline(OUT);
   }
   function pineTree(pal, seed, snow) {
     const p = P(28, 48), cx = 14, tr = PAL.trunk, r = G.rng(seed * 31 + 7);
@@ -264,7 +264,7 @@
         p.d(x, top + y, c);
       }
     }
-    return p.outline(dark(pal[0], .45));
+    return p.outline(OUT);
   }
   function palmTree(seed) {
     const p = P(34, 42), tr = PAL.trunk, pal = PAL.palm; let x = 15;
@@ -272,7 +272,7 @@
     const fr = (ang, len, droop) => { let px = x + 1, py = 14; for (let i = 0; i < len; i++) { px += Math.cos(ang); py += Math.sin(ang) + i * droop; p.d(px, py, pal[3]); p.d(px, py + 1, pal[2]); p.d(px, py + 2, i % 2 ? pal[1] : pal[0]); if (i % 2) p.d(px, py + 3, pal[1]); } };
     fr(-.2, 13, .09); fr(Math.PI + .2, 13, .09); fr(-.9, 10, .1); fr(Math.PI + .9, 10, .1); fr(-1.5, 7, .05); fr(.35, 10, .12); fr(Math.PI - .35, 10, .12);
     p.e(x + 1, 15, 2.2, 1.8, '#6e4c36'); p.d(x, 16, '#8a5a14'); p.d(x + 2, 16, '#8a5a14');
-    return p.outline(dark(pal[0], .45));
+    return p.outline(OUT);
   }
   function deadTree(seed, pal) {
     const p = P(26, 36), tr = pal || ['#2b211f', '#43322c', '#5e463a', '#7c604c', '#9a7c62'], r = G.rng(seed + 5);
@@ -286,7 +286,7 @@
     p.blob([[9, 9, 6.5, 4.6], [5, 9, 3.6], [13, 9.5, 3.6], [8, 6.5, 3.8], [11.5, 6.8, 3.2]], pal, { seed, noise: .3 });
     if (berries) for (let i = 0; i < 6; i++) { const x = 3 + Math.floor(r() * 12), y = 5 + Math.floor(r() * 7); if (p.g(x, y) >>> 24) { p.d(x, y, berries); p.d(x, y - 1, lite(berries, .5)); } }
     if (snow) for (let x = 3; x < 15; x++) for (let y = 2; y < 8; y++) if (p.g(x, y) >>> 24 && !(p.g(x, y - 2) >>> 24) && H(x, y, seed) < .9) p.d(x, y, PAL.snow[H(x, y, 3) < .3 ? 2 : 4]);
-    return p.outline(dark(pal[0], .45));
+    return p.outline(OUT);
   }
   function rock(pal, seed, o) {
     o = o || {}; const w = o.w || 20, h = o.h || 17, p = P(w, h), r = G.rng(seed * 17 + 3), cx = w / 2, cy = h / 2 + 1;
@@ -303,7 +303,7 @@
     const sh = (x, top, w, bot) => { for (let y = top; y < bot; y++) { const ww = Math.min(w, (y - top) + 1); for (let i = -ww + 1; i < ww; i++) { let c = pal[2]; if (i < 0) c = pal[3]; if (i > 0) c = pal[1]; if (i === -ww + 1 && ww > 1) c = pal[4]; if (i === 0 && y < top + 4) c = pal[4]; p.d(x + i, y, c); } } };
     p.e(9, 19, 7, 2.5, PAL.stone[1]);
     sh(5, 9, 2, 20); sh(13, 7, 2, 20); sh(9, 2, 3, 20);
-    return p.outline(dark(pal[0], .5));
+    return p.outline(OUT);
   }
 
   /* ---------- ПОСТРОЙКИ И РУИНЫ ---------- */
@@ -370,12 +370,12 @@
     sd('dbush', bush(['#5a4a2c', '#7a6638', '#9a8448', '#b8a25c', '#d6c078'], 6)); sd('sbush', bush(PAL.pine, 7, null, true));
     const cactus = v => { const p = P(14, 22), c = ['#1f5a3a', '#2f7d44', '#4ba24f', '#7cc85e']; p.r(5, 3, 4, 18, c[2]); p.r(5, 3, 1, 18, c[3]); p.r(8, 3, 1, 18, c[1]); p.r(1, 8, 2, 6, c[2]); p.r(1, 12, 4, 2, c[1]); p.r(11, 6, 2, 7, c[2]); p.r(9, 11, 4, 2, c[1]); for (let y = 4; y < 20; y += 3) p.d(6 + (y % 2), y, c[0]); if (v) { p.d(6, 2, '#ff6f91'); p.d(7, 2, '#ffc2d4'); p.d(11, 5, '#ff6f91'); } return p.outline(OUT); };
     sd('cactus0', cactus(0)); sd('cactus1', cactus(1));
-    const tuft = (pal, f, tall) => { const p = P(14, tall ? 16 : 11), hgt = tall ? 13 : 8; for (let i = 0; i < 6; i++) { const bx = 2 + i * 2, top = (tall ? 2 : 2) + ((i * 5) % 4), lean = (i % 3 - 1) * (f ? 1 : 0); for (let y = top; y < hgt + 2; y++) { const t = (y - top) / (hgt - top + 2); p.d(bx + Math.round(lean * (1 - t)), y, pal[i % 2 ? 3 : 2]); if (i % 2 === 0) p.d(bx + 1 + Math.round(lean * (1 - t)), y, pal[1]); } if (tall && i % 2) { p.d(bx + lean, top - 1, '#b08a5c'); p.d(bx + lean, top, '#8f6846'); } } return p.outline(dark(pal[0], .4)); };
+    const tuft = (pal, f, tall) => { const p = P(14, tall ? 16 : 11), hgt = tall ? 13 : 8; for (let i = 0; i < 6; i++) { const bx = 2 + i * 2, top = (tall ? 2 : 2) + ((i * 5) % 4), lean = (i % 3 - 1) * (f ? 1 : 0); for (let y = top; y < hgt + 2; y++) { const t = (y - top) / (hgt - top + 2); p.d(bx + Math.round(lean * (1 - t)), y, pal[i % 2 ? 3 : 2]); if (i % 2 === 0) p.d(bx + 1 + Math.round(lean * (1 - t)), y, pal[1]); } if (tall && i % 2) { p.d(bx + lean, top - 1, '#b08a5c'); p.d(bx + lean, top, '#8f6846'); } } return p.outline(OUT); };
     sd('tgrass0', tuft(PAL.grass, 0)); sd('tgrass1', tuft(PAL.grass, 1)); sd('reed0', tuft(PAL.palm, 0, true)); sd('reed1', tuft(PAL.palm, 1, true));
     sd('pgrass0', tuft(PAL.pink, 0)); sd('pgrass1', tuft(PAL.pink, 1)); sd('dgrass0', tuft(['#6a5a2c', '#8a7638', '#aa9448', '#c8b25c'], 0)); sd('dgrass1', tuft(['#6a5a2c', '#8a7638', '#aa9448', '#c8b25c'], 1));
     const flower = (c, c2) => { const p = P(8, 11); p.r(3, 5, 1, 5, '#3e8c47'); p.d(4, 7, '#56aa52'); p.d(2, 8, '#56aa52'); p.r(2, 2, 3, 3, c); p.d(3, 1, c); p.d(3, 5, c); p.d(1, 3, c); p.d(5, 3, c); p.d(3, 3, c2); return p.outline(OUT); };
     sd('flower0', flower('#ff6f91', '#ffe066')); sd('flower1', flower('#ffe066', '#e5541f')); sd('flower2', flower('#8fb8ff', '#ffffff')); sd('flower3', flower('#ffffff', '#ffc23e'));
-    { const p = P(12, 16); p.r(5, 7, 1, 8, '#2a6b6b'); p.d(4, 11, '#3d9c8f'); p.d(6, 9, '#3d9c8f'); p.e(5.5, 4.5, 3.2, 3.6, '#58d6c4'); p.e(5.5, 4, 2, 2.2, '#c2fff0'); p.d(5, 4, '#ffffff'); p.d(3, 7, '#22a8a6'); p.d(7, 7, '#22a8a6'); sd('gflower', p.outline('#0f3a44')); }
+    { const p = P(12, 16); p.r(5, 7, 1, 8, '#2a6b6b'); p.d(4, 11, '#3d9c8f'); p.d(6, 9, '#3d9c8f'); p.e(5.5, 4.5, 3.2, 3.6, '#58d6c4'); p.e(5.5, 4, 2, 2.2, '#c2fff0'); p.d(5, 4, '#ffffff'); p.d(3, 7, '#22a8a6'); p.d(7, 7, '#22a8a6'); sd('gflower', p.outline(OUT)); }
     { const p = P(12, 12); for (let i = 0; i < 5; i++) { const x = 2 + i * 2; p.r(x, 4 + (i % 2) * 2, 1, 7 - (i % 2) * 2, '#3d9c6a'); p.d(x - 1, 5 + (i % 2) * 2, '#8fe0a0'); p.d(x + 1, 6 + (i % 2), '#8fe0a0'); p.d(x, 3 + (i % 2) * 2, '#d6ffd8'); } sd('herbp', p.outline(OUT)); }
     { const p = P(12, 15); for (let i = 0; i < 4; i++) { const x = 2 + i * 2 + (i % 2); p.r(x, 5, 1, 9, '#8f9a4a'); p.d(x, 3, '#e8dfa0'); p.d(x, 4, '#c9b866'); p.d(x + 1, 4, '#e8dfa0'); } sd('fiberp', p.outline(OUT)); }
     const mush = (cap, spot, glow) => { const p = P(12, 11); p.r(5, 5, 2, 5, '#efeada'); p.d(5, 9, '#b5ae98'); p.e(6, 4, 4, 2.6, cap); p.d(4, 3, spot); p.d(7, 2, spot); p.d(8, 4, spot); p.r(2, 7, 2, 3, '#efeada'); p.e(3, 6.5, 2, 1.4, cap); p.d(3, 6, spot); return p.outline(glow ? '#0f2a44' : OUT); };
@@ -408,7 +408,7 @@
     sd('pillar', pillar(30)); sd('pillar_b', pillar(16, 1)); sd('dpillar', pillar(30, 0, PAL.col));
     { const p = P(48, 44), L = PAL.lime, pl = pillar(34); p.st(pl, 0, 8); p.st(pl, 34, 8); for (let y = 2; y < 12; y++) for (let x = 2; x < 46; x++) { let c = L[2]; if (y === 2) c = L[4]; if (y >= 10) c = L[1]; if (x % 8 === 7 && y > 2) c = L[1]; if (H(x, y, 3) < .05) c = L[0]; p.d(x, y, c); } for (let i = 0; i < 10; i++) { const x = 3 + Math.floor(H(i, 1, 7) * 42); p.d(x, 2, PAL.moss[2]); p.d(x, 3, PAL.moss[1]); if (i % 2) p.d(x, 12, PAL.moss[0]); } sd('arch', p.outline(OUT)); }
     { const p = P(16, 32), L = PAL.stone; p.r(2, 25, 12, 5, L[1]); p.r(2, 25, 12, 1, L[3]); p.r(4, 22, 8, 3, L[2]); p.blob([[8, 15, 3.6, 6], [8, 7, 3, 3.2]], L, { noise: .1, flat: 5 }); p.r(4, 12, 1, 7, L[2]); p.r(11, 12, 1, 7, L[1]); p.d(7, 7, L[0]); p.d(9, 7, L[0]); p.r(12, 5, 1, 17, L[3]); p.d(12, 4, L[4]); for (let i = 0; i < 5; i++) p.d(4 + i * 2, 24 - (i % 2) * 6, PAL.moss[1]); sd('statue', p.outline(OUT)); }
-    { const p = P(16, 36), L = ['#2a2440', '#3d3560', '#564c84', '#7668a8', '#a394d0']; for (let y = 3; y < 33; y++) { const w = 3 + Math.floor((y - 3) / 12); for (let x = 8 - w; x < 8 + w; x++) { let c = L[2]; if (x < 8 - w + 1) c = L[4]; else if (x < 8) c = L[3]; else if (x >= 8 + w - 1) c = L[0]; else c = L[1]; p.d(x, y, c); } } p.d(7, 2, L[4]); p.d(8, 2, L[2]); p.r(3, 33, 10, 2, L[1]); for (const [x, y] of [[7, 9], [8, 10], [7, 11], [6, 15], [7, 16], [8, 15], [9, 16], [7, 21], [7, 22], [8, 23], [6, 23]]) p.d(x, y, '#7ef0ff'); sd('monument', p.outline('#120d24')); }
+    { const p = P(16, 36), L = ['#2a2440', '#3d3560', '#564c84', '#7668a8', '#a394d0']; for (let y = 3; y < 33; y++) { const w = 3 + Math.floor((y - 3) / 12); for (let x = 8 - w; x < 8 + w; x++) { let c = L[2]; if (x < 8 - w + 1) c = L[4]; else if (x < 8) c = L[3]; else if (x >= 8 + w - 1) c = L[0]; else c = L[1]; p.d(x, y, c); } } p.d(7, 2, L[4]); p.d(8, 2, L[2]); p.r(3, 33, 10, 2, L[1]); for (const [x, y] of [[7, 9], [8, 10], [7, 11], [6, 15], [7, 16], [8, 15], [9, 16], [7, 21], [7, 22], [8, 23], [6, 23]]) p.d(x, y, '#7ef0ff'); sd('monument', p.outline(OUT)); }
     { const p = P(28, 30), L = PAL.lime; p.r(2, 22, 24, 6, L[1]); p.r(2, 22, 24, 1, L[3]); p.r(4, 8, 4, 14, L[2]); p.r(4, 8, 1, 14, L[4]); p.r(20, 8, 4, 14, L[2]); p.r(23, 8, 1, 14, L[1]); for (let y = 2; y < 9; y++) { const w = 3 + (y - 2) * 1.7; p.r(14 - w, y, w * 2, 1, y === 2 ? PAL.rtile[3] : PAL.rtile[y % 2 ? 2 : 1]); } p.r(11, 14, 6, 8, L[0]); p.e(14, 16, 2.4, 2.4, '#e06af0'); p.d(13, 15, '#ffe0ff'); sd('shrine', p.outline(OUT)); }
     { const p = P(22, 24), L = PAL.stone, w = PAL.wood; p.blob([[11, 17, 9, 5]], L, { noise: .12, flat: 4 }); p.e(11, 15, 6.5, 3, '#10323c'); p.e(11, 15.5, 5, 2, '#2e7fc0'); p.d(9, 15, '#a6e0f7'); p.r(2, 4, 2, 13, w[2]); p.r(18, 4, 2, 13, w[1]); p.r(1, 2, 20, 3, w[3]); p.r(1, 2, 20, 1, w[4]); p.r(10, 5, 1, 6, '#b5ae98'); p.r(9, 10, 3, 3, w[2]); p.d(9, 10, w[4]); for (let x = 3; x < 19; x += 3) p.d(x, 18 + (x % 2), L[0]); sd('well', p.outline(OUT)); }
     const chest = (open, pal, trim) => { const p = P(16, 15); p.r(1, 6, 14, 8, pal[2]); p.r(1, 6, 14, 1, pal[0]); p.r(1, 13, 14, 1, pal[0]); p.r(1, 6, 1, 8, pal[1]); p.r(14, 6, 1, 8, pal[0]); for (let x = 4; x < 14; x += 4) p.r(x, 7, 1, 6, pal[1]); if (!open) { p.r(1, 2, 14, 5, pal[3]); p.r(1, 2, 14, 1, pal[4]); p.r(1, 2, 1, 5, trim); p.r(14, 2, 1, 5, trim); p.r(7, 2, 2, 5, trim); p.r(7, 6, 2, 3, PAL.gold[3]); p.d(7, 8, PAL.gold[1]); } else { p.r(1, 0, 14, 3, pal[1]); p.r(1, 0, 14, 1, pal[3]); p.r(2, 3, 12, 3, '#0d0b14'); p.d(5, 5, PAL.gold[3]); p.d(9, 4, PAL.gold[4]); p.d(11, 5, PAL.gold[2]); } return p.outline(OUT); };
@@ -425,9 +425,9 @@
     sd('lever0', lever(0)); sd('lever1', lever(1));
     const brazier = lit => { const p = P(12, 18), L = PAL.stone; p.r(5, 9, 2, 7, L[1]); p.r(3, 15, 6, 2, L[1]); p.r(3, 15, 6, 1, L[3]); p.r(2, 6, 8, 3, L[2]); p.r(2, 6, 8, 1, L[4]); p.r(3, 9, 6, 1, L[0]); if (lit) p.r(3, 5, 6, 1, PAL.fire[1]); else p.r(3, 5, 6, 1, PAL.coal[1]); return p.outline(OUT); };
     sd('brazier0', brazier(0)); sd('brazier1', brazier(1));
-    { const p = P(14, 9), b = PAL.bone; p.l(1, 6, 8, 3, b[3]); p.l(4, 2, 10, 7, b[2]); p.e(11, 3, 2, 2, b[3]); p.d(10, 3, OUT); p.d(12, 3, OUT); sd('bones', p.outline('#3b3f4d')); }
-    { const p = P(22, 18), L = ['#2a2440', '#3d3560', '#564c84', '#7668a8', '#a394d0']; p.r(1, 6, 20, 11, L[1]); p.r(1, 6, 20, 1, L[3]); p.r(0, 3, 22, 3, L[2]); p.r(0, 3, 22, 1, L[4]); p.r(4, 9, 2, 6, L[0]); p.r(16, 9, 2, 6, L[0]); p.e(11, 11.5, 2.5, 2.5, '#7ef0ff'); p.d(10, 10, '#ffffff'); sd('altar', p.outline('#120d24')); }
-    { const p = P(48, 52), L = ['#2a2440', '#3d3560', '#564c84', '#7668a8', '#a394d0']; for (let y = 2; y < 50; y++) for (let x = 2; x < 46; x++) { const inArch = Math.hypot(x - 24, (y - 26) * .8) < 15 || (y > 26 && Math.abs(x - 24) < 15); let c = L[2]; if (x < 4) c = L[4]; if (x > 43) c = L[0]; if (y < 4) c = L[4]; if ((x + (y >> 3) * 4) % 8 === 7 || y % 8 === 7) c = L[1]; if (inArch) c = H(x, y, 9) < .5 ? '#0d0b14' : '#140f26'; p.d(x, y, c); } for (const [x, y] of [[24, 6], [10, 14], [38, 14], [7, 30], [41, 30]]) { p.e(x, y, 1.6, 1.6, '#7ef0ff'); } sd('hgate_c', p.outline('#120d24')); const q = P(48, 52); q.b.set(p.b); for (let y = 8; y < 50; y++) for (let x = 9; x < 39; x++) { const inArch = Math.hypot(x - 24, (y - 26) * .8) < 15 || (y > 26 && Math.abs(x - 24) < 15); if (inArch) { const d = Math.hypot(x - 24, y - 30); q.d(x, y, d < 6 ? '#ffffff' : d < 11 ? '#c2fff0' : d < 15 ? '#58d6c4' : '#22a8a6'); } } sd('hgate_o', q); }
+    { const p = P(14, 9), b = PAL.bone; p.l(1, 6, 8, 3, b[3]); p.l(4, 2, 10, 7, b[2]); p.e(11, 3, 2, 2, b[3]); p.d(10, 3, OUT); p.d(12, 3, OUT); sd('bones', p.outline(OUT)); }
+    { const p = P(22, 18), L = ['#2a2440', '#3d3560', '#564c84', '#7668a8', '#a394d0']; p.r(1, 6, 20, 11, L[1]); p.r(1, 6, 20, 1, L[3]); p.r(0, 3, 22, 3, L[2]); p.r(0, 3, 22, 1, L[4]); p.r(4, 9, 2, 6, L[0]); p.r(16, 9, 2, 6, L[0]); p.e(11, 11.5, 2.5, 2.5, '#7ef0ff'); p.d(10, 10, '#ffffff'); sd('altar', p.outline(OUT)); }
+    { const p = P(48, 52), L = ['#2a2440', '#3d3560', '#564c84', '#7668a8', '#a394d0']; for (let y = 2; y < 50; y++) for (let x = 2; x < 46; x++) { const inArch = Math.hypot(x - 24, (y - 26) * .8) < 15 || (y > 26 && Math.abs(x - 24) < 15); let c = L[2]; if (x < 4) c = L[4]; if (x > 43) c = L[0]; if (y < 4) c = L[4]; if ((x + (y >> 3) * 4) % 8 === 7 || y % 8 === 7) c = L[1]; if (inArch) c = H(x, y, 9) < .5 ? '#0d0b14' : '#140f26'; p.d(x, y, c); } for (const [x, y] of [[24, 6], [10, 14], [38, 14], [7, 30], [41, 30]]) { p.e(x, y, 1.6, 1.6, '#7ef0ff'); } sd('hgate_c', p.outline(OUT)); const q = P(48, 52); q.b.set(p.b); for (let y = 8; y < 50; y++) for (let x = 9; x < 39; x++) { const inArch = Math.hypot(x - 24, (y - 26) * .8) < 15 || (y > 26 && Math.abs(x - 24) < 15); if (inArch) { const d = Math.hypot(x - 24, y - 30); q.d(x, y, d < 6 ? '#ffffff' : d < 11 ? '#c2fff0' : d < 15 ? '#58d6c4' : '#22a8a6'); } } sd('hgate_o', q); }
     { const p = P(22, 24), L = PAL.stone, g = PAL.gold; p.r(2, 14, 18, 9, L[1]); p.r(2, 14, 18, 1, L[3]); const gear = (cx, cy, r, c) => { p.e(cx, cy, r, r, c[2]); p.e(cx, cy, r * .45, r * .45, c[0]); for (let a = 0; a < 6; a++) p.d(cx - .5 + Math.cos(a * 1.047) * (r + .6), cy - .5 + Math.sin(a * 1.047) * (r + .6), c[3]); }; gear(8, 9, 5, g); gear(15.5, 13, 3.4, PAL.copper); p.d(5, 17, '#7ef0ff'); p.d(11, 19, '#7ef0ff'); p.d(16, 18, '#7ef0ff'); sd('mech', p.outline(OUT)); }
     { const p = P(44, 30), w = PAL.wood; for (let x = 4; x < 40; x++) { const top = 14 + Math.round(Math.sin(x * .16) * 3), bot = 26 - Math.round(Math.abs(x - 22) * .2); for (let y = top; y < bot; y++) { let c = w[2]; if ((y - top) % 4 === 3) c = w[0]; if (y === top) c = w[4]; if (H(x, y, 5) < .08) c = w[1]; p.d(x, y, c); } } p.r(20, 2, 2, 14, w[1]); p.l(22, 3, 33, 9, '#b5ae98'); p.l(22, 4, 31, 12, '#d9d3be'); p.r(8, 10, 2, 6, w[1]); for (let x = 6; x < 38; x += 6) p.r(x, 16 + (x % 4), 1, 6, w[0]); sd('wreck', p.outline(OUT)); }
     { const p = P(12, 12); p.l(2, 2, 9, 9, '#d8353a'); p.l(9, 2, 2, 9, '#d8353a'); p.l(3, 2, 10, 9, '#8f1d22'); sd('xmark', p); }

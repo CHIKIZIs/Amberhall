@@ -189,6 +189,12 @@
     ui_zzz(p) { const c = '#a6dcff'; p.r(3, 3, 5, 1, c); p.l(7, 3, 3, 7, c); p.r(3, 7, 5, 1, c); p.r(9, 8, 4, 1, c); p.l(12, 8, 9, 12, c); p.r(9, 12, 4, 1, c); }
   };
 
+  /* светотень как у героя: светлая кромка сверху-слева, тень снизу-справа */
+  const rim = p => { const w = p.w, h = p.h, b = p.b, src = b.slice(), on = (x, y) => x >= 0 && y >= 0 && x < w && y < h && (src[y * w + x] >>> 24) > 200;
+    const mixc = (v, t, tw) => { const r = v & 255, g = (v >> 8) & 255, bl = (v >> 16) & 255; return ((v & 0xff000000) | (Math.round(bl + (tw[2] - bl) * t) << 16) | (Math.round(g + (tw[1] - g) * t) << 8) | Math.round(r + (tw[0] - r) * t)) >>> 0; };
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { if (!on(x, y)) continue; const i = y * w + x;
+      if (!on(x + 1, y) || !on(x, y + 1)) b[i] = mixc(src[i], .3, [20, 12, 38]);
+      else if (!on(x - 1, y) || !on(x, y - 1)) b[i] = mixc(src[i], .28, [255, 250, 230]); } };
   A.initChars = () => {
     const ids = Object.keys(G.ITEMS), uis = Object.keys(UI), total = ids.length + uis.length, cols = 16, rows = Math.ceil(total / cols);
     const cv = document.createElement('canvas'); cv.width = cols * 16; cv.height = rows * 16; const cx = cv.getContext('2d'); cx.imageSmoothingEnabled = false;
@@ -197,7 +203,7 @@
     const put = (id, p) => {
       let c;
       if (p._img) { const [img, sx, sy, sw, sh] = p._img, k = Math.min(14 / sw, 14 / sh, 1), dw = Math.max(1, Math.round(sw * k)), dh = Math.max(1, Math.round(sh * k)); c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(img, sx, sy, sw, sh, (16 - dw) >> 1, (16 - dh) >> 1, dw, dh); }
-      else c = p.outline(OUT).can();
+      else { rim(p); c = p.outline(OUT).can(); }
       A.iconPos[id] = [n % cols, Math.floor(n / cols)]; A.iconCv[id] = c; cx.drawImage(c, (n % cols) * 16, Math.floor(n / cols) * 16); n++;
     };
     for (const id of ids) { const it = G.ITEMS[id], p = P(16, 16), fn = IC[it.ic[0]]; if (fn) fn(p, it.ic[1], it.ic[2]); else p.r(4, 4, 8, 8, '#ff00ff'); put(id, p); }
