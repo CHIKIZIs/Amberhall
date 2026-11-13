@@ -152,3 +152,26 @@
     for (let i = 0; i < 4; i++) S('flog' + i, fallenLog(i + 3, i >= 2, i % 2));
   };
 })();
+/* Сундук по референсу автора: деревянная крышка с красной полосой, железные полосы, кольца, замок */
+(() => {
+  const A = G.Art;
+  const map = (rows, pal) => { const w = Math.max(...rows.map(r => r.length)), p = A.P(w, rows.length); rows.forEach((r, y) => { for (let x = 0; x < r.length; x++) { const c = pal[r[x]]; if (c) p.d(x, y, c); } }); return p; };
+  const J = a => a.map(r => r.join(''));
+  const CLOSED = J([
+    ['..O', 'OOO', 'OOOOOO', 'OOO', 'O..'], ['.Oc', 'nom', 'dddddd', 'nom', 'cO.'], ['Ocb', 'nom', 'cccccc', 'nom', 'bcO'], ['Obb', 'nom', 'bbcbbb', 'nom', 'bbO'],
+    ['Orr', 'nom', 'rrrrrr', 'nom', 'rrO'], ['Obb', 'nom', 'bOOOOb', 'nom', 'baO'], ['Oaa', 'nom', 'aOooOa', 'nom', 'aaO'], ['OOO', 'nom', 'OOonOO', 'nom', 'OOO'],
+    ['oea', 'nom', 'eOnnOe', 'nom', 'aeo'], ['Oea', 'nom', 'eOOnOe', 'nom', 'aeO'], ['Oea', 'nom', 'eeOOee', 'nom', 'aeO'], ['Oaa', 'nom', 'aaaaaa', 'nom', 'aaO'], ['OOO', 'OOO', 'OOOOOO', 'OOO', 'OOO']]);
+  const OPEN = J([
+    ['..O', 'OOO', 'OOOOOO', 'OOO', 'O..'], ['.Oc', 'nom', 'dddddd', 'nom', 'cO.'], ['Ocb', 'nom', 'cccccc', 'nom', 'bcO'], ['Obb', 'nom', 'bbcbbb', 'nom', 'bbO'],
+    ['Oaa', 'nom', 'aaonaa', 'nom', 'aaO'], ['OOO', 'OOO', 'OOOOOO', 'OOO', 'OOO'], ['Oaa', 'aaa', 'aaaaaa', 'aaa', 'aaO'], ['Oak', 'kkk', 'kkkkkk', 'kkk', 'kaO'],
+    ['Oak', 'kkk', 'kkkkkk', 'kkk', 'kaO'], ['Oak', 'kkk', 'kkkkkk', 'kkk', 'kaO'], ['OOO', 'OOO', 'OOOOOO', 'OOO', 'OOO'], ['Oec', 'eee', 'eeooee', 'eee', 'ceO'],
+    ['Oea', 'eee', 'eeOOee', 'eee', 'aeO'], ['Oea', 'eae', 'eeeeee', 'eae', 'aeO'], ['Oaa', 'aaa', 'aaaaaa', 'aaa', 'aaO'], ['OOO', 'OOO', 'OOOOOO', 'OOO', 'OOO']]);
+  const WOOD = { O: '#2a1620', a: '#4a2630', e: '#5e3434', b: '#7a4a3e', c: '#9a644c', d: '#c0906a', r: '#7a1e26', n: '#4e6470', o: '#a8c0c8', m: '#7894a0', k: '#1a0c14' };
+  const ANCIENT = { O: '#140d24', a: '#2a2046', e: '#3a2e60', b: '#4c3e7c', c: '#66569a', d: '#8a7cc0', r: '#7ef0ff', n: '#8a5a14', o: '#fff3a8', m: '#ecb92e', k: '#0a0614' };
+  const prev = A.initPretty;
+  A.initPretty = () => {
+    prev();
+    const S = (n, rows, pal) => { const p = map(rows, pal); A.spr[n] = { c: p.can(), w: p.w, h: p.h }; };
+    S('chest_c', CLOSED, WOOD); S('chest_o', OPEN, WOOD); S('achest_c', CLOSED, ANCIENT); S('achest_o', OPEN, ANCIENT);
+  };
+})();

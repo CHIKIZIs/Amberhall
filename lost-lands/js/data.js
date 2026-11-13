@@ -153,7 +153,7 @@
   Bd('furnace', 'Печь', 'craft', 'obj', { stone: 14, clay: 4 }, 'workbench', { desc: 'Плавит руду в слитки.' });
   Bd('forge', 'Кузница', 'craft', 'obj', { stone: 10, iron_ingot: 3, brick: 4 }, 'workbench', { desc: 'Железные инструменты, оружие и броня.' });
   Bd('kitchen', 'Кухонный котёл', 'craft', 'obj', { stone: 6, clay: 6, plank: 2 }, 'workbench', { desc: 'Супы, рагу, напитки и зелья.' });
-  Bd('chest', 'Сундук', 'home', 'obj', { plank: 8 }, 'workbench', { desc: 'Хранит 20 стопок предметов.' });
+  Bd('chest', 'Сундук', 'home', 'obj', { plank: 6, iron_ingot: 2 }, 'workbench', { desc: 'Хранит 20 стопок предметов.' });
   Bd('bed', 'Кровать', 'home', 'obj', { plank: 6, cloth: 2, grass: 8 }, 'workbench', { size: [1, 2], desc: 'Сон лечит и пропускает ночь. Точка возрождения.' });
   Bd('tent', 'Палатка', 'home', 'obj', { stick: 6, fiber: 6, grass: 6 }, 'hand', { size: [2, 2], desc: 'Простое убежище: можно спать.' });
   Bd('torch', 'Факел', 'home', 'obj', { stick: 1, grass: 1 }, 'hand');
