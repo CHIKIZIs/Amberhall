@@ -115,8 +115,9 @@
     },
     water() {
       const s = G.Inv.sel(); if (!s) return;
-      if (nearTile(isWater, 2)) { s.d = 8; G.Audio.sfx('drink'); G.UI.toast('Лейка наполнена (8 поливов)', 'watering_can', null, 1); G.bus.emit('inv'); return; }
-      const pl = nearTile((x, y) => { const o = G.map.at(x, y); return o && o.t === 'plot'; }, 1); if (!pl) { G.UI.toast('Подойдите к грядке или к воде', 'watering_can', null, 1); return; }
+      const pl = nearTile((x, y) => { const o = G.map.at(x, y); return o && o.t === 'plot'; }, 1);
+      if ((!pl || !(s.d > 0)) && nearTile(isWater, 2)) { s.d = 8; G.Audio.sfx('drink'); G.UI.toast('Лейка наполнена (8 поливов)', 'watering_can', null, 1); G.bus.emit('inv'); return; }
+      if (!pl) { G.UI.toast('Подойдите к грядке или к воде', 'watering_can', null, 1); return; }
       if (!(s.d > 0)) { G.UI.toast('Лейка пуста. Наполните у воды', 'watering_can', 'bad', 1); return; }
       s.d--; let n = 0; for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) { const o = G.map.at(pl[0] + i, pl[1] + j); if (o && o.t === 'plot') { o.wet = G.time.total + G.Time.DAY * .6; n++; G.Net.obj(G.map, o); } }
       G.Ent.burst(pl[0] * TS + 8, pl[1] * TS + 6, ['#6aa2d6', '#b4f4f0'], 10, 40); G.Audio.sfx('water'); G.bus.emit('inv');
