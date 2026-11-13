@@ -97,7 +97,7 @@
       G.UI.fade(() => {
         const from = G.map.id;
         if (to === 'world') { G.setMap('world'); const r = G.maps.world.ret[from]; G.player.x = r[0] * TS + 8; G.player.y = r[1] * TS + 14; }
-        else { G.setMap(to); const e = G.map.entry; G.player.x = e[0] * TS + 8; G.player.y = e[1] * TS + 14; if (!G.S.dungeons.includes(to)) { G.S.dungeons.push(to); G.UI.banner(G.DUNGEONS[to].n, 'Подземелье'); G.Prog.xp(50); } }
+        else { G.setMap(to); const e = G.map.entry; G.player.x = e[0] * TS + 8; G.player.y = e[1] * TS + 14; if (G.DUNGEONS[to] && !G.S.dungeons.includes(to)) { G.S.dungeons.push(to); G.UI.banner(G.DUNGEONS[to].n, 'Подземелье'); G.Prog.xp(50); } }
         G.player.kx = G.player.ky = 0; G.R.follow(G.player.x, G.player.y - 8, 1, true); G.Audio.sfx('stairs'); G.Save.save();
       });
     },

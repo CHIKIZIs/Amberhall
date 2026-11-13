@@ -298,3 +298,69 @@
     A.tiles.roof4 = roof(['#241c3a', '#382c54', '#4c3e70', '#665690', '#8a7cb0']);
   };
 })();
+/* Цельные дома деревни (80×92) и стены интерьеров */
+(() => {
+  const A = G.Art, P = A.P, OUT = '#0d0b1a', H = G.hash;
+  const WD = ['#3a2018', '#5e3624', '#84502e', '#a86e3c', '#cc9458'];
+  const poly = (p, pts, fn) => { let y0 = 1e9, y1 = -1e9; for (const [, y] of pts) { y0 = Math.min(y0, y); y1 = Math.max(y1, y); } for (let y = Math.floor(y0); y <= y1; y++) { const xs = []; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y + .5) !== (yj > y + .5)) xs.push(xi + (y + .5 - yi) / (yj - yi) * (xj - xi)); } xs.sort((a, b) => a - b); for (let k = 0; k + 1 < xs.length; k += 2) for (let x = Math.ceil(xs[k] - .5); x < xs[k + 1] - .5; x++) fn(x, y); } };
+  const beam = (p, x0, y0, x1, y1, w) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (let i = 0; i <= n; i++) { const x = Math.round(x0 + (x1 - x0) * i / n), y = Math.round(y0 + (y1 - y0) * i / n); for (let k = 0; k < w; k++) p.d(x, y + k, k === 0 ? WD[4] : k === w - 1 ? WD[1] : WD[3]); p.d(x, y - 1, OUT); p.d(x, y + w, OUT); } };
+  function house(roofPal, wallPal, v) {
+    const W = 80, Hh = 92, p = P(W, Hh), r = G.rng(v * 91 + 5);
+    /* стены: камень */
+    for (let y = 42; y < 80; y++) for (let x = 5; x < 75; x++) { const row = Math.floor((y - 42) / 5), off = row % 2 ? 5 : 0, bx = (x + off) % 10, by = (y - 42) % 5; let c = wallPal[2]; if (H((x + off) / 10 | 0, row, v) < .3) c = wallPal[1]; if (by === 4 || bx === 9) c = wallPal[0]; else if (by === 0 || bx === 0) c = wallPal[3]; p.d(x, y, c); }
+    for (let x = 5; x < 75; x++) { p.d(x, 78, wallPal[0]); p.d(x, 79, OUT); }
+    /* каркас: столбы и балка */
+    for (const x0 of [5, 34, 46, 72]) for (let y = 42; y < 79; y++) for (let k = 0; k < 3; k++) p.d(x0 + k, y, k === 0 ? WD[3] : k === 2 ? WD[1] : WD[2]);
+    for (let x = 5; x < 75; x++) { p.d(x, 60, WD[3]); p.d(x, 61, WD[1]); }
+    /* окна с цветочными ящиками */
+    for (const wx of [13, 54]) {
+      p.r(wx - 1, 45, 15, 13, OUT); p.r(wx, 46, 13, 11, WD[2]); p.r(wx + 1, 47, 11, 9, '#1e2e4e'); p.r(wx + 1, 47, 11, 3, '#3c6aa8'); p.d(wx + 2, 48, '#a6dcff'); p.d(wx + 3, 47, '#a6dcff'); p.r(wx + 6, 47, 1, 9, WD[2]); p.r(wx + 1, 51, 11, 1, WD[2]);
+      p.r(wx - 2, 58, 17, 5, OUT); p.r(wx - 1, 59, 15, 3, WD[3]); p.r(wx - 1, 59, 15, 1, WD[4]);
+      for (let i = 0; i < 7; i++) { const fx = wx + i * 2, fc = ['#e8484e', '#ffd23e', '#ff8ab4', '#ffffff', '#8fb8ff'][(i + v) % 5]; p.d(fx, 57, '#3f8a36'); p.d(fx + 1, 57, '#5aa83c'); p.d(fx, 56, fc); p.d(fx + 1, 55, i % 2 ? fc : '#5aa83c'); }
+    }
+    /* дверь с аркой */
+    for (let y = 50; y < 79; y++) for (let x = 33; x < 48; x++) { const dx = x - 40, dy = y - 57; if (y < 57 && dx * dx + dy * dy * 1.3 > 60) continue; p.d(x, y, OUT); }
+    for (let y = 51; y < 79; y++) for (let x = 34; x < 47; x++) { const dx = x - 40, dy = y - 57; if (y < 57 && dx * dx + dy * dy * 1.3 > 44) continue; p.d(x, y, (x - 34) % 4 === 0 ? WD[1] : (x - 34) % 4 === 1 ? WD[3] : WD[2]); }
+    for (const yy of [62, 72]) for (let x = 34; x < 47; x++) p.d(x, yy, WD[0]);
+    p.r(43, 66, 2, 2, '#f2c232'); p.d(43, 66, '#fff3a8');
+    /* крыша: широкий скат и тень под карнизом */
+    const R = roofPal;
+    poly(p, [[10, 12], [70, 12], [80, 44], [0, 44]], (x, y) => { const row = Math.floor((y - 12) / 4), off = row % 2 ? 3 : 0, by = (y - 12) % 4; let c = row < 3 ? R[1] : R[2]; if (by === 3) c = R[0]; else if (by === 0) c = row < 3 ? R[2] : R[3]; else if ((x + off) % 6 === 5) c = R[1]; if (x < 14 + (y - 12) * -.3 && y > 14) c = R[1]; p.d(x, y, c); });
+    for (let x = 0; x < 80; x++) { p.d(x, 44, R[0]); p.d(x, 45, OUT); }
+    for (let x = 5; x < 75; x++) { p.d(x, 46, 'rgba(0,0,0,0)'); }
+    for (let x = 5; x < 75; x++) for (let y = 46; y < 49; y++) { const v0 = p.g(x, y); if (v0 >>> 24) p.d(x, y, A.dark('#808080', .6)); }
+    /* фронтон по центру: треугольник с балками и крестом */
+    poly(p, [[40, 0], [62, 42], [18, 42]], (x, y) => { p.d(x, y, (x + y) % 7 === 0 ? wallPal[1] : wallPal[3]); });
+    for (let y = 18; y < 42; y += 6) for (let x = 20; x < 61; x++) { const v0 = p.g(x, y); if (v0 >>> 24) p.d(x, y, wallPal[1]); }
+    p.r(36, 22, 9, 9, OUT); p.r(37, 23, 7, 7, '#1e2e4e'); p.r(37, 23, 7, 2, '#3c6aa8'); p.r(40, 23, 1, 7, WD[2]); p.r(37, 26, 7, 1, WD[2]);
+    beam(p, 40, -1, 16, 43, 4); beam(p, 40, -1, 64, 43, 4); beam(p, 18, 40, 62, 40, 3);
+    beam(p, 34, 8, 46, 16, 2); beam(p, 46, 8, 34, 16, 2);
+    for (let y = 40; y < 44; y++) for (let x = 14; x < 67; x++) { const v0 = p.g(x, y); if (!(v0 >>> 24)) continue; }
+    /* крыльцо: деревянный настил и ступенька */
+    for (let y = 79; y < 89; y++) for (let x = 24; x < 57; x++) { let c = (x - 24) % 6 === 5 ? WD[1] : WD[3]; if (y === 79) c = WD[4]; if (y >= 86) c = WD[1]; p.d(x, y, c); }
+    for (let x = 30; x < 51; x++) { p.d(x, 89, WD[2]); p.d(x, 90, WD[1]); }
+    for (const px of [24, 54]) for (let y = 70; y < 88; y++) { p.d(px, y, WD[3]); p.d(px + 1, y, WD[2]); p.d(px + 2, y, WD[1]); }
+    /* мох и трава у фундамента */
+    for (let i = 0; i < 10; i++) { const x = 6 + Math.floor(r() * 66); if (x > 22 && x < 58) continue; p.d(x, 78, '#5a9a34'); p.d(x + 1, 77, '#86c84a'); p.d(x + 1, 78, '#3f7a2c'); }
+    return p.outline(OUT);
+  }
+  /* стены интерьера: верх — тёмная балка, низ — дощатая стена с панелью */
+  function inWall() {
+    const cv = document.createElement('canvas'); cv.width = 128; cv.height = 16; const x = cv.getContext('2d');
+    for (let v = 0; v < 8; v++) {
+      const p = P(16, 16), bot = v >= 4;
+      for (let y = 0; y < 16; y++) for (let i = 0; i < 16; i++) { let c = '#2a1a1a'; if (!bot) { c = (y + v) % 8 < 1 ? '#3a2420' : '#2a1a1a'; if (i % 8 === 0) c = '#1e1214'; } else { if (y < 3) c = WD[0]; else if (y < 11) { c = (i % 4 === 0) ? WD[1] : (i % 4 === 1 ? WD[3] : WD[2]); } else if (y === 11) c = WD[4]; else c = (i % 8 === 0) ? WD[0] : WD[1]; if (y === 15) c = OUT; } p.d(i, y, c); }
+      x.drawImage(p.can(), v * 16, 0);
+    }
+    return cv;
+  }
+  const prev = A.initPretty;
+  A.initPretty = () => {
+    prev();
+    const ROOFS = [['#241c3a', '#382c54', '#4c3e70', '#665690'], ['#5a1a22', '#862a2e', '#ae4034', '#d0644a'], ['#1c3a2a', '#2a5a3a', '#3e7a46', '#5a9c56'], ['#5e4420', '#86622c', '#ac8238', '#cca44a']];
+    const WALLS = [['#3e3a4c', '#5c5a6c', '#7e7c8e', '#a4a2b2'], ['#5e4c3e', '#7e6a58', '#a48c74', '#c8b098']];
+    for (let i = 0; i < 4; i++) { const p = house(ROOFS[i], WALLS[i % 2], i); A.spr['house' + i] = { c: p.can(), w: p.w, h: p.h }; }
+    A.tiles.dwall_w = inWall();
+    A.tiles.dfloor_w = A.tiles.woodf;
+  };
+})();

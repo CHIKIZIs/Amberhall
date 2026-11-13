@@ -210,8 +210,16 @@
       const [vx, vy] = vil; poi('village', 'Лесная деревня', vx, vy, 'village');
       for (let j = -4; j <= 4; j++) for (let i = -6; i <= 6; i++) { if (i * i / 30 + j * j / 14 > 1) continue; const k = (vy + j) * WW + vx + i; til[k] = T.ROAD; const ob = m.at(vx + i, vy + j); if (ob) m.remove(ob); }
       m.add('rwell', vx, vy, {}); m.add('lamp', vx - 4, vy - 3, {}); m.add('lamp', vx + 4, vy + 3, {}); { const o = m.add('sign', vx + 3, vy - 3, {}); if (o) o.text = 'Юг — берег. Восток — Розовый лес. Запад — Каньон. Север — Врата и снега.'; }
-      const hs = [['house1', -16, -10, 3], ['house2', 8, -11, 4], ['workshop', -19, 4, 4], ['house3', 10, 5, 3], ['house1', -6, 10, 4], ['house2', 14, -2, 3], ['house3', -9, -14, 4]];
-      for (const [nm, dx, dy, rf] of hs) { const tp = TPL[nm], x = vx + dx, y = vy + dy; stamp(m, nm, x, y, { roof: rf, ground: T.DGRASS, lore: 5 }); const dj = tp.length - 1, di = tp[dj].indexOf('d'); road(x + di, y + dj + 1, vx, vy, T.DIRT, 2, .3); }
+      /* дома: цельные постройки с крыльцом; дверь ведёт в комнату */
+      m.keep = m.keep || new Uint8Array(WW * HH);
+      const hs = [[-17, -12, 0], [8, -13, 0], [-21, 2, 1], [12, 3, 0], [-8, 8, 0], [16, -5, 0], [-6, -17, 0]];
+      hs.forEach(([dx, dy, work], hi) => {
+        const x = vx + dx, y = vy + dy;
+        for (let j = -6; j <= 5; j++) for (let i = -1; i <= 5; i++) { const X = x + i, Y = y + j; if (!m.inb(X, Y)) continue; const ob = m.at(X, Y); if (ob) m.remove(ob); const k = Y * WW + X; if (TD[til[k]].pass !== 1 || til[k] === T.CLIFF || til[k] === T.SAND) til[k] = T.DGRASS; m.keep[k] = 1; }
+        const id = 'h_' + x + '_' + y + (work ? '_w' : '');
+        const h = m.add('house', x, y, { v: hi % 4 }); const d = m.add('hdoor', x + 2, y + 3, { to: { map: id } });
+        m.ret[id] = [x + 2, y + 4]; road(x + 2, y + 4, vx, vy, T.DIRT, 2, .3);
+      });
       /* заброшенная ферма */
       for (let j = 0; j < 4; j++) for (let i = 0; i < 6; i++) { const x = vx + 4 + i, y = vy + 12 + j; const ob = m.at(x, y); if (ob) m.remove(ob); til[y * WW + x] = T.DGRASS; if ((i + j) % 2 === 0 || r() < .5) { const pl = m.add('plot', x, y, {}); if (pl && r() < .6) { pl.crop = r.pick(['carrot', 'wheat', 'potato', 'cabbage', 'pumpkin']); pl.g = 99999; pl.wild = 1; } } }
       for (let i = -1; i <= 6; i++) { m.add('fence', vx + 4 + i, vy + 11, {}); if (i !== 2) m.add('fence', vx + 4 + i, vy + 16, {}); } for (let j = 0; j < 4; j++) { m.add('fence', vx + 3, vy + 12 + j, {}); m.add('fence', vx + 10, vy + 12 + j, {}); }
@@ -263,7 +271,7 @@
       [T.SAND]: { trees: [['palm', 1]], fd: .012, od: .012, misc: [['shell', 8], ['lime', 7], ['stickg', 8], ['pebble', 6], ['rock', 3], ['dgrass', 6]], md: .035 }
     };
     for (let y = 3; y < HH - 3; y++) for (let x = 3; x < WW - 3; x++) {
-      const k = y * WW + x, t = til[k], sc = SC[t]; if (!sc || m.grid[k] || m.roof[k]) continue;
+      const k = y * WW + x, t = til[k], sc = SC[t]; if (!sc || m.grid[k] || m.roof[k] || (m.keep && m.keep[k])) continue;
       if (Math.abs(x - sx) < 3 && Math.abs(y - sy) < 3) continue;
       const q = H(x, y, seed + 1), f = fb(x / 9, y / 9, seed + 400, 3), nw = (t !== T.SNOW && t !== T.RED) && nearWater(x, y);
       if (nw && q < .2) { m.add(q < .15 ? 'reed' : 'claypit', x, y, {}); continue; }
@@ -344,6 +352,23 @@
     /* светильники и мелочь в коридорах */
     for (let i = 0; i < WW * HH / 90; i++) { const x = r.int(2, WW - 3), y = r.int(2, HH - 3); if (!fl(x, y)) continue; let inRoom = false; for (const o of rooms) if (x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h) inRoom = true; if (inRoom) continue; const q = r(); if (q < .25 && til[(y - 1) * WW + x] === T.DWALL) put('brazier', x, y, { open: 1 }); else if (q < .45) put('gmush', x, y); else if (q < .55) put('bones', x, y); else if (q < .6 && til[(y - 1) * WW + x] === T.DWALL) put(D.cry, x, y); else if (q < .68) m.spawns.push({ type: 'bat', x, y, id: 'c' + i }); }
     return m;
+  };
+
+  /* ---------- Комнаты домов ---------- */
+  W.genInterior = (id, seed) => {
+    const WW = 14, HH = 11, m = new GMap(id, WW, HH), til = m.tiles, r = G.rng(seed + id.length * 131 + id.charCodeAt(2) * 7 + (parseInt(id.split('_')[1]) || 0) * 17 + (parseInt(id.split('_')[2]) || 0) * 3);
+    til.fill(T.VOID); m.biome.fill(BI.village); m.indoor = 1; m.theme = '_w'; m.wset = 'w';
+    for (let y = 1; y < HH - 1; y++) for (let x = 1; x < WW - 1; x++) til[y * WW + x] = (y < 3 || x < 2 || x > WW - 3 || y > HH - 3) ? T.DWALL : T.WOODF;
+    for (let y = 3; y < HH - 2; y++) { til[y * WW + 1] = T.DWALL; }
+    const ex = 6, ey = HH - 3; til[ey * WW + ex] = T.WOODF; til[ey * WW + ex + 1] = T.WOODF;
+    m.add('exitmat', ex, ey, { to: { map: 'world' } }); m.entry = [ex, ey - 1];
+    const work = id.endsWith('_w');
+    const put = (t, x, y, pr) => m.add(t, x, y, pr || {});
+    put('fireplace', 3, 3); put('shelf', 5, 3, { loot: 'shelf' }); put('shelf', 6, 3, { loot: 'shelf' });
+    if (work) { put('workbench', 9, 3); put('furnace', 10, 3); put('crate', 11, 4); put('barrel', 11, 5); put('vtable', 7, 6); }
+    else { put('bed', 10, 3, { v: Math.floor(r() * 2) }); put('vtable', 7, 6); put('wchest', 11, 6, { loot: 't1' }); put('barrel', 2 + 1, 7); put('flowerpot', 9, 3); }
+    m.add('rug', 7, 5, {}); put('lamp', 2, 5);
+    m.ret = {}; return m;
   };
 
   /* ---------- Biome Manager ---------- */

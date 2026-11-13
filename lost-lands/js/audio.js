@@ -63,7 +63,7 @@
   const mf = n => 440 * Math.pow(2, (n - 69) / 12);
   Au.update = dt => {
     if (!ctx || !G.player) return; const W = G.Weather, s = W.shown(), m = G.map;
-    const rv = m.dark ? 0 : s === 'heavy' || s === 'storm' ? .5 : s === 'rain' ? .3 : 0, wv = m.dark ? .05 : s === 'snow' ? .3 : s === 'storm' ? .35 : .08 + (G.player.biome === G.BI.north ? .15 : 0);
+    const rv = m.dark || m.indoor ? 0 : s === 'heavy' || s === 'storm' ? .5 : s === 'rain' ? .3 : 0, wv = m.dark ? .05 : s === 'snow' ? .3 : s === 'storm' ? .35 : .08 + (G.player.biome === G.BI.north ? .15 : 0);
     rainG.gain.setTargetAtTime(rv, now(), .8); windG.gain.setTargetAtTime(wv, now(), 1.2);
     const M = Au.mus, fight = G.Ent.mobs.some(q => q.aggro && !q.dead && q.def.ai !== 'flee' && Math.hypot(q.x - G.player.x, q.y - G.player.y) < 200) ? 1 : 0;
     M.fight += ((fight ? 1 : 0) - M.fight) * Math.min(1, dt * 1.5);

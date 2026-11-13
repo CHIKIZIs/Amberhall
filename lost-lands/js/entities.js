@@ -312,7 +312,7 @@
     /* фиксированные точки: стражи руин, обитатели подземелий, боссы */
     const killed = m.killed || {};
     for (const s of m.spawns) { if (s.live) { if (s.ref.dead || mobs.indexOf(s.ref) < 0) s.live = 0; else continue; } const k = killed[s.id]; if (k === -1 || (k != null && G.time.total - k < G.Time.DAY)) continue; if (Math.abs(s.x - tx) > 17 || Math.abs(s.y - ty) > 13) continue; if (!s.boss && Math.abs(s.x - tx) < 7 && Math.abs(s.y - ty) < 5 && m.id === 'world') continue; const q = Ent.spawnMob(s.type, s.x * TS + 8, s.y * TS + 12, { sid: s.id, sp: s }); if (q) { s.live = 1; s.ref = q; } }
-    if (m.dark || mobs.length > 26) return;
+    if (m.dark || m.indoor || mobs.length > 26) return;
     const night = G.Time.isNight(), b = G.BIOMES[p.biome]; if (!b || !b.tier) return;
     let hostile = 0, passive = 0; for (const q of mobs) { if (q.sid) continue; if (q.def.ai === 'flee') passive++; else hostile++; }
     const capH = (night ? 5 : 2) + (G.flags.bloodmoon && night ? 4 : 0) + (b.tier > 2 ? 1 : 0), capP = night ? 2 : 6;
@@ -327,14 +327,14 @@
   /* ---------- Мелкая живность и атмосфера ---------- */
   function ambient(dt) {
     const R = G.R, m = G.map, amb = Ent.amb, night = G.Time.isNight(), p = G.player;
-    if (amb.length < 10 && Math.random() < dt * 1.2 && !m.dark) {
+    if (amb.length < 10 && Math.random() < dt * 1.2 && !m.dark && !m.indoor) {
       const x = R.cam.sx + Math.random() * R.vw, y = R.cam.sy + Math.random() * R.vh, tx = Math.floor(x / TS), ty = Math.floor(y / TS), t = m.t(tx, ty), wet = G.Weather.wet();
       if (night && TD[t].pass === 1 && !wet) amb.push({ k: 'fly', x, y, t: 0, life: 6 + Math.random() * 5, ph: Math.random() * 9 });
       else if (!night && !wet && (t === T.GRASS || t === T.PINK || t === T.DGRASS)) amb.push({ k: 'bfly', x, y, t: 0, life: 7 + Math.random() * 6, ph: Math.random() * 9, c: Math.floor(Math.random() * 3) });
       else if ((t === T.WATER || t === T.DEEP) && Math.random() < .7) amb.push({ k: 'fish', x, y, t: 0, life: 5 + Math.random() * 4, a: Math.random() * 6.283 });
       else if (!night && Math.random() < .12 && !wet) { const yy = R.cam.sy + Math.random() * R.vh * .7; for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) amb.push({ k: 'bird', x: R.cam.sx - 20 - i * 14, y: yy + i * 8 * (i % 2 ? 1 : -1), t: 0, life: 14, ph: i }); G.Audio.sfx('bird', .5); }
     }
-    if (p.biome === G.BI.pink && Math.random() < dt * 3) Ent.part(R.cam.sx + Math.random() * R.vw, R.cam.sy - 4, -8 - Math.random() * 10, 16 + Math.random() * 10, Math.random() < .5 ? '#ffb8b8' : '#ff7e96', 5, { flat: 1 });
+    if (p.biome === G.BI.pink && !m.indoor && Math.random() < dt * 3) Ent.part(R.cam.sx + Math.random() * R.vw, R.cam.sy - 4, -8 - Math.random() * 10, 16 + Math.random() * 10, Math.random() < .5 ? '#ffb8b8' : '#ff7e96', 5, { flat: 1 });
     for (let i = amb.length - 1; i >= 0; i--) { const a = amb[i]; a.t += dt; if (a.t > a.life) { amb.splice(i, 1); continue; }
       if (a.k === 'bfly') { a.x += Math.sin(a.t * 1.7 + a.ph) * 14 * dt; a.y += Math.cos(a.t * 2.3 + a.ph) * 10 * dt; }
       else if (a.k === 'fly') { a.x += Math.sin(a.t * .9 + a.ph) * 8 * dt; a.y += Math.cos(a.t * 1.3 + a.ph) * 6 * dt; }

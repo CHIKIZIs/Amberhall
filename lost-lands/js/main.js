@@ -15,7 +15,7 @@
   /* ---------- карты ---------- */
   G.getMap = id => {
     let m = G.maps[id]; if (m) return m;
-    m = id === 'world' ? G.World.genWorld(G.S.seed) : G.World.genDungeon(id, G.S.seed);
+    m = id === 'world' ? G.World.genWorld(G.S.seed) : id.startsWith('h_') ? G.World.genInterior(id, G.S.seed) : G.World.genDungeon(id, G.S.seed);
     G.Save.applyMap(m, G.S.maps && G.S.maps[id]);
     if (id !== 'world' && !G.dexp[id]) G.dexp[id] = G.S.dexp && G.S.dexp[id] ? G.Save.unb64(G.S.dexp[id], (m.w * m.h + 7) >> 3) : new Uint8Array((m.w * m.h + 7) >> 3);
     return G.maps[id] = m;

@@ -340,6 +340,10 @@
   Ob('flotsam', { n: 'Плавающий ящик', s: ['flotsam'], float: 1, pick: { drops: [], loot: 'flotsam', xp: 8, respawn: 0 }, label: 'Выловить' });
   Ob('bossmark', { n: '', s: [], flat: 1, hidden: 1 });
   // деревня
+  Ob('house', { n: 'Дом', s: ['house0', 'house1', 'house2', 'house3'], size: [5, 3], oy: 13, solid: 1, col: [4, 0, 72, 46], big: 1 });
+  Ob('hdoor', { n: 'Дверь дома', s: [], flat: 1, hidden: 1, act: 'travel', label: 'Войти' });
+  Ob('exitmat', { n: 'Выход', s: ['rug'], flat: 1, act: 'travel', label: 'Выйти' });
+  Ob('fireplace', { n: 'Камин', s: ['furnace1'], solid: 1, col: [0, 6, 16, 10], light: [70, '#ff9a3e', .9], warm: 1, station: 'campfire', act: 'station', label: 'Готовить' });
   Ob('mill', { n: 'Старая мельница', s: ['mill'], size: [3, 2], solid: 1, col: [6, 8, 36, 22], mill: 1 });
   Ob('hay', { n: 'Стог сена', s: ['hay'], solid: 1, col: [1, 8, 14, 7], sh: 2, pick: { drops: [['grass', 3, 5], ['seed_wheat', 1, 2, .5]], xp: 2, respawn: 900, keep: 1 } });
   Ob('cart', { n: 'Телега', s: ['cart'], size: [2, 1], solid: 1, col: [2, 6, 26, 9] });

@@ -15,6 +15,7 @@
     sky() { const c = G.time.clock; let i = 0; while (i < KEYS.length - 2 && KEYS[i + 1][0] <= c) i++; const a = KEYS[i], b = KEYS[i + 1], t = (c - a[0]) / (b[0] - a[0]); return [a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, a[3] + (b[3] - a[3]) * t]; },
     ambient() {
       if (G.map.dark) return [50, 42, 76];
+      if (G.map.indoor) return [236, 218, 200];
       const s = Time.sky(), w = G.Weather.dim(); let r = s[0] * w, g = s[1] * w, b = s[2] * (w + (1 - w) * .4);
       if (G.flags.bloodmoon && Time.isNight()) { r = Math.min(255, r * 1.5 + 20); g *= .8; b *= .8; }
       return [Math.round(r), Math.round(g), Math.round(b)];
@@ -30,7 +31,7 @@
     type: 'clear', t: 150, wind: 1, flash: 0, k: 0, thunder: 0,
     name() { return WN[Weather.shown()]; },
     /* то, что видит игрок: в снегах дождь превращается в снег, в каньоне — в облачность */
-    shown() { const b = G.player ? G.player.biome : 1, t = Weather.type; if (G.map.dark) return 'clear'; if (b === G.BI.north) return (t === 'clear' || t === 'fog') ? (t === 'clear' && G.hash(G.time.day, 3, 1) < .5 ? 'snow' : t) : 'snow'; if (b === G.BI.canyon && (t === 'rain' || t === 'heavy' || t === 'storm')) return 'cloudy'; return t; },
+    shown() { const b = G.player ? G.player.biome : 1, t = Weather.type; if (G.map.dark || G.map.indoor) return 'clear'; if (b === G.BI.north) return (t === 'clear' || t === 'fog') ? (t === 'clear' && G.hash(G.time.day, 3, 1) < .5 ? 'snow' : t) : 'snow'; if (b === G.BI.canyon && (t === 'rain' || t === 'heavy' || t === 'storm')) return 'cloudy'; return t; },
     icon() { return { clear: G.Time.isNight() ? 'ui_moon' : 'ui_sun', cloudy: 'ui_cloud', rain: 'ui_rain', heavy: 'ui_rain', fog: 'ui_fog', storm: 'ui_storm', snow: 'ui_snow' }[Weather.shown()]; },
     wet() { const s = Weather.shown(); return s === 'rain' || s === 'heavy' || s === 'storm'; },
     dim() { const s = Weather.shown(); return 1 - Weather.k * ({ clear: 0, cloudy: .08, rain: .18, heavy: .3, fog: .1, storm: .36, snow: .1 }[s] || 0); },
@@ -121,8 +122,8 @@
     acc: 0, warn: 0,
     /* температура окружения в условных градусах 0..100 (50 — комфорт) */
     ambient() {
-      const p = G.player, m = G.map; let t = m.dun ? m.dun.temp : G.BIOMES[p.biome].temp;
-      if (!m.dark) { const l = Time.light(); if (p.biome === G.BI.canyon) t += (l - .7) * 40; else t += (l - .8) * 22; const s = Weather.shown(); if (s === 'rain') t -= 6; if (s === 'heavy' || s === 'storm') t -= 10; if (s === 'snow') t -= 8; if (s === 'fog') t -= 3; }
+      const p = G.player, m = G.map; let t = m.indoor ? 58 : m.dun ? m.dun.temp : G.BIOMES[p.biome].temp;
+      if (!m.dark && !m.indoor) { const l = Time.light(); if (p.biome === G.BI.canyon) t += (l - .7) * 40; else t += (l - .8) * 22; const s = Weather.shown(); if (s === 'rain') t -= 6; if (s === 'heavy' || s === 'storm') t -= 10; if (s === 'snow') t -= 8; if (s === 'fog') t -= 3; }
       if (p.wade) t -= 8;
       if (p.nearFire) t = Math.max(t, 50) + (t < 50 ? 6 : 0);
       if (p.underRoof) t += t < 50 ? 8 : 0;

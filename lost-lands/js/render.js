@@ -84,12 +84,12 @@
     const m = G.map, d = G.OBJ[o.t], name = R.objSprite(m, o, d); if (!name) return;
     const s = A.spr[name]; if (!s) return;
     const sz = d.size || [1, 1], ox = R.cam.sx, oy = R.cam.sy;
-    let dx = o.x * TS + ((sz[0] * TS - s.w) >> 1) - ox, dy = d.flat ? o.y * TS + ((sz[1] * TS - s.h) >> 1) - oy : (o.y + sz[1]) * TS - s.h - oy;
+    let dx = o.x * TS + ((sz[0] * TS - s.w) >> 1) - ox, dy = d.flat ? o.y * TS + ((sz[1] * TS - s.h) >> 1) - oy : (o.y + sz[1]) * TS - s.h - oy + (d.oy || 0);
     if (o.shake > 0) { dx += Math.round(Math.sin(o.shake * 60) * 1.5); }
     const dead = !!o.dead;
     if (d.sh != null && !dead) { const sh = A.spr['sh' + d.sh]; c.drawImage(sh.c, o.x * TS + 8 - (sh.w >> 1) - ox, (o.y + 1) * TS - (sh.h >> 1) - 2 - oy); }
     let alpha = 1;
-    if (d.tree && !dead) { const p = G.player; if (p && p.x > dx + ox + 4 && p.x < dx + ox + s.w - 4 && p.y - 8 > dy + oy && p.y < (o.y + 1) * TS - 6) alpha = .5; }
+    if ((d.tree || d.big) && !dead) { const p = G.player; if (p && p.x > dx + ox + 4 && p.x < dx + ox + s.w - 4 && p.y - 8 > dy + oy && p.y < (o.y + 1) * TS - 6) alpha = .5; }
     if (o.float) dy += Math.round(Math.sin(R.time * 2 + o.x) * 1);
     if (alpha < 1) c.globalAlpha = alpha;
     if (d.sway && !dead) {
@@ -132,7 +132,7 @@
     const m = G.map, c = R.ctx, cam = R.cam, ox = cam.sx, oy = cam.sy; R.frame++; R.time += dt;
     const tx0 = Math.floor(ox / TS), ty0 = Math.floor(oy / TS), tx1 = Math.floor((ox + R.vw) / TS), ty1 = Math.floor((oy + R.vh) / TS);
     const cx0 = Math.floor(tx0 / CH), cy0 = Math.floor(ty0 / CH), cx1 = Math.floor(tx1 / CH), cy1 = Math.floor(ty1 / CH);
-    c.fillStyle = m.dark ? '#120d1c' : '#3b6ea8'; c.fillRect(0, 0, R.vw, R.vh);
+    c.fillStyle = m.dark || m.indoor ? '#120d1c' : '#3b6ea8'; c.fillRect(0, 0, R.vw, R.vh);
     /* вода */
     const wf = Math.floor(R.time * 2.2) & 3, ff = Math.floor(R.time * 1.3) & 1;
     for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
