@@ -10,7 +10,7 @@
     const k = G.$('keys'); if (k) k.style.display = S.keys === false ? 'none' : '';
     let f = G.$('fps'); if (S.fps && !f) { f = G.el('div'); f.id = 'fps'; document.body.appendChild(f); } else if (!S.fps && f) f.remove();
   };
-  const uiScale = () => { const u = G.clamp(Math.min(innerHeight / 330, innerWidth / 600), 1.4, 3.6); document.documentElement.style.setProperty('--u', u.toFixed(2) + 'px'); };
+  const uiScale = () => { const u = G.clamp(Math.min(innerHeight / 380, innerWidth / 680), 1.3, 3.2); document.documentElement.style.setProperty('--u', u.toFixed(2) + 'px'); };
 
   /* ---------- карты ---------- */
   G.getMap = id => {

@@ -56,8 +56,7 @@
   UI.track = () => {
     const q = G.Quest.tracked(), box = $('qtrack'); if (!q) { box.classList.add('hidden'); return; }
     const pr = G.S.quests.active[q.id]; box.classList.remove('hidden');
-    box.innerHTML = '<b>' + q.n + '</b>' + q.goals.map((g, i) => '<div class="g' + (pr[i] >= g.n ? ' ok' : '') + '"><span>' + g.txt + '</span><span>' + Math.floor(Math.min(pr[i], g.n)) + '/' + g.n + '</span></div>').join('') + (q.hint ? '<div class="hint">' + q.hint + '</div>' : '');
-    if (q.story && G.S.quests.done.length < 4) box.classList.add('open');
+    box.innerHTML = '<b>' + q.n + '</b>' + q.goals.map((g, i) => '<div class="g' + (pr[i] >= g.n ? ' ok' : '') + '"><span>' + g.txt + '</span><span>' + Math.floor(Math.min(pr[i], g.n)) + '/' + g.n + '</span></div>').join('') + (q.hint ? '<div class="hint">' + q.hint + '</div>' : '') + (q.hint && !box.classList.contains('open') ? '<div class="more">подсказка ›</div>' : '');
   };
   UI.target = o => {
     const pr = $('prompt');
