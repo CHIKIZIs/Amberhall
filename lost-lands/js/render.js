@@ -44,7 +44,8 @@
       else if (t === T.CLIFF || t === T.DWALL || t === T.LADDER) {
         const b = m.biome[y * m.w + x], st = m.t(x, y + 1), bot = !(st === T.CLIFF || st === T.DWALL || st === T.VOID || st === T.LADDER);
         const img = A.tiles[t === T.DWALL ? 'dwall' + m.theme : (b === G.BI.north ? 'cliff_s' : b === G.BI.canyon ? 'cliff_r' : 'cliff_g')];
-        c.drawImage(img, (hv + (bot ? 4 : 0)) * 16, 0, 16, 16, px, py, 16, 16);
+        const up = m.t(x, y - 1), top = t !== T.DWALL && img.width >= 192 && !(up === T.CLIFF || up === T.LADDER || up === T.VOID);
+        c.drawImage(img, (hv + (top ? 8 : bot ? 4 : 0)) * 16, 0, 16, 16, px, py, 16, 16);
         if (t === T.LADDER) { c.fillStyle = '#6b4530'; c.fillRect(px + 3, py, 2, 16); c.fillRect(px + 11, py, 2, 16); c.fillStyle = '#b38655'; for (let k = 1; k < 16; k += 4) c.fillRect(px + 3, py + k, 10, 2); }
       } else {
         const img = A.tiles[setOf(m, t)]; let v = hv;

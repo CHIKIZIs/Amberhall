@@ -110,10 +110,57 @@
   };
   const ORE = { coal: ['#0e0c16', '#2c2a38', '#6a6878'], copper: ['#6a2a10', '#de7a30', '#ffd08a'], iron: ['#4a2e26', '#c89a80', '#f6e2d0'], gold: ['#6a440e', '#ecb92e', '#fff3a8'], star: ['#3a0e6a', '#c06af0', '#ffe0ff'] };
 
+  /* Скалы как на сцене с домиком автора: стена из каменных блоков, сверху нависает край травы.
+     0–3 — середина, 4–7 — нижний ряд (тень у подножия), 8–11 — верхний ряд с краем травы/снега */
+  function cliffSheet(pal, lip) {
+    const cv = document.createElement('canvas'); cv.width = 16 * 12; cv.height = 16; const x = cv.getContext('2d');
+    for (let v = 0; v < 12; v++) {
+      const p = A.P(16, 16), seed = (v & 3) * 31 + 5, W = (xx, yy, c) => p.d(((xx % 16) + 16) % 16, yy, c);
+      p.r(0, 0, 16, 16, pal[0]);
+      let y0 = -((v * 3) % 5);
+      for (let row = 0; y0 < 16; row++) {
+        const bh = 6 + Math.floor(G.hash(row, seed, 3) * 3), off = Math.floor(G.hash(row, seed, 4) * 16);
+        let bx = 0;
+        while (bx < 16) {
+          let bw = 7 + Math.floor(G.hash(bx, row + seed, 5) * 6); if (16 - bx - bw < 5) bw = 16 - bx;
+          const tone = Math.floor(G.hash(bx, row + seed, 6) * 3), base = [2, 2, 3][tone], hb = bh - 1 - (G.hash(bx, row, seed) < .4 ? 1 : 0);
+          for (let yy = 0; yy < hb; yy++) for (let xx = 0; xx < bw - 1; xx++) {
+            const Y = y0 + yy; if (Y < 0 || Y > 15) continue;
+            const cx = xx === 0 || xx === bw - 2, cy = yy === 0 || yy === hb - 1; if (cx && cy) continue; /* скруглённые углы */
+            let c = pal[base];
+            if (yy === 0 || (yy === 1 && (xx === 1 || xx === bw - 3))) c = pal[Math.min(4, base + 1)];
+            else if (xx === 0 && yy < hb - 2) c = pal[Math.min(4, base + 1)];
+            if (yy === hb - 1 || xx === bw - 2) c = pal[1];
+            if (yy > 1 && yy < hb - 2 && G.hash(xx + bx, Y, seed + 9) < .05) c = pal[base - 1];
+            W(off + bx + xx, Y, c);
+          }
+          bx += bw;
+        }
+        y0 += bh;
+      }
+      if (v >= 4 && v < 8) { for (let yy = 12; yy < 16; yy++) for (let xx = 0; xx < 16; xx++) if (yy >= 14 || G.hash(xx, yy, v) < .5) p.d(xx, yy, yy === 15 ? pal[0] : pal[1]); }
+      if (v >= 8) {
+        /* нависающий край: тёмная бахрома снизу, светлая кромка сверху */
+        for (let xx = 0; xx < 16; xx++) {
+          const d = 4 + Math.floor(G.hash(xx >> 1, v, 12) * 2) + (G.hash(xx, v, 13) < .3 ? 1 : 0);
+          for (let yy = 0; yy < d; yy++) p.d(xx, yy, yy === 0 ? lip[3] : yy === d - 1 ? lip[0] : yy === d - 2 ? lip[1] : lip[2]);
+          if (G.hash(xx, v, 14) < .2) p.d(xx, d, lip[0]);
+          p.d(xx, d + (G.hash(xx, v, 14) < .2 ? 1 : 0), pal[0]);
+        }
+      }
+      x.drawImage(p.can(), v * 16, 0);
+    }
+    return cv;
+  }
+  A.cliffSheet = cliffSheet;
+
   const prev = A.initPretty;
   A.initPretty = () => {
     prev();
     if (!A.refSprite) return;
+    A.tiles.cliff_g = cliffSheet(['#2e1820', '#5a2e34', '#7e4242', '#a25a4e', '#c47c5e'], ['#2f5e2c', '#3d7330', '#5a9638', '#86bc4a']);
+    A.tiles.cliff_r = cliffSheet(['#33141c', '#62262c', '#8e3c38', '#b85a46', '#da8460'], ['#6a2a24', '#8e4030', '#b45e3c', '#d88a5a']);
+    A.tiles.cliff_s = cliffSheet(['#1c2034', '#363c58', '#535c7c', '#76809e', '#9aa6c0'], ['#9aaccc', '#c6d4ea', '#e8f0fa', '#ffffff']);
     /* деревья: 0 — как у автора, 1 — зеркально, 2 — с плодами/цветами */
     const FRUIT = { oak: ['#5a0c16', '#d8303a', '#ff9a8a'], pinkt: ['#8a2a4a', '#fff0f4', '#ffffff'] };
     for (const k in TREES) {
@@ -135,6 +182,8 @@
     S('dbush', R('bush1', BUSHC.dry)); S('sbush', snowify(R('bush3', BUSHC.snow), 2));
     /* высокая трава — травяной куст автора; второй кадр — зеркальный (лёгкое шевеление) */
     for (const [k, rc] of [['tgrass', GRASSC.g], ['pgrass', GRASSC.p], ['dgrass', GRASSC.d]]) { S(k + '0', R('clump', rc)); S(k + '1', R('clump', rc, true)); }
+    /* камыш у воды — тот же травяной куст, желтее и выше по тону */
+    { const rc = recol(LEAF, (h, s, l) => [h - 22, s * .8, l * 1.04]); S('reed0', R('clump', rc)); S('reed1', R('clump', rc, true)); }
     /* камни */
     S('rock0', R('rk2')); S('rock1', R('rk3')); S('rock2', R('rk1'));
     S('granite0', R('rk2', ROCKC.gran, true)); S('granite1', R('rk0', ROCKC.gran));
