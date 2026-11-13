@@ -227,8 +227,8 @@
     },
     applyMap(m, d) {
       if (!d) return; m.gone = d.gone || []; m.tmods = d.tiles || {}; m.rmods = d.roofs || {}; m.killed = d.killed || {}; m.sdrops = d.drops || []; m.extra = d.extra || [];
+      for (const e of m.extra) { const ex = m.at(e.x, e.y); if (ex && !ex.b) m.remove(ex); const o = m.add(e.t, e.x, e.y, {}); if (o) Object.assign(o, e.p || {}); }
       for (const k of m.gone) { const o = m.at(k % m.w, Math.floor(k / m.w)); if (o && !o.b) m.remove(o); }
-      for (const e of m.extra) { const o = m.add(e.t, e.x, e.y, {}); if (o) Object.assign(o, e.p || {}); }
       for (const k in d.st) { const o = m.at(k % m.w, Math.floor(k / m.w)); if (o) { const r = d.st[k]; Object.assign(o, r); if (r.crop === 0) { o.crop = null; o.g = 0; } if (r.crop) o.wild = 0; } }
       for (const k in m.tmods) m.tiles[k] = m.tmods[k][0];
       for (const k in m.rmods) m.roof[k] = m.rmods[k];

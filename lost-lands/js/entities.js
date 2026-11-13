@@ -351,6 +351,7 @@
   };
   Ent.gather = R => {
     const p = G.player, x0 = R.cam.sx - 40, y0 = R.cam.sy - 40, x1 = x0 + R.vw + 80, y1 = y0 + R.vh + 100;
+    if (!G.running || !p) return;
     R.push(p.y, Player.draw, p);
     if (!p.dead && (G.map.dark || G.Time.light() < .75)) R.light(p.x, p.y - 10, 34, '#8a94c8', .55);
     for (const m of Ent.mobs) if (!m.dead && !m.gone && m.x > x0 && m.x < x1 && m.y > y0 && m.y < y1) R.push(m.y + (m.def.fly ? 4 : 0), drawMob, m);
@@ -358,7 +359,7 @@
     for (const q of Ent.proj) R.push(q.y + 8, drawProj, q);
   };
   Ent.over = (c, ox, oy, dt) => {
-    const R = G.R;
+    const R = G.R; if (!G.running) return;
     /* следы — под всем остальным уже не нарисовать, поэтому рисуем полупрозрачно */
     for (const f of Ent.foot) { c.globalAlpha = Math.max(0, 1 - f.t / 7) * .8; const s = A.spr.foot; if (f.h) c.drawImage(s.c, 0, 0, 2, 3, Math.round(f.x - ox), Math.round(f.y - oy - 1), 3, 2); else c.drawImage(s.c, Math.round(f.x - ox - 2), Math.round(f.y - oy - 1)); } c.globalAlpha = 1;
     for (const q of Ent.parts) { const k = q.t / q.life; if (k > .7) c.globalAlpha = (1 - k) / .3; c.fillStyle = q.col; c.fillRect(Math.round(q.x - ox), Math.round(q.y - oy), q.s, q.s); c.globalAlpha = 1; }
