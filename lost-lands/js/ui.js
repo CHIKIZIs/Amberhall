@@ -244,7 +244,7 @@
     $('fpsb').onclick = () => { S.fps = !S.fps; G.applySettings(); G.Save.settings(); R.settings(); };
     $('svnow').onclick = () => { if (G.running && G.Save.save()) UI.toast('Игра сохранена', 'ui_ok'); };
     if ($('tomenu')) $('tomenu').onclick = () => { G.Save.save(); UI.close(); G.toMenu(); };
-    $('fullsc').onclick = () => { const d = document.documentElement; (d.requestFullscreen || d.webkitRequestFullscreen || (() => { })).call(d); try { screen.orientation.lock('landscape').catch(() => { }); } catch (e) { } };
+    $('fullsc').onclick = () => { const d = document.documentElement; try { const r = (d.requestFullscreen || d.webkitRequestFullscreen || (() => { })).call(d); if (r && r.catch) r.catch(() => G.UI.toast('Полноэкранный режим недоступен', null, null, 1)); } catch (e) { } try { screen.orientation.lock('landscape').catch(() => { }); } catch (e) { } };
   };
   /* --- Карта мира --- */
   let mapImg = null, mapFog = null, fogVer = -1, mapView = { z: 2, cx: 0, cy: 0 };
