@@ -1,0 +1,1196 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Янтарные глубины</title>
+<meta name="theme-color" content="#0b0f24">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07060d;--amber:#ffb238;--amber2:#d9761e;--ember:#7a3412;--ink:#f4e6c4;--dim:#9a8468;--blood:#ff3a1a;--panel:#1b1420;--panel2:#2c2232;--edge:#0a0710}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;overscroll-behavior:none;touch-action:none;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+body{font-family:'Press Start 2P',ui-monospace,monospace;color:var(--ink);font-size:10px;line-height:1.6}
+canvas#c{position:fixed;left:0;top:0;image-rendering:pixelated;image-rendering:crisp-edges}
+.hide{display:none!important}
+img.px{image-rendering:pixelated;image-rendering:crisp-edges}
+
+/* ---- HUD: плашки как инвентарные ячейки ---- */
+#hud{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 8px) calc(env(safe-area-inset-right) + 8px) 0 calc(env(safe-area-inset-left) + 8px);
+  display:flex;align-items:flex-start;gap:8px;pointer-events:none;text-shadow:2px 2px 0 #000}
+.slot{display:flex;align-items:center;gap:6px;background:rgba(27,20,32,.78);padding:5px 7px;
+  box-shadow:inset 0 0 0 2px var(--panel2),0 0 0 2px var(--edge)}
+.slot img{width:16px;height:16px}
+#oilbar{display:flex;gap:2px}
+#oilbar i{width:5px;height:12px;background:#2a1e18}
+#oilbar i.on{background:var(--amber);box-shadow:inset 0 -3px 0 var(--amber2)}
+#oilbar.low i.on{background:var(--blood);box-shadow:inset 0 -3px 0 #8a1a0a;animation:blink .5s steps(2) infinite}
+#depth{flex:1;text-align:center;color:var(--dim);font-size:8px;padding-top:9px}
+#pauseBtn{pointer-events:auto;font:inherit;font-size:10px;color:var(--ink);background:rgba(27,20,32,.85);border:0;width:32px;height:32px;
+  box-shadow:inset 0 0 0 2px var(--panel2),0 0 0 2px var(--edge)}
+#hudR{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+#hudL{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+@keyframes blink{50%{opacity:.35}}
+
+#msg{position:fixed;left:0;right:0;top:27%;text-align:center;padding:0 24px;pointer-events:none;
+  font-size:10px;line-height:2;color:var(--amber);text-shadow:2px 2px 0 #000;opacity:0;transition:opacity .4s}
+#msg.on{opacity:1}
+
+/* ---- сенсорное управление ---- */
+#ctl{position:fixed;inset:0;touch-action:none}
+#joy{position:fixed;width:104px;height:104px;margin:-52px 0 0 -52px;border-radius:50%;
+  box-shadow:0 0 0 2px rgba(244,230,196,.18);background:rgba(244,230,196,.04);pointer-events:none;opacity:0;transition:opacity .15s}
+#joy.on{opacity:1}
+#knob{position:absolute;left:50%;top:50%;width:38px;height:38px;margin:-19px 0 0 -19px;background:rgba(244,230,196,.22);box-shadow:0 0 0 2px rgba(244,230,196,.45)}
+#joyHint{position:fixed;left:calc(env(safe-area-inset-left) + 22px);bottom:calc(env(safe-area-inset-bottom) + 30px);
+  color:rgba(244,230,196,.3);font-size:8px;line-height:2;pointer-events:none}
+.cbtn{position:fixed;font:inherit;color:var(--ink);border:0;touch-action:none;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;
+  text-shadow:2px 2px 0 #000;background:rgba(27,20,32,.82);box-shadow:inset 0 0 0 3px var(--panel2),0 0 0 3px var(--edge)}
+.cbtn img{width:20px;height:20px}
+.cbtn small{font-size:7px;color:var(--dim)}
+#bJump{right:calc(env(safe-area-inset-right) + 18px);bottom:calc(env(safe-area-inset-bottom) + 22px);width:84px;height:84px;font-size:10px}
+#bFlash{right:calc(env(safe-area-inset-right) + 112px);bottom:calc(env(safe-area-inset-bottom) + 22px);width:66px;height:66px;font-size:8px;
+  box-shadow:inset 0 0 0 3px var(--amber2),0 0 0 3px var(--edge)}
+#bTorch{right:calc(env(safe-area-inset-right) + 18px);bottom:calc(env(safe-area-inset-bottom) + 118px);width:66px;height:66px;font-size:8px}
+#bFlash.cd{filter:brightness(.45)}
+#bFlash.urge{animation:urge .25s steps(2) infinite}
+@keyframes urge{50%{box-shadow:inset 0 0 0 3px var(--blood),0 0 0 3px var(--edge);background:rgba(90,16,8,.85)}}
+.cbtn.dn{transform:translateY(3px);filter:brightness(1.35)}
+
+/* ---- экраны ---- */
+.scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:calc(env(safe-area-inset-top) + 20px) 22px calc(env(safe-area-inset-bottom) + 20px);gap:16px}
+#title{background:linear-gradient(rgba(7,6,13,0) 0,rgba(7,6,13,.15) 40%,rgba(7,6,13,.92) 100%)}
+#title h1{margin:0;font-size:24px;line-height:1.4;font-weight:400;color:var(--amber);
+  text-shadow:3px 3px 0 var(--ember),6px 6px 0 #000}
+#title .tag{color:var(--dim);font-size:8px;letter-spacing:2px;text-shadow:2px 2px 0 #000}
+#title p{max-width:360px;margin:0;font-size:9px;color:#d8c4a0;line-height:2;text-shadow:2px 2px 0 #000}
+.btn{font:inherit;font-size:11px;color:var(--ink);background:#3a2a3e;border:0;padding:15px 22px;cursor:pointer;text-shadow:2px 2px 0 #000;
+  box-shadow:inset 0 0 0 3px #5a4560,inset 0 -6px 0 3px #241a28,0 0 0 3px var(--edge)}
+.btn.main{background:#7a4a1a;box-shadow:inset 0 0 0 3px var(--amber2),inset 0 -6px 0 3px #4a2a10,0 0 0 3px var(--edge)}
+.btn:active{transform:translateY(3px)}
+.small{font-size:8px;color:var(--dim);line-height:2.2;text-shadow:2px 2px 0 #000}
+.spacer{flex:1}
+#over{background:rgba(7,6,13,.86)}
+#over h2,#pause h2{margin:0;font-size:18px;font-weight:400;line-height:1.5;color:var(--blood);text-shadow:3px 3px 0 #3a0a04}
+#pause h2{color:var(--amber);text-shadow:3px 3px 0 var(--ember)}
+#over .stats{font-size:10px;line-height:2.4;color:#d8c4a0}
+#pause{background:rgba(7,6,13,.8)}
+#fade{position:fixed;inset:0;background:var(--bg);opacity:0;pointer-events:none;display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--amber);text-shadow:3px 3px 0 var(--ember)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hide">
+  <div id="hudL">
+    <div class="slot"><img class="px" id="icoLamp" alt=""><div id="oilbar"></div></div>
+    <div class="slot"><img class="px" id="icoTorch" alt=""><span id="torchN">0</span></div>
+  </div>
+  <div id="depth">ГЛУБИНА 1</div>
+  <div id="hudR">
+    <div style="display:flex;gap:8px"><div class="slot"><img class="px" id="icoAmber" alt=""><span id="amberN">0/0</span></div><button id="pauseBtn" aria-label="Пауза">II</button></div>
+  </div>
+</div>
+<div id="msg"></div>
+
+<div id="ctl" class="hide">
+  <div id="joy"><div id="knob"></div></div>
+  <div id="joyHint">ДЖОЙСТИК<br>ЗДЕСЬ<br><br>ТАП ПО БЛОКУ —<br>КОПАТЬ</div>
+  <button class="cbtn" id="bTorch"><img class="px" id="icoTorch2" alt="">ФАКЕЛ</button>
+  <button class="cbtn" id="bFlash"><img class="px" id="icoLamp2" alt="">СВЕТ</button>
+  <button class="cbtn" id="bJump">ПРЫЖОК</button>
+</div>
+
+<div id="title" class="scr">
+  <div class="spacer"></div>
+  <div class="tag">ПИКСЕЛЬНЫЙ ХОРРОР-ПЕСОЧНИЦА</div>
+  <h1>ЯНТАРНЫЕ<br>ГЛУБИНЫ</h1>
+  <p>Ночью под деревней проснулось Оно. Копай вниз, добывай светящийся янтарь и пробуди древний алтарь. Оно ползёт сквозь камень и боится только огня.</p>
+  <button class="btn main" id="startBtn">СПУСТИТЬСЯ</button>
+  <div class="small" id="howto"></div>
+  <div class="small" id="bestTxt"></div>
+</div>
+
+<div id="over" class="scr hide">
+  <h2>ОНО НАШЛО<br>ТЕБЯ</h2>
+  <div class="stats" id="overStats"></div>
+  <button class="btn main" id="againBtn">ЕЩЁ РАЗ</button>
+  <button class="btn" id="menuBtn">В МЕНЮ</button>
+</div>
+
+<div id="pause" class="scr hide">
+  <h2>ПАУЗА</h2>
+  <div class="small">Оно ждёт в темноте.</div>
+  <button class="btn main" id="resumeBtn">ДАЛЬШЕ</button>
+  <button class="btn" id="soundBtn">ЗВУК: ВКЛ</button>
+  <button class="btn" id="quitBtn">В МЕНЮ</button>
+</div>
+<div id="fade"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   ЯНТАРНЫЕ ГЛУБИНЫ — пиксельный хоррор-платформер с копанием.
+   Мир из блоков 8×8 «арт-пикселей» (как в песочницах: земля, камень,
+   трава, фоновые стены), освещение по тайлам с цветным светом.
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+/* ---------- экран ---------- */
+const cv = $('c'), dctx = cv.getContext('2d');
+const off = document.createElement('canvas'), cx = off.getContext('2d');
+let W = 200, H = 300, S = 3;
+function resize() {
+  const iw = innerWidth, ih = innerHeight;
+  S = Math.max(2, Math.round(Math.min(iw, ih) / 135));
+  W = Math.ceil(iw / S); H = Math.ceil(ih / S);
+  cv.width = off.width = W; cv.height = off.height = H;
+  cv.style.width = W * S + 'px'; cv.style.height = H * S + 'px';
+  cx.imageSmoothingEnabled = false; dctx.imageSmoothingEnabled = false;
+  skyGrad = null;
+}
+addEventListener('resize', resize);
+
+/* ---------- сохранение ---------- */
+const SAVE = 'amberdepths_v1';
+let best = { depth: 0 };
+try { const s = JSON.parse(localStorage.getItem(SAVE)); if (s && typeof s.depth === 'number') best = s; } catch (e) {}
+const saveBest = () => { try { localStorage.setItem(SAVE, JSON.stringify(best)); } catch (e) {} };
+
+/* ---------- шум ---------- */
+let seed = 1;
+function hash(x, y) {
+  let h = Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(seed, 144665) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y, o = 3) { let s = 0, a = 0.5, f = 1, n = 0; for (let i = 0; i < o; i++) { s += a * vnoise(x * f + i * 17.3, y * f + i * 9.1); n += a; a *= 0.5; f *= 2; } return s / n; }
+
+/* ---------- спрайты ---------- */
+function bake(rows, pal) {
+  const h = rows.length, w = Math.max(...rows.map(r => r.length));
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  for (let y = 0; y < h; y++) for (let x = 0; x < rows[y].length; x++) { const ch = rows[y][x]; if (pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }
+  return c;
+}
+function flip(c) { const f = document.createElement('canvas'); f.width = c.width; f.height = c.height; const g = f.getContext('2d'); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(c, 0, 0); return f; }
+const pair = (rows, pal) => { const r = bake(rows, pal); return [r, flip(r)]; };
+
+/* герой: крупная голова, причёска, белки глаз — пропорции песочниц */
+const HPAL = { h: '#6a4024', H: '#4a2a16', s: '#e8b088', S: '#c48a64', w: '#ffffff', i: '#2f5aa8', c: '#3f6aa0', C: '#2c4c78', b: '#5a3a1e', p: '#5a4632', P: '#3e3022', k: '#2a1c12' };
+const HTOP = [
+  '..hhhhh...',
+  '.hhhhhhhh.',
+  'hhhhhhhhh.',
+  'hHhhssshh.',
+  'hHssswiss.',
+  'hHssswiss.',
+  '.Hssssss..',
+  '..Sssss...',
+  '...SS.....',
+  '..ccccc...',
+  '.Cccccccs.',
+  '.Cccccc.s.',
+  '.Cccccc...',
+  '.bbbbbb...',
+  '..Pppp....',
+];
+const HLEG = {
+  stand: ['..pp.pp...', '..pp.pp...', '..pp.pp...', '..PP.PP...', '..kk.kk...', '.kkk.kkk..'],
+  w1: ['..pp..pp..', '.pp....p..', '.pp....pp.', '.PP....PP.', '.kk....kk.', 'kkk....kkk'],
+  w2: ['..ppp.....', '...pp.....', '...pp.....', '...PP.....', '...kk.....', '..kkkk....'],
+  w3: ['..pp.pp...', '..p..pp...', '.pp...pp..', '.PP...PP..', '.kk...kk..', 'kkk...kkk.'],
+  jump: ['..pp.pp...', '.pp..pp...', '.pp.pp....', '.PP.PP....', 'kkk.kk....', '..........'],
+};
+const HSPR = {}; for (const k in HLEG) HSPR[k] = pair(HTOP.concat(HLEG[k]), HPAL);
+const HWALK = ['w1', 'w2', 'w3', 'w2'];
+
+/* чудовище: собирается из пиксельной сетки, потом обводка */
+const MWID = 44, MHEI = 28, MEYE = { x: 36, y: 10 };
+function monsterFrame(ph, open) {
+  const g = []; for (let y = 0; y < MHEI; y++) g.push(new Array(MWID).fill(null));
+  const P = (x, y, c) => { x = Math.round(x); y = Math.round(y); if (x >= 0 && y >= 0 && x < MWID && y < MHEI) g[y][x] = c; };
+  const A = '#3a1a12', B = '#6a3020', C = '#94502c', D = '#b8693a', Sp = '#c47a3a', St = '#ecc08a', T = '#f2dcae', Mw = '#1a0505', R = '#8a2418';
+  // лапы (сзади тела)
+  for (let k = 0; k < 4; k++) {
+    const bx = 9 + k * 7, a = ph + k * 1.7;
+    const kx = bx + Math.cos(a) * 2.5, ky = 22 + Math.sin(a) * 1;
+    const fx = bx + Math.cos(a) * 4.5 - 1, fy = 27 - Math.max(0, Math.sin(a)) * 2;
+    for (let t = 0; t <= 1; t += 0.12) { P(bx + (kx - bx) * t, 17 + (ky - 17) * t, B); P(bx + 1 + (kx - bx) * t, 17 + (ky - 17) * t, A); }
+    for (let t = 0; t <= 1; t += 0.15) P(kx + (fx - kx) * t, ky + (fy - ky) * t, A);
+    P(fx - 1, fy, A); P(fx + 1, fy, A);
+  }
+  // тело
+  for (let y = 0; y < MHEI; y++) for (let x = 0; x < MWID; x++) {
+    const e = ((x - 18) / 15) ** 2 + ((y - 14) / 6.5) ** 2;
+    if (e < 1) P(x, y, y < 10 ? D : y < 13 ? C : y < 17 ? B : A);
+  }
+  // шипы на спине, загнуты назад
+  [5, 10, 15, 20, 25].forEach((s, n) => {
+    const h = 7 + (n % 2) * 3;
+    for (let i = 0; i < h; i++) { const w = Math.max(1, Math.round(3 - i * 2.5 / h)); const x0 = s - i * 0.45; for (let j = 0; j < w; j++) P(x0 + j, 9 - i, i > h - 3 ? St : Sp); }
+  });
+  // голова
+  for (let y = 0; y < MHEI; y++) for (let x = 0; x < MWID; x++) {
+    const e = ((x - 34) / 8.5) ** 2 + ((y - 12) / 5.5) ** 2;
+    if (e < 1) P(x, y, y < 9 ? D : y < 12 ? C : B);
+  }
+  P(MEYE.x, MEYE.y, Mw); P(MEYE.x + 1, MEYE.y, Mw); P(MEYE.x - 1, MEYE.y - 1, A); P(MEYE.x, MEYE.y - 1, A);
+  // пасть
+  const jy = open ? 19 : 16;
+  for (let x = 28; x < 44; x++) { P(x, 15, x > 42 ? null : B); }
+  if (open) for (let y = 15; y < jy; y++) for (let x = 29; x < 43; x++) P(x, y, y === 15 || y === jy - 1 ? R : Mw);
+  for (let x = 29; x < 43; x += 2) { P(x, 15, T); P(x, 16, open ? T : B); }
+  for (let y = jy; y < jy + 3; y++) for (let x = 27 + (y - jy); x < 43 - (y - jy) * 2; x++) P(x, y, y === jy ? B : A);
+  for (let x = 30; x < 42; x += 2) P(x, jy - (open ? 1 : 0), T);
+  // обводка
+  const c = document.createElement('canvas'); c.width = MWID; c.height = MHEI; const gg = c.getContext('2d');
+  for (let y = 0; y < MHEI; y++) for (let x = 0; x < MWID; x++) {
+    let col = g[y][x];
+    if (!col) { const n = (yy, xx) => yy >= 0 && xx >= 0 && yy < MHEI && xx < MWID && g[yy][xx]; if (n(y - 1, x) || n(y + 1, x) || n(y, x - 1) || n(y, x + 1)) col = '#120606'; }
+    if (col) { gg.fillStyle = col; gg.fillRect(x, y, 1, 1); }
+  }
+  return [c, flip(c)];
+}
+const MSPR = [0, 1, 2, 3].map(k => monsterFrame(k * Math.PI / 2, false));
+const MOPEN = monsterFrame(0.5, true);
+
+const ICON = {
+  lamp: bake(['...kk...', '..k..k..', '.kkkkkk.', '.kLYYLk.', '.kLYYLk.', '.kLLLLk.', '.kkkkkk.', '..kkkk..'], { k: '#4a3524', L: '#ffb238', Y: '#fff0b0' }),
+  torch: bake(['...yy...', '..yYYy..', '..yYYo..', '...oo...', '...ww...', '...ww...', '...Ww...', '...Ww...'], { y: '#ffb238', Y: '#fff4c0', o: '#e0601a', w: '#8a5a32', W: '#5e3a1e' }),
+  amber: bake(['...yy...', '..yYYy..', '.yYYyyo.', '.yYyyoo.', 'yyyyoooo', '.yyoooO.', '..yooO..', '...oO...'], { y: '#ffb238', Y: '#fff0b0', o: '#d9761e', O: '#8a3a12' }),
+  oil: bake(['..kk....', '...g....', '..ggg...', '.goooG..', '.goooG..', '.goooG..', '..ggg...'], { g: '#5a7480', G: '#b0d8e0', o: '#e09a30', k: '#7a5a3a' }),
+};
+const POT = bake(['.aaaaa.', 'aCCCCCa', '.aCcca.', 'aCccccA', 'aCcbccA', 'aCccccA', 'aACcAAA', '.aAAAa.'], { a: '#3a1e12', A: '#5a2e1a', c: '#a8573a', C: '#c8784c', b: '#e0a070' });
+const SHROOM = bake(['.ccc.', 'cCCCc', '..s..', '..s..'], { c: '#2a5ad8', C: '#6aa0ff', s: '#c8c0b0' });
+$('icoLamp').src = $('icoLamp2').src = ICON.lamp.toDataURL();
+$('icoTorch').src = $('icoTorch2').src = ICON.torch.toDataURL();
+$('icoAmber').src = ICON.amber.toDataURL();
+const oilbar = $('oilbar'); for (let i = 0; i < 10; i++) oilbar.appendChild(document.createElement('i'));
+
+/* ---------- звук ---------- */
+const A = {
+  ctx: null, out: null, on: true, nb: null, tense: null,
+  init() {
+    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+    const ctx = this.ctx = new C();
+    const comp = ctx.createDynamicsCompressor(); comp.connect(ctx.destination);
+    this.out = ctx.createGain(); this.out.gain.value = this.on ? 0.9 : 0; this.out.connect(comp);
+    const len = ctx.sampleRate * 2, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    this.nb = buf;
+    const dg = ctx.createGain(); dg.gain.value = 0.045; dg.connect(this.out);
+    [41, 41.7, 61.9].forEach((f, i) => { const o = ctx.createOscillator(); o.frequency.value = f; const g = ctx.createGain(); g.gain.value = i === 2 ? 0.35 : 1; o.connect(g); g.connect(dg); o.start(); });
+    const wn = ctx.createBufferSource(); wn.buffer = buf; wn.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 300; bp.Q.value = 0.8;
+    const wg = ctx.createGain(); wg.gain.value = 0.045;
+    const lfo = ctx.createOscillator(); lfo.frequency.value = 0.06; const lg = ctx.createGain(); lg.gain.value = 170; lfo.connect(lg); lg.connect(bp.frequency); lfo.start();
+    wn.connect(bp); bp.connect(wg); wg.connect(this.out); wn.start();
+    const t = ctx.createOscillator(); t.type = 'sawtooth'; t.frequency.value = 55;
+    const t2 = ctx.createOscillator(); t2.type = 'sawtooth'; t2.frequency.value = 58.3;
+    const tl = ctx.createBiquadFilter(); tl.type = 'lowpass'; tl.frequency.value = 210;
+    this.tense = ctx.createGain(); this.tense.gain.value = 0;
+    t.connect(tl); t2.connect(tl); tl.connect(this.tense); this.tense.connect(this.out); t.start(); t2.start();
+  },
+  setOn(v) { this.on = v; if (this.out) this.out.gain.setTargetAtTime(v ? 0.9 : 0, this.ctx.currentTime, 0.05); },
+  setTension(v) { if (this.tense) this.tense.gain.setTargetAtTime(v * 0.07, this.ctx.currentTime, 0.3); },
+  dest(pan) { const c = this.ctx; if (pan && c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); p.connect(this.out); return p; } return this.out; },
+  tone(type, f0, f1, dur, vol, pan = 0, delay = 0) {
+    const c = this.ctx; if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.02, dur / 4)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(this.dest(pan)); o.start(t); o.stop(t + dur + 0.05);
+  },
+  noise(dur, vol, ft, f0, f1, q = 1, pan = 0, delay = 0, attack = 0.005) {
+    const c = this.ctx; if (!c) return;
+    const t = c.currentTime + delay, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = this.nb; s.playbackRate.value = rnd(0.8, 1.2);
+    f.type = ft; f.Q.value = q; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(this.dest(pan)); s.start(t, Math.random()); s.stop(t + dur + 0.05);
+  },
+  step() { this.noise(0.05, 0.05, 'bandpass', rnd(400, 700), 250, 1.5); },
+  jump() { this.tone('square', 220, 330, 0.08, 0.04); },
+  land() { this.noise(0.08, 0.1, 'lowpass', 600, 150, 1); },
+  hit(stone) { stone ? this.noise(0.05, 0.14, 'bandpass', rnd(1800, 2600), 1200, 3) : this.noise(0.07, 0.14, 'lowpass', rnd(500, 800), 200, 1); },
+  brk(stone) { this.noise(0.18, 0.22, stone ? 'bandpass' : 'lowpass', stone ? 1400 : 700, 200, 1.2); this.tone('square', stone ? 180 : 120, 60, 0.12, 0.05); },
+  heart(v) { this.tone('sine', 70, 38, 0.16, 0.5 * v); this.tone('sine', 62, 36, 0.14, 0.35 * v, 0, 0.19); },
+  rumble(v, pan) { this.noise(0.5, 0.18 * v, 'lowpass', 160, 60, 1, pan, 0, 0.1); },
+  click(v, pan) { this.noise(0.03, 0.1 * v, 'highpass', 2500, 1800, 1, pan); },
+  growl(v, pan) {
+    const c = this.ctx; if (!c) return;
+    const t = c.currentTime, d = rnd(0.9, 1.5);
+    const o = c.createOscillator(), lfo = c.createOscillator(), lg = c.createGain(), f = c.createBiquadFilter(), g = c.createGain();
+    o.type = 'sawtooth'; o.frequency.value = rnd(50, 72); lfo.frequency.value = rnd(14, 24); lg.gain.value = 18;
+    lfo.connect(lg); lg.connect(o.frequency); f.type = 'lowpass'; f.frequency.value = 380;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.35 * v, t + 0.25); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(f); f.connect(g); g.connect(this.dest(pan)); o.start(t); lfo.start(t); o.stop(t + d); lfo.stop(t + d);
+    this.noise(d, 0.12 * v, 'lowpass', 500, 200, 1, pan, 0, 0.25);
+  },
+  roar(pan) { this.tone('sawtooth', 70, 190, 0.7, 0.4, pan); this.tone('sawtooth', 74, 170, 0.7, 0.3, pan); this.noise(0.8, 0.35, 'bandpass', 300, 1400, 0.7, pan, 0, 0.15); },
+  shriek(pan) { this.tone('square', 900, 220, 0.5, 0.18, pan); this.tone('sawtooth', 1300, 400, 0.45, 0.12, pan); this.noise(0.5, 0.25, 'highpass', 3000, 900, 1, pan); },
+  flash() { this.noise(0.45, 0.35, 'highpass', 400, 6000, 0.7); this.tone('sine', 700, 2400, 0.35, 0.12); },
+  fizzle() { this.noise(0.25, 0.1, 'highpass', 4000, 6000, 1); },
+  torch() { this.noise(0.35, 0.18, 'bandpass', 600, 2400, 0.8, 0, 0, 0.05); },
+  pick() { [660, 990, 1320].forEach((f, i) => this.tone('triangle', f, f, 0.22, 0.13, 0, i * 0.07)); },
+  pop() { this.tone('square', 500, 900, 0.06, 0.06); },
+  pot() { this.noise(0.2, 0.25, 'bandpass', 2200, 900, 2); this.tone('triangle', 900, 500, 0.1, 0.06); },
+  unlock() { this.tone('sine', 110, 108, 2.5, 0.35); this.tone('sine', 165, 163, 2.2, 0.2); this.tone('triangle', 440, 438, 1.6, 0.06); },
+  descend() { this.noise(1.6, 0.25, 'lowpass', 1200, 80, 1, 0, 0, 0.3); this.tone('sine', 90, 30, 1.8, 0.4); },
+  scream() {
+    for (let i = 0; i < 4; i++) this.tone('sawtooth', rnd(380, 700), rnd(150, 260), 1.3, 0.22);
+    this.tone('square', 1500, 600, 1.0, 0.12); this.noise(1.4, 0.6, 'bandpass', 1800, 500, 0.5, 0, 0, 0.01); this.tone('sine', 90, 30, 1.2, 0.8);
+  },
+  whisper() { for (let i = 0; i < 5; i++) this.noise(rnd(0.15, 0.35), 0.05, 'bandpass', rnd(1800, 3500), rnd(1500, 3000), 6, rnd(-1, 1), i * rnd(0.1, 0.25), 0.05); },
+};
+const buzz = p => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+
+/* ---------- мир ---------- */
+const T = 8, WW = 110, WH = 130;
+const AIR = 0, DIRT = 1, STONE = 2, CLAY = 3, AMBER = 4, BED = 5;
+const HARD = [0, 0.22, 0.42, 0.3, 0.55, 99];
+let tiles = new Uint8Array(WW * WH), walls = new Uint8Array(WW * WH), surf = new Int16Array(WW);
+let hasSky = true;
+const tile = (tx, ty) => (tx < 0 || tx >= WW || ty >= WH) ? BED : ty < 0 ? (hasSky ? AIR : BED) : tiles[ty * WW + tx];
+const wallAt = (tx, ty) => (tx < 0 || tx >= WW || ty < 0 || ty >= WH) ? (ty < 0 && hasSky ? 0 : 2) : walls[ty * WW + tx];
+const solid = (tx, ty) => tile(tx, ty) !== AIR;
+const solidPx = (x, y) => solid(Math.floor(x / T), Math.floor(y / T));
+
+let P, M, torches, pots, shrooms, items, parts, altar, need, got, stats, depth;
+let cam = { x: 0, y: 0 }, shake = 0, flashT = 0, time = 0, state = 'title', stateT = 0;
+
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function genWorld() {
+  seed = (Math.random() * 1e9) | 0;
+  hasSky = depth === 1;
+  tiles = new Uint8Array(WW * WH); walls = new Uint8Array(WW * WH);
+  for (let x = 0; x < WW; x++) surf[x] = hasSky ? Math.round(22 + (fbm(x * 0.04, 7.7, 3) - 0.5) * 18) : 0;
+  for (let y = 0; y < WH; y++) for (let x = 0; x < WW; x++) {
+    const i = y * WW + x;
+    if (y < surf[x]) continue;
+    const dep = y - surf[x], m = fbm(x * 0.09 + 11, y * 0.09 + 5, 3);
+    const mat = dep < 7 + m * 7 ? DIRT : (m > 0.63 ? DIRT : m < 0.33 ? CLAY : STONE);
+    tiles[i] = mat; walls[i] = (hasSky && dep < 3) ? 0 : (mat === DIRT ? 1 : 2);
+    if (dep > 4 || !hasSky) {
+      const w = fbm(x * 0.05 + 40, y * 0.075 + 40, 3), c = fbm(x * 0.065 + 90, y * 0.065 + 90, 3);
+      if (Math.abs(w - 0.5) < 0.032 || c > 0.62) tiles[i] = AIR;
+    }
+    if (x < 2 || x >= WW - 2 || y >= WH - 2 || (!hasSky && y < 2)) tiles[i] = BED;
+  }
+  const carve = (x, y) => { if (x > 1 && x < WW - 2 && y > (hasSky ? 0 : 1) && y < WH - 2) tiles[y * WW + x] = AIR; };
+  // старт
+  let sx = 10, sy;
+  if (hasSky) { sy = surf[sx]; for (let x = sx - 3; x <= sx + 3; x++) for (let y = surf[x] - 6; y < surf[x]; y++) carve(x, y); }
+  else { sy = 8; for (let x = 6; x <= 15; x++) for (let y = 3; y < 8; y++) carve(x, y); for (let x = 6; x <= 15; x++) tiles[8 * WW + x] = STONE; }
+  // алтарь
+  const ax = 22 + ((Math.random() * (WW - 44)) | 0), ay = WH - 8;
+  for (let x = ax - 6; x <= ax + 6; x++) { for (let y = ay - 7; y < ay; y++) carve(x, y); tiles[ay * WW + x] = STONE; tiles[(ay + 1) * WW + x] = STONE; }
+  // извилистый проход от старта до алтаря — путь вниз есть всегда, копать можно где угодно
+  let px = hasSky ? sx + 6 : sx + 3, py = hasSky ? surf[sx + 6] - 1 : 6, guard = 0;
+  while ((py < ay - 2 || Math.abs(px - ax) > 1) && guard++ < 4000) {
+    for (let j = -2; j <= 1; j++) for (let i = -1; i <= 1; i++) carve(px + i, py + j);
+    const r = Math.random();
+    if (py < ay - 2 && r < 0.34) py++;
+    else if (r < 0.8) px += Math.sign(ax - px) || 0;
+    else px += Math.random() < 0.5 ? -1 : 1;
+    px = clamp(px, 3, WW - 4);
+  }
+  altar = { x: ax * T + 4, y: ay * T, tx: ax, ty: ay, open: false };
+
+  const isFloor = (x, y) => tile(x, y) === AIR && solid(x, y + 1) && tile(x, y + 1) !== BED && tile(x, y - 1) === AIR;
+  const spaced = (list, x, y, r) => list.every(o => Math.hypot(o.tx - x, o.ty - y) >= r);
+  const under = (x, y) => !hasSky || y > surf[x] + 4;
+  // янтарь в камне
+  need = Math.min(9, 4 + depth); got = 0;
+  const amb = [];
+  const cand = [];
+  for (let y = 6; y < WH - 3; y++) for (let x = 3; x < WW - 3; x++) {
+    const t = tiles[y * WW + x]; if (t !== STONE && t !== CLAY && t !== DIRT) continue;
+    if (!under(x, y) || y < (hasSky ? surf[x] + 9 : 10)) continue;
+    if (tile(x - 1, y) === AIR || tile(x + 1, y) === AIR || tile(x, y - 1) === AIR || tile(x, y + 1) === AIR) cand.push({ tx: x, ty: y });
+  }
+  for (const c of shuffle(cand)) { if (amb.length >= need + 4) break; if (spaced(amb, c.tx, c.ty, 9) && Math.hypot(c.tx - sx, c.ty - sy) > 10) amb.push(c); }
+  for (const c of amb) tiles[c.ty * WW + c.tx] = AMBER;
+  // предметы на полу пещер
+  const floors = [];
+  for (let y = 4; y < WH - 3; y++) for (let x = 3; x < WW - 3; x++) if (isFloor(x, y) && under(x, y)) floors.push({ tx: x, ty: y });
+  shuffle(floors);
+  pots = []; shrooms = []; torches = new Map(); items = []; parts = [];
+  const used = [{ tx: sx, ty: sy }, { tx: ax, ty: ay }];
+  for (const f of floors) { if (pots.length >= 12) break; if (spaced(used, f.tx, f.ty, 7)) { pots.push({ tx: f.tx, ty: f.ty, x: f.tx * T + 4, y: f.ty * T + 8 }); used.push(f); } }
+  for (const f of floors) { if (shrooms.length >= 20) break; if (spaced(used, f.tx, f.ty, 3) && f.ty > WH * 0.3) { shrooms.push({ tx: f.tx, ty: f.ty, x: f.tx * T + 1 + ((Math.random() * 3) | 0), y: f.ty * T + 4, ph: Math.random() * 6 }); used.push(f); } }
+  let nt = 0;
+  for (const f of floors) { if (nt >= 3) break; if (spaced(used, f.tx, f.ty, 14)) { torches.set(f.ty * WW + f.tx, { tx: f.tx, ty: f.ty, ph: Math.random() * 6 }); used.push(f); nt++; } }
+  let no = 0;
+  for (const f of floors) { if (no >= 3) break; if (spaced(used, f.tx, f.ty, 9)) { items.push({ x: f.tx * T + 4, y: f.ty * T + 8, vx: 0, vy: 0, k: 'oil', t: 99 }); used.push(f); no++; } }
+  if (hasSky) {
+    trees = [];
+    for (let x = 4; x < WW - 4; x++) if (Math.abs(x - sx) > 3 && Math.abs(x - (sx + 6)) > 3 && hash(x, 999) < 0.16 && spaced(trees, x, 0, 4) && solid(x, surf[x]) && tile(x, surf[x] - 1) === AIR) trees.push({ tx: x, ty: 0, h: 5 + ((hash(x, 5) * 6) | 0) });
+  } else trees = [];
+
+  const oil = P ? clamp(P.oil + 0.35, 0.6, 1) : 1, tor = P ? P.torches + 2 : 5;
+  P = { x: sx * T + 4, y: sy * T, vx: 0, vy: 0, face: 1, ground: false, coyote: 0, jbuf: 0, oil: depth === 1 ? 1 : oil, torches: depth === 1 ? 5 : tor, anim: 0, cd: 0, stepT: 0, fallV: 0 };
+  // чудовище далеко, в толще камня
+  let mx, my; do { mx = 6 + Math.random() * (WW - 12); my = WH * 0.45 + Math.random() * WH * 0.45; } while (Math.hypot(mx - sx, my - sy) < 45);
+  M = { x: mx * T, y: my * T, vx: 0, vy: 0, state: 'lurk', t: 8, agg: 0, face: -1, anim: 0, wx: mx * T, wy: my * T, growlT: 4, clickT: 0, dustT: 0, seen: false, rock: true };
+  cam.x = P.x - W / 2; cam.y = P.y - H / 2;
+  paintWorld();
+}
+let trees = [];
+
+/* ---------- отрисовка мира: тайлы с обводкой, скруглёнными углами и травой ---------- */
+const TPAL = {
+  [DIRT]: { b: [151, 107, 75], d: [116, 78, 52], l: [178, 132, 96], o: [56, 36, 24] },
+  [STONE]: { b: [124, 124, 134], d: [90, 90, 102], l: [156, 156, 168], o: [42, 42, 52] },
+  [CLAY]: { b: [150, 84, 66], d: [114, 60, 48], l: [178, 108, 86], o: [56, 28, 22] },
+  [AMBER]: { b: [118, 112, 118], d: [86, 82, 92], l: [148, 142, 150], o: [42, 38, 44] },
+  [BED]: { b: [44, 38, 54], d: [30, 26, 38], l: [60, 52, 72], o: [14, 12, 20] },
+};
+const GRASS = { o: [22, 60, 30], b: [58, 150, 64], l: [104, 196, 92], d: [38, 112, 48] };
+const air = (tx, ty) => tile(tx, ty) === AIR;
+function tilePix(tx, ty, px, py) {
+  const t = tile(tx, ty), X = tx * T + px, Y = ty * T + py;
+  if (t === AIR) {
+    // травинки над газоном
+    if (hasSky && tile(tx, ty + 1) === DIRT && ty + 1 <= surf[tx] + 1 && air(tx, ty + 1 - 1)) {
+      const h = Math.floor(hash(X, 77) * 4) - 1;
+      if (py >= 8 - h && (hash(X, 31) > 0.45)) return py === 8 - h ? GRASS.l : GRASS.b;
+      if (hash(X, 41) > 0.93 && py === 5) return [230, 210, 90];
+    }
+    return null;
+  }
+  const pal = TPAL[t];
+  const eT = air(tx, ty - 1), eB = air(tx, ty + 1), eL = air(tx - 1, ty), eR = air(tx + 1, ty);
+  if (eT && eL && px + py < 2) return null;
+  if (eT && eR && 7 - px + py < 2) return null;
+  if (eB && eL && px + 7 - py < 2) return null;
+  if (eB && eR && 14 - px - py < 2) return null;
+  const grass = t === DIRT && hasSky && eT && ty <= surf[tx] + 1;
+  const outl = (eT && py === 0) || (eB && py === 7) || (eL && px === 0) || (eR && px === 7) ||
+    (eT && eL && px + py === 2) || (eT && eR && 7 - px + py === 2) || (eB && eL && px + 7 - py === 2) || (eB && eR && 14 - px - py === 2);
+  if (grass && (py <= 2 || (py <= 4 && ((eL && px <= 1) || (eR && px >= 6))))) {
+    if (outl) return GRASS.o;
+    if (py === 1) return GRASS.l;
+    return hash(X, Y) > 0.5 ? GRASS.b : GRASS.d;
+  }
+  if (outl) return pal.o;
+  // фактура
+  let c = pal.b;
+  if (t === STONE || t === AMBER || t === BED) {
+    const v = vnoise(X * 0.32, Y * 0.32);
+    if (Math.abs(v - 0.5) < 0.055) c = pal.d; else if (v > 0.66) c = pal.l;
+    if (t === AMBER) {
+      const a = vnoise(X * 0.55 + 33, Y * 0.55 + 7);
+      if (a > 0.5) c = a > 0.72 ? [255, 240, 176] : a > 0.6 ? [255, 178, 56] : [205, 110, 30];
+    }
+  } else {
+    const n = hash(X, Y), n2 = hash(X >> 1, Y >> 1);
+    if (n2 < 0.12) c = pal.d; else if (n2 > 0.9) c = pal.l; else if (n < 0.06) c = pal.d;
+  }
+  if (eT && py === 1) c = pal.l;
+  else if (eB && py === 6) c = pal.d;
+  return c;
+}
+function wallPix(tx, ty, px, py) {
+  const w = wallAt(tx, ty); if (!w) return null;
+  const X = tx * T + px, Y = ty * T + py;
+  const v = vnoise(X * 0.22 + 5, Y * 0.22 + 9);
+  let c = w === 1 ? [64, 44, 32] : [52, 52, 62];
+  if (Math.abs(v - 0.5) < 0.05) c = w === 1 ? [40, 26, 18] : [32, 32, 40];
+  else if (v > 0.68) c = w === 1 ? [78, 56, 40] : [66, 66, 78];
+  return c;
+}
+let tileCv = document.createElement('canvas'), wallCv = document.createElement('canvas'), tileG, small;
+function paintWorld() {
+  const w = WW * T, h = WH * T;
+  tileCv.width = wallCv.width = w; tileCv.height = wallCv.height = h;
+  tileG = tileCv.getContext('2d');
+  const wg = wallCv.getContext('2d');
+  const ti = tileG.createImageData(w, h), wi = wg.createImageData(w, h), td = ti.data, wd = wi.data;
+  for (let ty = 0; ty < WH; ty++) for (let tx = 0; tx < WW; tx++) for (let py = 0; py < T; py++) for (let px = 0; px < T; px++) {
+    const i = ((ty * T + py) * w + tx * T + px) * 4;
+    const c = tilePix(tx, ty, px, py); if (c) { td[i] = c[0]; td[i + 1] = c[1]; td[i + 2] = c[2]; td[i + 3] = 255; }
+    if (tiles[ty * WW + tx] !== AIR && !(air(tx, ty - 1) || air(tx, ty + 1) || air(tx - 1, ty) || air(tx + 1, ty))) continue;
+    const q = wallPix(tx, ty, px, py); if (q) { wd[i] = q[0]; wd[i + 1] = q[1]; wd[i + 2] = q[2]; wd[i + 3] = 255; }
+  }
+  tileG.putImageData(ti, 0, 0); wg.putImageData(wi, 0, 0);
+  small = tileG.createImageData(T, T);
+  // деревья на поверхности — в слое фона
+  for (const tr of trees) {
+    const bx = tr.tx * T + 2, by = surf[tr.tx] * T, top = by - tr.h * T;
+    for (let y = top + 6; y < by; y++) for (let x = 0; x < 4; x++) { wg.fillStyle = x === 0 ? '#3e2814' : x === 3 ? '#4a3018' : ((y + x * 3) % 7 === 0 ? '#5a3a1e' : '#6e4826'); wg.fillRect(bx + x, y, 1, 1); }
+    wg.fillStyle = '#6e4826'; wg.fillRect(bx - 1, by - 1, 6, 1);
+    const cxp = bx + 2, cyp = top + 2;
+    for (let y = -11; y <= 9; y++) for (let x = -11; x <= 11; x++) {
+      const r = Math.hypot(x / 1.05, y) + (hash(cxp + x, cyp + y) - 0.5) * 2.2;
+      if (r > 10) continue;
+      const col = r > 9 ? '#123018' : (y < -4 && x < 2 && hash(x + tr.tx, y) > 0.4) ? '#3e8a3a' : (hash(cxp + x >> 1, cyp + y >> 1) > 0.75 ? '#1e5426' : '#2a6a30');
+      wg.fillStyle = col; wg.fillRect(cxp + x, cyp + y, 1, 1);
+    }
+  }
+}
+function repaintTile(tx, ty) {
+  if (tx < 0 || ty < 0 || tx >= WW || ty >= WH) return;
+  const d = small.data;
+  for (let py = 0; py < T; py++) for (let px = 0; px < T; px++) {
+    const i = (py * T + px) * 4, c = tilePix(tx, ty, px, py);
+    if (c) { d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255; } else d[i + 3] = 0;
+  }
+  tileG.putImageData(small, tx * T, ty * T);
+  // фоновая стена становится видна там, где выкопали
+  if (tiles[ty * WW + tx] === AIR && wallAt(tx, ty)) {
+    const wg = wallCv.getContext('2d');
+    for (let py = 0; py < T; py++) for (let px = 0; px < T; px++) { const q = wallPix(tx, ty, px, py); wg.fillStyle = `rgb(${q[0]},${q[1]},${q[2]})`; wg.fillRect(tx * T + px, ty * T + py, 1, 1); }
+  }
+}
+
+/* ---------- свет: по тайлам, цветной, с затуханием в воздухе и в породе ---------- */
+const LM = 16;
+const GAM = new Uint8Array(256).map((_, i) => Math.round(255 * Math.pow(i / 255, 0.8)));
+let LR, LG, LB, LT, LD, lightCv = document.createElement('canvas'), lightG = lightCv.getContext('2d'), lightImg = null, lx0 = 0, ly0 = 0, lw = 0, lh = 0;
+function lanternI() { return P.oil <= 0 ? 0.28 : 0.42 + 0.78 * Math.sqrt(P.oil); }
+function computeLight() {
+  lx0 = Math.floor(cam.x / T) - LM; ly0 = Math.floor(cam.y / T) - LM;
+  const nw = Math.ceil(W / T) + LM * 2 + 1, nh = Math.ceil(H / T) + LM * 2 + 1;
+  if (nw !== lw || nh !== lh) {
+    lw = nw; lh = nh; const n = lw * lh;
+    LR = new Float32Array(n); LG = new Float32Array(n); LB = new Float32Array(n); LT = new Float32Array(n); LD = new Float32Array(n);
+    lightCv.width = lw; lightCv.height = lh; lightImg = lightG.createImageData(lw, lh);
+  }
+  LR.fill(0); LG.fill(0); LB.fill(0); LT.fill(0);
+  for (let y = 0; y < lh; y++) for (let x = 0; x < lw; x++) {
+    const tx = lx0 + x, ty = ly0 + y, i = y * lw + x, s = solid(tx, ty);
+    LD[i] = s ? 0.5 : 0.86;
+    if (!s && hasSky && !wallAt(tx, ty)) { LR[i] = 0.42; LG[i] = 0.48; LB[i] = 0.72; }
+  }
+  const put = (tx, ty, r, g, b, t = 0) => {
+    const x = tx - lx0, y = ty - ly0; if (x < 0 || y < 0 || x >= lw || y >= lh) return;
+    const i = y * lw + x; if (LR[i] < r) LR[i] = r; if (LG[i] < g) LG[i] = g; if (LB[i] < b) LB[i] = b; if (LT[i] < t) LT[i] = t;
+  };
+  // фонарь
+  let I = state === 'dead' ? 0 : lanternI();
+  if (flashT > 0) I = Math.max(I, 1.2 + 1.6 * flashT / 0.45);
+  I *= 0.96 + 0.03 * Math.sin(time * 13) + 0.02 * Math.sin(time * 31.7);
+  if (P.oil < 0.2 && P.oil > 0 && Math.sin(time * 5.3) + Math.sin(time * 8.1) > 1.6) I *= 0.6;
+  const ltx = Math.floor((P.x + 4 * P.face) / T), lty = Math.floor((P.y - 10) / T);
+  put(ltx, lty, I, I * 0.8, I * 0.52);
+  for (const t of torches.values()) { const f = 1.25 + 0.08 * Math.sin(time * 11 + t.ph); put(t.tx, t.ty, f, f * 0.72, f * 0.4, 1.25); }
+  for (const s of shrooms) put(s.tx, s.ty, 0.16, 0.3, 0.6);
+  if (altar.open) put(altar.tx, altar.ty - 1, 1.1, 0.7, 0.25);
+  for (let y = 0; y < lh; y++) for (let x = 0; x < lw; x++) if (tile(lx0 + x, ly0 + y) === AMBER) put(lx0 + x, ly0 + y, 0.62, 0.38, 0.08);
+  for (const it of items) if (it.k === 'amber') put(Math.floor(it.x / T), Math.floor(it.y / T) - 1, 0.5, 0.3, 0.05);
+  // проходы светом туда-обратно по строкам и столбцам
+  const n = lw * lh;
+  for (let pass = 0; pass < 2; pass++) {
+    for (let y = 0; y < lh; y++) {
+      const r0 = y * lw;
+      for (let x = 1; x < lw; x++) prop(r0 + x - 1, r0 + x);
+      for (let x = lw - 2; x >= 0; x--) prop(r0 + x + 1, r0 + x);
+    }
+    for (let x = 0; x < lw; x++) {
+      for (let y = 1; y < lh; y++) prop((y - 1) * lw + x, y * lw + x);
+      for (let y = lh - 2; y >= 0; y--) prop((y + 1) * lw + x, y * lw + x);
+    }
+  }
+  const d = lightImg.data;
+  for (let i = 0; i < n; i++) {
+    const j = i * 4;
+    d[j] = GAM[Math.min(255, LR[i] * 255) | 0]; d[j + 1] = GAM[Math.min(255, LG[i] * 255) | 0]; d[j + 2] = GAM[Math.min(255, LB[i] * 255) | 0]; d[j + 3] = 255;
+  }
+  lightG.putImageData(lightImg, 0, 0);
+}
+function prop(a, b) {
+  const k = LD[b];
+  let v = LR[a] * k; if (v > LR[b]) LR[b] = v;
+  v = LG[a] * k; if (v > LG[b]) LG[b] = v;
+  v = LB[a] * k; if (v > LB[b]) LB[b] = v;
+  v = LT[a] * k; if (v > LT[b]) LT[b] = v;
+}
+function lightAt(x, y, arr) {
+  const tx = Math.floor(x / T) - lx0, ty = Math.floor(y / T) - ly0;
+  if (tx < 0 || ty < 0 || tx >= lw || ty >= lh) return 0;
+  return arr[ty * lw + tx];
+}
+
+/* ---------- ввод ---------- */
+const inp = { keys: {}, jump: false, jumpHeld: false, mouse: null };
+const joy = { id: null, ox: 0, oy: 0, x: 0, y: 0 };
+let digP = null; // {id, sx, sy}
+addEventListener('keydown', e => {
+  if (inp.keys[e.code]) return;
+  inp.keys[e.code] = true;
+  if (['Space', 'KeyW', 'ArrowUp'].includes(e.code)) { e.preventDefault(); inp.jump = true; }
+  if (e.code === 'KeyF') doFlash();
+  if (e.code === 'KeyT') placeTorch();
+  if (e.code === 'Escape' || e.code === 'KeyP') togglePause();
+});
+addEventListener('keyup', e => { inp.keys[e.code] = false; });
+const ctl = $('ctl'), joyEl = $('joy'), knob = $('knob');
+cv.addEventListener('pointerdown', e => { if (state === 'play' && !isTouch) { A.init(); digP = { id: e.pointerId, sx: e.clientX, sy: e.clientY }; } });
+addEventListener('pointermove', e => { if (digP && e.pointerId === digP.id) { digP.sx = e.clientX; digP.sy = e.clientY; } });
+addEventListener('pointerup', e => { if (digP && e.pointerId === digP.id) digP = null; });
+ctl.addEventListener('pointerdown', e => {
+  if (e.target !== ctl) return;
+  A.init();
+  const left = e.clientX < innerWidth * 0.45 && e.clientY > innerHeight * 0.42;
+  if (left && joy.id === null) {
+    joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY; joy.x = joy.y = 0;
+    joyEl.style.left = e.clientX + 'px'; joyEl.style.top = e.clientY + 'px'; joyEl.classList.add('on'); knob.style.transform = '';
+    $('joyHint').classList.add('hide');
+  } else if (!digP) digP = { id: e.pointerId, sx: e.clientX, sy: e.clientY };
+  try { ctl.setPointerCapture(e.pointerId); } catch (er) {}
+});
+ctl.addEventListener('pointermove', e => {
+  if (e.pointerId === joy.id) {
+    let dx = e.clientX - joy.ox, dy = e.clientY - joy.oy; const l = Math.hypot(dx, dy), R = 40;
+    if (l > R) { dx *= R / l; dy *= R / l; }
+    joy.x = dx / R; joy.y = dy / R; knob.style.transform = `translate(${dx}px,${dy}px)`;
+  } else if (digP && e.pointerId === digP.id) { digP.sx = e.clientX; digP.sy = e.clientY; }
+});
+const ctlEnd = e => {
+  if (e.pointerId === joy.id) { joy.id = null; joy.x = joy.y = 0; joyEl.classList.remove('on'); }
+  if (digP && e.pointerId === digP.id) digP = null;
+};
+ctl.addEventListener('pointerup', ctlEnd); ctl.addEventListener('pointercancel', ctlEnd);
+function holdBtn(el, down, up) {
+  el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); A.init(); el.classList.add('dn'); down(); try { el.setPointerCapture(e.pointerId); } catch (er) {} });
+  const u = () => { el.classList.remove('dn'); up && up(); };
+  el.addEventListener('pointerup', u); el.addEventListener('pointercancel', u); el.addEventListener('lostpointercapture', u);
+}
+holdBtn($('bJump'), () => { inp.jump = true; inp.jumpHeld = true; }, () => inp.jumpHeld = false);
+holdBtn($('bFlash'), doFlash);
+holdBtn($('bTorch'), placeTorch);
+addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('gesturestart', e => e.preventDefault());
+
+/* ---------- сообщения ---------- */
+let msgT = 0;
+function msg(t, s = 2.6) { const m = $('msg'); m.innerHTML = t; m.classList.add('on'); msgT = s; }
+
+/* ---------- действия ---------- */
+const pc = () => ({ x: P.x, y: P.y - 10 });
+function doFlash() {
+  if (state !== 'play' || P.cd > 0) return;
+  if (P.oil < 0.1) { A.fizzle(); msg('Масла не хватает на вспышку', 1.5); P.cd = 0.4; return; }
+  P.oil -= 0.14; P.cd = 1.1; flashT = 0.45; stats.flashes++;
+  A.flash(); buzz(30);
+  const c = pc();
+  for (let i = 0; i < 26; i++) { const a = rnd(0, 6.28), s = rnd(25, 80); parts.push({ x: c.x + 4 * P.face, y: c.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rnd(0.3, 0.7), c: '#fff0b0', em: 1 }); }
+  const d = Math.hypot(M.x - c.x, M.y - c.y);
+  if (d < 110 && M.state !== 'flee') {
+    if (M.state === 'windup' || M.state === 'charge') stats.saves++;
+    scare(); A.shriek(clamp((M.x - P.x) / 120, -1, 1)); shake = Math.max(shake, 0.25);
+  }
+}
+function scare() { M.state = 'flee'; M.t = rnd(3.5, 5); M.agg = 0; }
+function placeTorch() {
+  if (state !== 'play') return;
+  if (P.torches <= 0) { msg('Факелы кончились', 1.4); A.fizzle(); return; }
+  const tx = Math.floor(P.x / T), ty = Math.floor((P.y - 10) / T);
+  for (const [x, y] of [[tx, ty], [tx + P.face, ty], [tx - P.face, ty], [tx, ty - 1]]) {
+    if (tile(x, y) === AIR && !torches.has(y * WW + x)) {
+      torches.set(y * WW + x, { tx: x, ty: y, ph: Math.random() * 6 }); P.torches--; stats.torches++;
+      A.torch(); updHUD(true);
+      for (let i = 0; i < 8; i++) parts.push({ x: x * T + 4, y: y * T + 2, vx: rnd(-15, 15), vy: rnd(-30, -10), life: rnd(0.3, 0.6), c: '#ffb238', em: 1 });
+      return;
+    }
+  }
+}
+
+/* копание */
+const dig = { tx: -1, ty: -1, t: 0, hitT: 0, ok: false };
+function digTarget() {
+  if (!digP) return null;
+  const r = cv.getBoundingClientRect();
+  const wx = (digP.sx - r.left) / S + Math.round(cam.x), wy = (digP.sy - r.top) / S + Math.round(cam.y);
+  return { tx: Math.floor(wx / T), ty: Math.floor(wy / T), wx, wy };
+}
+function inReach(tx, ty) { const c = pc(); return Math.hypot(tx * T + 4 - c.x, ty * T + 4 - c.y) <= 44; }
+function updDig(dt) {
+  const tg = digTarget();
+  if (!tg) { dig.t = 0; dig.tx = -1; return; }
+  // горшок или факел под пальцем
+  if (dig.tx !== tg.tx || dig.ty !== tg.ty) { dig.tx = tg.tx; dig.ty = tg.ty; dig.t = 0; }
+  dig.ok = inReach(tg.tx, tg.ty);
+  if (!dig.ok) return;
+  const pi = pots.findIndex(p => p.tx === tg.tx && p.ty === tg.ty);
+  if (pi >= 0) { breakPot(pi); return; }
+  const key = tg.ty * WW + tg.tx;
+  const t = tile(tg.tx, tg.ty);
+  if (t === AIR) {
+    if (torches.has(key) && dig.t === 0) { torches.delete(key); P.torches++; A.pop(); updHUD(true); dig.t = 1; }
+    return;
+  }
+  if (t === BED) { dig.t = 0; return; }
+  dig.t += dt; dig.hitT -= dt;
+  const stone = t !== DIRT;
+  if (dig.hitT <= 0) { A.hit(stone); dig.hitT = 0.11; P.swing = 0.2; for (let i = 0; i < 2; i++) debris(tg.tx, tg.ty, t, 1); }
+  if (dig.t >= HARD[t]) { breakTile(tg.tx, tg.ty); dig.t = 0; }
+}
+function tileColor(t) { const p = TPAL[t]; return `rgb(${p.b[0]},${p.b[1]},${p.b[2]})`; }
+function debris(tx, ty, t, n) {
+  for (let i = 0; i < n; i++) parts.push({ x: tx * T + rnd(1, 7), y: ty * T + rnd(1, 7), vx: rnd(-40, 40), vy: rnd(-70, -20), life: rnd(0.4, 0.8), c: t === AMBER && Math.random() < 0.5 ? '#ffb238' : tileColor(t), g: 1 });
+}
+function breakTile(tx, ty) {
+  const t = tile(tx, ty);
+  if (t === AIR || t === BED) return;
+  tiles[ty * WW + tx] = AIR; stats.blocks++;
+  A.brk(t !== DIRT); debris(tx, ty, t, 9);
+  for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) repaintTile(tx + i, ty + j);
+  if (t === AMBER) items.push({ x: tx * T + 4, y: ty * T + 6, vx: rnd(-20, 20), vy: -60, k: 'amber', t: 0 });
+  // горшки над пустотой разбиваются
+  for (let i = pots.length - 1; i >= 0; i--) if (!solid(pots[i].tx, pots[i].ty + 1)) breakPot(i);
+}
+function breakPot(i) {
+  const p = pots[i]; pots.splice(i, 1);
+  A.pot();
+  for (let k = 0; k < 10; k++) parts.push({ x: p.x + rnd(-3, 3), y: p.y - rnd(1, 7), vx: rnd(-45, 45), vy: rnd(-80, -20), life: rnd(0.4, 0.8), c: Math.random() < 0.5 ? '#a8573a' : '#5a2e1a', g: 1 });
+  const r = Math.random();
+  items.push({ x: p.x, y: p.y - 4, vx: rnd(-25, 25), vy: -70, k: r < 0.55 ? 'oil' : 'torch', t: 0 });
+}
+
+/* ---------- обновление ---------- */
+const PW = 8, PH = 19;
+function hits(x, y, w, h) {
+  const x0 = Math.floor(x / T), x1 = Math.floor((x + w - 0.001) / T), y0 = Math.floor(y / T), y1 = Math.floor((y + h - 0.001) / T);
+  for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) if (solid(tx, ty)) return true;
+  return false;
+}
+function movePlayer(dt, ix) {
+  const target = ix * 58;
+  P.vx += (target - P.vx) * Math.min(1, dt * (P.ground ? 14 : 7));
+  P.vy = Math.min(300, P.vy + 640 * dt);
+  // по X, с автоподъёмом на один блок
+  const nx = P.x + P.vx * dt;
+  if (hits(nx - PW / 2, P.y - PH, PW, PH)) {
+    let stepped = false;
+    if (P.ground) for (let up = 1; up <= T; up++) if (!hits(nx - PW / 2, P.y - up - PH, PW, PH)) { P.y -= up; P.x = nx; stepped = true; break; }
+    if (!stepped) P.vx = 0;
+  } else P.x = nx;
+  // по Y
+  const ny = P.y + P.vy * dt, was = P.ground;
+  if (hits(P.x - PW / 2, ny - PH, PW, PH)) {
+    if (P.vy > 0) { P.y = Math.floor((ny - 0.001) / T) * T; P.ground = true; if (!was && P.vy > 150) A.land(); }
+    else P.y = (Math.floor((ny - PH) / T) + 1) * T + PH;
+    P.vy = 0;
+  } else { P.y = ny; P.ground = false; }
+}
+let heartT = 0, whisperT = 20, tipT = 0;
+function update(dt) {
+  time += dt; stateT += dt;
+  if (msgT > 0) { msgT -= dt; if (msgT <= 0) $('msg').classList.remove('on'); }
+  if (shake > 0) shake = Math.max(0, shake - dt);
+  if (flashT > 0) flashT = Math.max(0, flashT - dt);
+  if (state === 'dead') { if (stateT > 1.25 && !$('over').classList.contains('shown')) showOver(); updParts(dt); return; }
+  if (state === 'pause' || state === 'over' || state === 'trans') return;
+  const demo = state === 'title';
+
+  let ix = 0;
+  if (!demo) {
+    const k = inp.keys;
+    ix = (k.ArrowRight || k.KeyD ? 1 : 0) - (k.ArrowLeft || k.KeyA ? 1 : 0) + (Math.abs(joy.x) > 0.2 ? joy.x : 0);
+    ix = clamp(ix, -1, 1);
+    if (joy.y < -0.65) { if (!joy.up) inp.jump = true; joy.up = true; } else joy.up = false;
+  }
+  if (inp.jump) { P.jbuf = 0.12; inp.jump = false; }
+  P.jbuf -= dt; P.coyote = P.ground ? 0.09 : P.coyote - dt;
+  if (P.jbuf > 0 && P.coyote > 0) { P.vy = -218; P.ground = false; P.coyote = 0; P.jbuf = 0; A.jump(); }
+  const held = inp.jumpHeld || inp.keys.Space || inp.keys.KeyW || inp.keys.ArrowUp || joy.up;
+  if (P.vy < -60 && !held) P.vy += 900 * dt; // короткий прыжок
+  for (let s = 0; s < 2; s++) movePlayer(dt / 2, ix);
+  if (Math.abs(ix) > 0.1) P.face = ix > 0 ? 1 : -1;
+  if (P.ground && Math.abs(P.vx) > 5) { P.anim += Math.abs(P.vx) * dt * 0.16; P.stepT -= dt; if (P.stepT <= 0) { A.step(); P.stepT = 0.3; } }
+  if (P.swing > 0) P.swing -= dt;
+
+  if (!demo) {
+    updDig(dt);
+    const was = P.oil;
+    P.oil = Math.max(0, P.oil - dt / Math.max(80, 140 - depth * 8));
+    if (was > 0.25 && P.oil <= 0.25) msg('Фонарь тускнеет…', 2);
+    if (was > 0 && P.oil <= 0) { msg('МАСЛО КОНЧИЛОСЬ<br>Стой у факела!', 2.5); A.fizzle(); }
+    P.cd = Math.max(0, P.cd - dt);
+    if (altar.open && Math.abs(altar.x - P.x) < 12 && Math.abs(altar.y - P.y) < 12) nextLevel();
+    whisperT -= dt; if (whisperT <= 0) { A.whisper(); whisperT = rnd(20, 45); }
+    tipT += dt;
+    if (depth === 1 && tipT > 14 && !stats.tip) { stats.tip = 1; msg('Факелы отгоняют Его.<br>Ставь их кнопкой ФАКЕЛ', 3.5); }
+  }
+  updItems(dt, demo);
+  updMonster(dt, demo);
+
+  const c = pc(), md = Math.hypot(M.x - c.x, M.y - c.y), close = clamp(1 - md / 210, 0, 1);
+  A.setTension(M.state === 'flee' ? 0 : close * close);
+  heartT -= dt;
+  if (!demo && close > 0.05 && heartT <= 0) {
+    A.heart(0.4 + close * 0.6); if (close > 0.55) buzz(25);
+    heartT = 1.15 - close * 0.8 - (M.state === 'charge' || M.state === 'windup' ? 0.15 : 0);
+  }
+  const fb = $('bFlash'); fb.classList.toggle('cd', P.cd > 0 || P.oil < 0.1); fb.classList.toggle('urge', M.state === 'windup' || M.state === 'charge');
+
+  // угольки из фонаря и факелов
+  if (P.oil > 0 && Math.random() < dt * 6) parts.push({ x: P.x + 4 * P.face + rnd(-1, 1), y: P.y - 10, vx: rnd(-4, 4), vy: rnd(-14, -6), life: rnd(0.5, 1.1), c: '#ffb238', em: 1 });
+  for (const t of torches.values()) if (Math.random() < dt * 3) parts.push({ x: t.tx * T + 4 + rnd(-1, 1), y: t.ty * T + 1, vx: rnd(-3, 3), vy: rnd(-16, -8), life: rnd(0.4, 0.9), c: Math.random() < 0.5 ? '#ffb238' : '#ff7a1e', em: 1 });
+  updParts(dt);
+
+  const tx = P.x - W / 2, ty = P.y - 12 - H / 2;
+  cam.x += (tx - cam.x) * Math.min(1, dt * 7); cam.y += (ty - cam.y) * Math.min(1, dt * 7);
+  cam.x = clamp(cam.x, 0, WW * T - W); cam.y = clamp(cam.y, hasSky ? -60 : 0, WH * T - H);
+  updHUD();
+}
+function updItems(dt, demo) {
+  const c = pc();
+  for (let i = items.length - 1; i >= 0; i--) {
+    const it = items[i]; it.t += dt;
+    const d = Math.hypot(c.x - it.x, c.y - it.y);
+    if (!demo && it.t > 0.35 && d < 26) { // притягивается к игроку
+      it.x += (c.x - it.x) * Math.min(1, dt * 9); it.y += (c.y - it.y) * Math.min(1, dt * 9);
+      if (d < 7) { pickItem(it); items.splice(i, 1); }
+      continue;
+    }
+    it.vy = Math.min(200, it.vy + 500 * dt); it.vx *= 0.92;
+    const nx = it.x + it.vx * dt; if (!solidPx(nx, it.y - 1)) it.x = nx; else it.vx = 0;
+    const ny = it.y + it.vy * dt; if (solidPx(it.x, ny)) { it.y = Math.floor(ny / T) * T; it.vy = 0; } else it.y = ny;
+  }
+}
+function pickItem(it) {
+  if (it.k === 'amber') {
+    got++; stats.amber++; A.pick(); buzz(20);
+    if (got >= need && !altar.open) { altar.open = true; A.unlock(); msg('Алтарь пробудился!<br>Спускайся на самое дно', 3.2); }
+    else if (got < need) msg(`Янтарь ${got}/${need}`, 1.4);
+  } else if (it.k === 'oil') { P.oil = Math.min(1, P.oil + 0.38); A.oil ? A.oil() : A.pop(); msg('+ масло', 1.1); }
+  else { P.torches += 2; A.pop(); msg('+2 факела', 1.1); }
+  updHUD(true);
+}
+A.oil = function () { this.tone('sine', 320, 140, 0.12, 0.25); this.tone('sine', 300, 120, 0.12, 0.2, 0, 0.13); };
+function updParts(dt) {
+  for (const p of parts) { if (p.g) p.vy += 400 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.97; p.life -= dt; }
+  parts = parts.filter(p => p.life > 0);
+  if (parts.length > 400) parts.splice(0, parts.length - 400);
+}
+
+/* ---------- чудовище: ползёт сквозь камень, свет факелов его жжёт ---------- */
+function steer(tx, ty, spd, dt, avoid) {
+  let dx = tx - M.x, dy = ty - M.y; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
+  let bx = dx, by = dy, bs = -1e9;
+  for (let k = 0; k < 16; k++) {
+    const a = k * Math.PI / 8, cx_ = Math.cos(a), cy_ = Math.sin(a);
+    let sc = cx_ * dx + cy_ * dy;
+    if (avoid) sc -= lightAt(M.x + cx_ * 14, M.y + cy_ * 14, LT) * 3;
+    if (sc > bs) { bs = sc; bx = cx_; by = cy_; }
+  }
+  if (l < 3) { bx = by = 0; }
+  const s = spd * (M.rock ? 0.65 : 1);
+  M.vx += (bx * s - M.vx) * Math.min(1, dt * 5); M.vy += (by * s - M.vy) * Math.min(1, dt * 5);
+}
+function updMonster(dt, demo) {
+  const c = pc(), dx = c.x - M.x, dy = c.y - M.y, d = Math.hypot(dx, dy);
+  const sp = 1 + (depth - 1) * 0.08;
+  const keep = (P.oil <= 0 ? 6 : 14 + 40 * Math.sqrt(P.oil)) + 12;
+  const pTorch = lightAt(c.x, c.y, LT), mTorch = lightAt(M.x, M.y, LT);
+  M.t -= dt;
+  switch (M.state) {
+    case 'lurk':
+      if (Math.hypot(M.wx - M.x, M.wy - M.y) < 10 || Math.random() < dt * 0.2) { M.wx = M.x + rnd(-120, 120); M.wy = clamp(M.y + rnd(-80, 80), 40, WH * T - 30); }
+      steer(M.wx, M.wy, 22, dt, true);
+      if (M.t <= 0) M.state = 'stalk';
+      break;
+    case 'stalk':
+      steer(c.x, c.y, (d > 180 ? 42 : 30) * sp, dt, true);
+      if (d < keep + 12) M.state = 'hover';
+      break;
+    case 'hover': {
+      if (!demo) {
+        let g = 0.07 + (depth - 1) * 0.018 + (1 - P.oil) * 0.1;
+        if (P.oil <= 0) g += 0.5;
+        if (pTorch > 0.45) g = -0.15; // у факела можно перевести дух
+        M.agg = clamp(M.agg + g * dt, 0, 1.2);
+      }
+      const ang = Math.atan2(M.y - c.y, M.x - c.x) + Math.sin(time * 0.7) * 0.012;
+      steer(c.x + Math.cos(ang) * keep, c.y + Math.sin(ang) * keep, 34 * sp, dt, true);
+      if (d > keep + 70) M.state = 'stalk';
+      if (M.agg >= 1 && !M.rock) {
+        M.state = 'windup'; M.t = Math.max(0.5, 0.85 - depth * 0.04); M.agg = 0;
+        A.roar(clamp(-dx / 120, -1, 1)); shake = 0.6; buzz([60, 40, 60]);
+        if (depth <= 1 && !M.seen) { msg('ОНО БРОСАЕТСЯ!<br>ЖМИ «СВЕТ»!', 2.2); M.seen = true; }
+      }
+      break;
+    }
+    case 'windup': M.vx *= 0.8; M.vy *= 0.8; break;
+    case 'charge': steer(c.x, c.y, 92 * sp, dt, false); if (M.t <= 0) { M.state = 'hover'; M.agg = 0.3; } break;
+    case 'flee': steer(M.x - dx * 3, M.y - dy * 3, 100, dt, false); if (M.t <= 0) { M.state = 'lurk'; M.t = rnd(3, 6); } break;
+  }
+  if (M.state === 'windup' && M.t <= 0) { M.state = 'charge'; M.t = 3; }
+  // пламя факела обжигает
+  if (mTorch > 0.55 && M.state !== 'flee') { scare(); A.shriek(clamp(-dx / 120, -1, 1)); }
+  M.x += M.vx * dt; M.y += M.vy * dt;
+  M.x = clamp(M.x, 20, WW * T - 20); M.y = clamp(M.y, hasSky ? 0 : 20, WH * T - 20);
+  if (Math.abs(M.vx) > 2) M.face = M.vx > 0 ? 1 : -1;
+  M.anim += Math.hypot(M.vx, M.vy) * dt * 0.18;
+  const wasRock = M.rock;
+  M.rock = solidPx(M.x, M.y) && solidPx(M.x - 10, M.y) && solidPx(M.x + 10, M.y);
+  const pan = clamp(-dx / 140, -1, 1);
+  if (M.rock) {
+    M.dustT -= dt;
+    if (M.dustT <= 0 && d < 200) { M.dustT = 0.25; parts.push({ x: M.x + rnd(-10, 10), y: M.y + rnd(-6, 6), vx: rnd(-10, 10), vy: rnd(-10, 10), life: 0.7, c: '#6a5a50', g: 0 }); }
+    if (d < 170 && Math.random() < dt * 1.3) A.rumble(1 - d / 170, pan);
+  }
+  if (wasRock && !M.rock && d < 200) { for (let i = 0; i < 12; i++) parts.push({ x: M.x + rnd(-12, 12), y: M.y + rnd(-6, 6), vx: rnd(-40, 40), vy: rnd(-60, -10), life: rnd(0.4, 0.8), c: '#7a6a5e', g: 1 }); }
+  // поимка
+  if (!demo && state === 'play' && d < 15 && (M.state === 'charge' || (P.oil <= 0 && pTorch < 0.4 && M.state !== 'flee'))) die();
+  M.growlT -= dt; M.clickT -= dt;
+  if (d < 200 && M.growlT <= 0 && M.state !== 'flee') { A.growl(clamp(1 - d / 200, 0.15, 1), pan); M.growlT = rnd(3, 6.5); }
+  if (d < 130 && !M.rock && M.state !== 'windup' && M.clickT <= 0 && Math.hypot(M.vx, M.vy) > 8) { A.click(1 - d / 130, pan); M.clickT = M.state === 'charge' ? 0.09 : 0.2; }
+}
+
+/* ---------- кадр ---------- */
+let skyGrad = null, stars = [];
+for (let i = 0; i < 90; i++) stars.push({ x: Math.random(), y: Math.random() * 0.7, b: Math.random(), p: Math.random() * 6 });
+function hill(x, s, f, a) { return vnoise(x * f + s, s) * a + vnoise(x * f * 2.3 + s * 2, s) * a * 0.4; }
+function drawSky(ox, oy) {
+  if (!hasSky) { cx.fillStyle = '#07060d'; cx.fillRect(0, 0, W, H); return; }
+  if (!skyGrad) { skyGrad = cx.createLinearGradient(0, 0, 0, H); skyGrad.addColorStop(0, '#060818'); skyGrad.addColorStop(1, '#1a2448'); }
+  cx.fillStyle = skyGrad; cx.fillRect(0, 0, W, H);
+  for (const s of stars) { const a = 0.4 + 0.6 * Math.abs(Math.sin(time * 0.8 + s.p)) * s.b; cx.fillStyle = `rgba(220,226,255,${a})`; cx.fillRect(Math.round(((s.x * 400 - ox * 0.05) % W + W) % W), Math.round(s.y * H * 0.6 - oy * 0.05), 1, 1); }
+  // луна
+  const mx = Math.round(W * 0.72 - ox * 0.04), my = Math.round(26 - oy * 0.05);
+  for (let y = -7; y <= 7; y++) for (let x = -7; x <= 7; x++) { const r = Math.hypot(x, y); if (r <= 7) { cx.fillStyle = r > 6 ? '#b8bcd0' : (hash(x + 50, y + 50) > 0.8 ? '#c8ccdc' : '#e8ecf6'); cx.fillRect(mx + x, my + y, 1, 1); } }
+  // холмы вдали
+  const base = 22 * T - oy;
+  for (const [par, col, s, amp] of [[0.25, '#11183a', 3, 36], [0.5, '#0c1230', 9, 26]]) {
+    cx.fillStyle = col;
+    for (let x = 0; x < W; x += 2) { const h = hill(x + ox * par, s, 0.012, amp); const y = Math.round(base * (0.55 + par * 0.4) + 30 - h); cx.fillRect(x, y, 2, H - y); }
+  }
+}
+function render() {
+  let ox = Math.round(cam.x), oy = Math.round(cam.y);
+  if (shake > 0) { ox += Math.round(rnd(-2, 2) * shake * 3); oy += Math.round(rnd(-2, 2) * shake * 3); }
+  computeLight();
+  drawSky(ox, oy);
+  cx.drawImage(wallCv, -ox, -oy);
+  cx.drawImage(tileCv, -ox, -oy);
+  // трещины на копаемом блоке
+  if (dig.t > 0 && dig.ok && solid(dig.tx, dig.ty)) {
+    const st = Math.min(3, Math.floor(dig.t / HARD[tile(dig.tx, dig.ty)] * 4));
+    cx.fillStyle = 'rgba(0,0,0,.55)';
+    const bx = dig.tx * T - ox, by = dig.ty * T - oy;
+    const cr = [[[3, 3], [4, 4], [4, 2]], [[2, 5], [5, 3], [6, 2], [1, 4]], [[1, 1], [6, 6], [2, 6], [5, 1], [3, 5]], [[6, 4], [1, 2], [4, 6], [2, 2], [5, 5]]];
+    for (let k = 0; k <= st; k++) for (const [x, y] of cr[k]) cx.fillRect(bx + x, by + y, 1, 1);
+  }
+  // алтарь
+  drawAltar(ox, oy);
+  for (const p of pots) cx.drawImage(POT, p.x - 3 - ox, p.y - 8 - oy);
+  for (const s of shrooms) cx.drawImage(SHROOM, s.x - ox, s.y - oy);
+  for (const t of torches.values()) { cx.fillStyle = '#6e4826'; cx.fillRect(t.tx * T + 3 - ox, t.ty * T + 3 - oy, 2, 5); cx.fillStyle = '#4a3018'; cx.fillRect(t.tx * T + 3 - ox, t.ty * T + 6 - oy, 2, 2); }
+  for (const it of items) { const ic = ICON[it.k]; const bob = it.t > 0.3 ? Math.round(Math.sin(time * 3 + it.x) * 1) : 0; cx.drawImage(ic, Math.round(it.x - 4 - ox), Math.round(it.y - 8 - oy + bob)); }
+  // монстр
+  if (state !== 'dead' && !M.rock) {
+    const open = M.state === 'windup' || M.state === 'charge';
+    const fr = open ? MOPEN : MSPR[Math.floor(M.anim) & 3];
+    const jit = M.state === 'windup' ? Math.round(rnd(-1, 1)) : 0;
+    cx.drawImage(fr[M.face > 0 ? 0 : 1], Math.round(M.x - MWID / 2 - ox + jit), Math.round(M.y - MHEI / 2 - oy));
+  }
+  // герой
+  if (state !== 'dead') {
+    const k = !P.ground ? 'jump' : Math.abs(P.vx) > 5 ? HWALK[Math.floor(P.anim) & 3] : 'stand';
+    cx.drawImage(HSPR[k][P.face > 0 ? 0 : 1], Math.round(P.x - 5 - ox), Math.round(P.y - 21 - oy));
+    // кирка при копании
+    if (P.swing > 0) {
+      const a = P.swing / 0.2, hx = Math.round(P.x + P.face * 3 - ox), hy = Math.round(P.y - 11 - oy);
+      cx.fillStyle = '#8a5a32';
+      for (let i = 0; i < 6; i++) cx.fillRect(hx + Math.round(P.face * i * Math.cos(a * 1.4 - 0.6)), hy - Math.round(i * Math.sin(a * 1.4 - 0.6)), 1, 1);
+      const ex = hx + Math.round(P.face * 6 * Math.cos(a * 1.4 - 0.6)), ey = hy - Math.round(6 * Math.sin(a * 1.4 - 0.6));
+      cx.fillStyle = '#b8b8c8'; cx.fillRect(ex - 2, ey - 1, 5, 2);
+    }
+  }
+  for (const p of parts) if (!p.em) { cx.globalAlpha = clamp(p.life * 2, 0, 1); cx.fillStyle = p.c; cx.fillRect(Math.round(p.x - ox), Math.round(p.y - oy), 1, 1); }
+  cx.globalAlpha = 1;
+
+  // свет: умножаем кадр на сглаженную карту освещённости
+  cx.save();
+  cx.globalCompositeOperation = 'multiply';
+  cx.imageSmoothingEnabled = true;
+  cx.drawImage(lightCv, lx0 * T + T / 2 - ox, ly0 * T + T / 2 - oy, lw * T, lh * T);
+  cx.restore();
+  cx.imageSmoothingEnabled = false;
+
+  // светящееся поверх
+  for (const t of torches.values()) {
+    const fx = t.tx * T + 4 - ox, fy = t.ty * T + 1 - oy, f = Math.floor(time * 10 + t.ph * 3) % 3;
+    cx.fillStyle = '#ff7a1e'; cx.fillRect(fx - 1, fy + 1, 2, 2);
+    cx.fillStyle = '#ffb238'; cx.fillRect(fx - 1 + (f === 1 ? 1 : 0), fy, 1, 2); cx.fillRect(fx - (f === 2 ? 1 : 0), fy - 1, 1, 2);
+    cx.fillStyle = '#fff4c0'; cx.fillRect(fx - 1 + (f & 1), fy + 1, 1, 1);
+  }
+  for (const s of shrooms) { cx.fillStyle = `rgba(120,170,255,${0.35 + 0.25 * Math.sin(time * 1.6 + s.ph)})`; cx.fillRect(s.x + 1 - ox, s.y - oy, 3, 1); }
+  for (let ty = Math.floor(oy / T); ty <= Math.floor((oy + H) / T); ty++) for (let tx = Math.floor(ox / T); tx <= Math.floor((ox + W) / T); tx++) {
+    if (tile(tx, ty) !== AMBER) continue;
+    const ph = hash(tx, ty) * 6, a = Math.max(0, Math.sin(time * 2.2 + ph));
+    if (a > 0.3) { cx.fillStyle = `rgba(255,240,176,${a})`; cx.fillRect(tx * T + 2 + ((hash(ty, tx) * 4) | 0) - ox, ty * T + 2 + ((ph * 0.6) | 0) - oy, 1, 1); }
+  }
+  for (const it of items) if (it.k === 'amber' && Math.sin(time * 6 + it.x) > 0.5) { cx.fillStyle = '#fff0b0'; cx.fillRect(Math.round(it.x - 1 - ox), Math.round(it.y - 7 - oy), 1, 1); }
+  if (state !== 'dead') {
+    const lx = Math.round(P.x + 4 * P.face - ox), ly = Math.round(P.y - 10 - oy);
+    cx.fillStyle = '#4a3524'; cx.fillRect(lx - 1, ly - 1, 3, 1); cx.fillRect(lx - 1, ly + 3, 3, 1);
+    cx.fillStyle = P.oil > 0 || state === 'title' ? '#ffe08a' : '#6a2a10'; cx.fillRect(lx - 1, ly, 3, 3);
+    if (P.oil > 0) { cx.fillStyle = '#fff6d0'; cx.fillRect(lx, ly + 1, 1, 1); }
+    // глаза в темноте
+    const md = Math.hypot(M.x - P.x, M.y - P.y);
+    if (!M.rock && md < 240 && M.state !== 'flee') {
+      const ex = Math.round(M.x - MWID / 2 + (M.face > 0 ? MEYE.x : MWID - 2 - MEYE.x) - ox), ey = Math.round(M.y - MHEI / 2 + MEYE.y - oy);
+      const red = M.state === 'windup' || M.state === 'charge';
+      if (red || Math.sin(time * 0.9 + 2) < 0.985) {
+        cx.fillStyle = red ? 'rgba(255,58,26,.35)' : 'rgba(255,216,74,.25)'; cx.fillRect(ex - 1, ey - 1, 4, 3);
+        cx.fillStyle = red ? '#ff3a1a' : '#ffd84a'; cx.fillRect(ex, ey, 2, 1);
+      }
+    }
+  }
+  for (const p of parts) if (p.em) { cx.globalAlpha = clamp(p.life * 2, 0, 1); cx.fillStyle = p.c; cx.fillRect(Math.round(p.x - ox), Math.round(p.y - oy), 1, 1); }
+  cx.globalAlpha = 1;
+  if (altar.open) {
+    for (let k = 0; k < 6; k++) { const a = time * 0.9 + k * 1.047; cx.fillStyle = `rgba(255,178,56,${0.6 + 0.4 * Math.sin(time * 3 + k)})`; cx.fillRect(Math.round(altar.x + Math.cos(a) * 9 - ox), Math.round(altar.y - 14 + Math.sin(a) * 5 - oy), 1, 1); }
+    cx.fillStyle = `rgba(255,214,120,${0.7 + 0.3 * Math.sin(time * 4)})`; cx.fillRect(altar.x - 1 - ox, altar.y - 15 - oy, 3, 3);
+  }
+  // рамка цели копания
+  if (state === 'play' && digP && dig.tx >= 0) {
+    cx.strokeStyle = dig.ok ? 'rgba(255,240,200,.8)' : 'rgba(255,80,60,.6)'; cx.lineWidth = 1;
+    cx.strokeRect(dig.tx * T - ox + 0.5, dig.ty * T - oy + 0.5, T - 1, T - 1);
+  }
+  // стрелка к алтарю
+  if (state === 'play' && altar.open) {
+    const dx = altar.x - P.x, dy = altar.y - 8 - (P.y - 10), dd = Math.hypot(dx, dy);
+    if (dd > 60) {
+      const ax = P.x - ox + dx / dd * 22, ay = P.y - 10 - oy + dy / dd * 22;
+      cx.fillStyle = `rgba(255,178,56,${0.55 + 0.3 * Math.sin(time * 4)})`;
+      for (let k = 0; k < 3; k++) cx.fillRect(Math.round(ax - dx / dd * k * 2), Math.round(ay - dy / dd * k * 2), 1 + (k === 0), 1 + (k === 0));
+    }
+  }
+  if (flashT > 0.3) { cx.fillStyle = `rgba(255,240,200,${(flashT - 0.3) * 2})`; cx.fillRect(0, 0, W, H); }
+  if (state === 'dead') drawScare();
+  dctx.drawImage(off, 0, 0);
+}
+function drawAltar(ox, oy) {
+  const x = altar.x - 12 - ox, y = altar.y - 16 - oy;
+  const st = (a, b, w, h, c) => { cx.fillStyle = c; cx.fillRect(x + a, y + b, w, h); };
+  st(0, 12, 24, 4, '#2a2632'); st(1, 12, 22, 1, '#6a6474');
+  st(3, 5, 18, 7, '#4a4656'); st(3, 5, 18, 1, '#7a7488'); st(3, 5, 1, 7, '#5a5668');
+  st(1, 2, 22, 3, '#3a3644'); st(1, 2, 22, 1, '#8a8498');
+  st(10, 7, 4, 3, altar.open ? '#ffb238' : '#2a1e18'); st(11, 8, 2, 1, altar.open ? '#fff0b0' : '#1a1210');
+}
+function drawScare() {
+  const t = stateT;
+  cx.fillStyle = t < 0.08 ? '#ff3a1a' : '#07060d'; cx.fillRect(0, 0, W, H);
+  if (t > 1.1) return;
+  const sp = MOPEN[0], sx0 = 24, sw = 20, sh = 26;
+  const sc = Math.max(2, Math.floor(Math.min(W / 14, H / 18) * (0.85 + t * 0.5)));
+  const dw = sw * sc, dh = sh * sc, jx = (Math.random() - 0.5) * sc * 2, jy = (Math.random() - 0.5) * sc * 2;
+  cx.drawImage(sp, sx0, 0, sw, sh, Math.round(W / 2 - dw / 2 + jx), Math.round(H / 2 - dh / 2 + jy), dw, dh);
+  const ex = Math.round(W / 2 - dw / 2 + jx + (MEYE.x - sx0) * sc), ey = Math.round(H / 2 - dh / 2 + jy + MEYE.y * sc);
+  cx.fillStyle = '#ff3a1a'; cx.fillRect(ex, ey, sc * 2, sc);
+  if (Math.random() < 0.3) { cx.fillStyle = 'rgba(255,58,26,.25)'; cx.fillRect(0, 0, W, H); }
+  cx.fillStyle = 'rgba(7,6,13,.6)'; for (let k = 0; k < 6; k++) cx.fillRect(0, (Math.random() * H) | 0, W, (Math.random() * 3 + 1) | 0);
+}
+
+/* ---------- HUD ---------- */
+let lastSeg = -1;
+function updHUD(force) {
+  const seg = Math.ceil(P.oil * 10);
+  if (seg !== lastSeg || force) { lastSeg = seg; [...oilbar.children].forEach((e, i) => e.classList.toggle('on', i < seg)); oilbar.classList.toggle('low', P.oil < 0.25); }
+  if (force) { $('torchN').textContent = P.torches; $('amberN').textContent = `${got}/${need}`; }
+}
+
+/* ---------- состояния ---------- */
+const show = (id, on) => $(id).classList.toggle('hide', !on);
+const setPlayUI = on => { show('hud', on); show('ctl', on && isTouch); };
+function newGame() {
+  depth = 1; P = null; stats = { amber: 0, flashes: 0, saves: 0, blocks: 0, torches: 0, t0: performance.now() };
+  genWorld(); tipT = 0;
+  $('depth').textContent = 'ГЛУБИНА 1';
+  state = 'play'; stateT = 0;
+  show('title', false); show('over', false); $('over').classList.remove('shown'); setPlayUI(true); updHUD(true);
+  $('joyHint').classList.remove('hide');
+  msg(`Добудь ${need} янтаря — он светится в камне.<br><br>${isTouch ? 'Тапай по блоку, чтобы копать' : 'Зажми мышь на блоке, чтобы копать'}`, 4.5);
+  fadeIn('ГЛУБИНА 1');
+}
+function nextLevel() {
+  state = 'trans'; A.descend(); buzz(40);
+  const f = $('fade'); f.style.transition = 'opacity .7s'; f.textContent = ''; f.style.opacity = 1;
+  setTimeout(() => {
+    depth++; genWorld();
+    $('depth').textContent = 'ГЛУБИНА ' + depth;
+    if (depth > best.depth) { best.depth = depth; saveBest(); }
+    state = 'play'; stateT = 0; updHUD(true);
+    msg(`Добудь ${need} янтаря`, 2.5); fadeIn('ГЛУБИНА ' + depth);
+  }, 750);
+}
+function fadeIn(text) {
+  const f = $('fade'); f.style.transition = 'none'; f.textContent = text; f.style.opacity = 1;
+  requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transition = 'opacity 1.4s ease-in .6s'; f.style.opacity = 0; }));
+}
+function die() {
+  state = 'dead'; stateT = 0; shake = 1; digP = null;
+  A.scream(); A.setTension(0); buzz([300, 60, 500]);
+  setPlayUI(false); $('msg').classList.remove('on');
+}
+function showOver() {
+  state = 'over';
+  if (depth > best.depth) best.depth = depth; saveBest();
+  const secs = Math.round((performance.now() - stats.t0) / 1000);
+  $('overStats').innerHTML = `Глубина: ${depth}<br>Янтаря: ${stats.amber}<br>Блоков вскопано: ${stats.blocks}<br>Спасён вспышкой: ${stats.saves}<br>Во тьме: ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}<br><span style="color:var(--dim)">Рекорд: глубина ${best.depth}</span>`;
+  $('over').classList.add('shown'); show('over', true);
+}
+function startDemo() {
+  depth = 1; P = null; stats = { amber: 0, flashes: 0, saves: 0, blocks: 0, torches: 0, t0: 0 };
+  genWorld();
+  torches.set((Math.floor(P.y / T) - 1) * WW + Math.floor(P.x / T) - 2, { tx: Math.floor(P.x / T) - 2, ty: Math.floor(P.y / T) - 1, ph: 0 });
+  M.state = 'hover'; M.x = P.x + 70; M.y = P.y + 30; M.rock = false;
+  state = 'title'; stateT = 0; show('title', true);
+  $('bestTxt').textContent = best.depth > 1 ? `Рекорд: глубина ${best.depth}` : '';
+}
+function toMenu() { show('over', false); show('pause', false); $('over').classList.remove('shown'); setPlayUI(false); startDemo(); }
+function togglePause() {
+  if (state === 'play') { state = 'pause'; show('pause', true); if (A.ctx) A.ctx.suspend(); }
+  else if (state === 'pause') { state = 'play'; show('pause', false); if (A.ctx) A.ctx.resume(); }
+}
+$('howto').innerHTML = isTouch
+  ? 'Джойстик слева · тап по блоку — копать<br>ФАКЕЛ — поставить · СВЕТ — вспышка'
+  : 'A/D — идти · W/Пробел — прыжок · мышь — копать<br>T — факел · F — вспышка · P — пауза';
+$('startBtn').onclick = () => { A.init(); newGame(); };
+$('againBtn').onclick = () => { A.init(); newGame(); };
+$('menuBtn').onclick = toMenu;
+$('pauseBtn').onclick = togglePause;
+$('resumeBtn').onclick = togglePause;
+$('quitBtn').onclick = () => { if (A.ctx) A.ctx.resume(); toMenu(); };
+$('soundBtn').onclick = () => { A.setOn(!A.on); $('soundBtn').textContent = 'ЗВУК: ' + (A.on ? 'ВКЛ' : 'ВЫКЛ'); };
+document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') togglePause(); });
+
+let last = performance.now();
+function frame(now) {
+  const dt = clamp((now - last) / 1000, 0, 0.05); last = now;
+  update(dt);
+  if (state !== 'pause') render();
+  requestAnimationFrame(frame);
+}
+resize();
+startDemo();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
