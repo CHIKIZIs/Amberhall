@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#4a6b72">
+<title>Лесной шаман</title>
+<style>
+  /* ===== Палитра ===== */
+  :root {
+    --bg:     #4a6b72; /* фон */
+    --wine:   #7a2e3a; /* бордовый */
+    --dgreen: #1f6b5a; /* тёмно-зелёный */
+    --lgreen: #7fc46a; /* светло-зелёный */
+    --bone:   #e8d9b5; /* костяной */
+    --yellow: #f0c040; /* жёлтый */
+    --ink:    #1a1a22; /* контур */
+  }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);           /* поля вокруг canvas того же цвета — фон выглядит бесшовным */
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;              /* запрещаем прокрутку и зум жестами */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    font-family: "Courier New", ui-monospace, Menlo, Consolas, monospace;
+  }
+
+  /* Обёртка держит пропорции 9:16 и центрируется на экране */
+  #wrap {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Маленький canvas растягивается CSS-ом без сглаживания */
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  /* ===== Экраны меню (поверх canvas) ===== */
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4%;
+    text-align: center;
+    color: var(--bone);
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+  .screen.hidden { display: none; }
+
+  /* Плашка с жёстким пиксельным контуром и тенью без размытия */
+  .panel {
+    background: var(--dgreen);
+    border: 4px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 6% 8%;
+    width: 72%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6em;
+  }
+  .title {
+    font-size: clamp(20px, 7vmin, 44px);
+    color: var(--yellow);
+    letter-spacing: 0.08em;
+    line-height: 1.1;
+    text-shadow: 3px 3px 0 var(--ink);
+  }
+  .line {
+    font-size: clamp(13px, 3.6vmin, 22px);
+    letter-spacing: 0.06em;
+    text-shadow: 2px 2px 0 var(--ink);
+  }
+  .line b { color: var(--yellow); }
+  .hint {
+    font-size: clamp(11px, 3vmin, 18px);
+    color: var(--lgreen);
+    text-shadow: 2px 2px 0 var(--ink);
+  }
+
+  button.pix {
+    font: inherit;
+    font-size: clamp(15px, 4.4vmin, 26px);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    background: var(--yellow);
+    border: 4px solid var(--ink);
+    box-shadow: 4px 4px 0 var(--ink);
+    padding: 0.5em 1em;
+    margin-top: 0.4em;
+    cursor: pointer;
+    border-radius: 0;
+  }
+  button.pix:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+
+  /* Мигание надписи «коснись» ступеньками, без плавности */
+  .blink { animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+
+<div id="wrap">
+  <canvas id="game" width="180" height="320"></canvas>
+
+  <!-- Стартовый экран -->
+  <div id="startScreen" class="screen">
+    <div class="panel">
+      <div class="title">Лесной<br>шаман</div>
+      <div class="line">Лови <b>огоньки</b></div>
+      <div class="line">Беги от черепов</div>
+      <div class="line">Рекорд: <b id="startBest">0</b></div>
+      <button class="pix" id="startBtn">Играть</button>
+      <div class="hint blink">Води пальцем влево-вправо</div>
+    </div>
+  </div>
+
+  <!-- Экран проигрыша -->
+  <div id="overScreen" class="screen hidden">
+    <div class="panel">
+      <div class="title">Духи<br>победили</div>
+      <div class="line">Счёт: <b id="overScore">0</b></div>
+      <div class="line">Рекорд: <b id="overBest">0</b></div>
+      <div class="hint" id="newRecord" style="display:none">Новый рекорд!</div>
+      <button class="pix" id="againBtn">Играть снова</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* =====================================================================
+   НАСТРОЙКИ
+   ===================================================================== */
+const W = 180, H = 320;            // логическое разрешение canvas
+const GROUND_Y = 296;              // линия, на которой стоит шаман
+const BEST_KEY = "forestShaman.best";
+
+// Палитра: символ в спрайте -> цвет. Точка = прозрачный пиксель.
+const PALETTE = {
+  "b": "#e8d9b5",  // костяной
+  "r": "#7a2e3a",  // бордовый
+  "d": "#1f6b5a",  // тёмно-зелёный
+  "g": "#7fc46a",  // светло-зелёный
+  "y": "#f0c040",  // жёлтый
+  "k": "#1a1a22",  // контур
+};
+const BG  = "#4a6b72";
+const INK = PALETTE.k;
+
+/* =====================================================================
+   СПРАЙТЫ (массивы пикселей)
+   Контур в 1 пиксель добавляется автоматически при «запекании» спрайта
+   (см. bakeSprite), поэтому вокруг рисунка оставлено пустое поле.
+   ===================================================================== */
+
+// Шаман 24×24: рогатый капюшон, костяная маска, бордовая мантия, посох с огнём
+const SHAMAN = [
+  "........................",
+  "..b.......b........yyy..",
+  "..b.......b.......yyyyy.",
+  "..bb.....bb.......yybyy.",
+  "...bbdddbb........yyyyy.",
+  "....ddddd..........yyy..",
+  "...dbbbbbd..........d...",
+  "...dbkbkbd..........d...",
+  "...dbbbbbd..........d...",
+  "...ddbkbdd..........d...",
+  "..rrrdddrrr.........d...",
+  ".rrrgrgrgrrr........d...",
+  ".rrrrryrrrrrrrrrrrrbbb..",
+  ".rrrrrrrrrrrrrrrrrrbbb..",
+  ".rrrrrrrrrrr........d...",
+  ".rrgrrrrrgrr........d...",
+  ".rrrrrrrrrrr........d...",
+  ".rrrgrrrgrrr........d...",
+  "..rrrrrrrrr.........d...",
+  "..rdgdgdgdr.........d...",
+  "..ddddddddd.........d...",
+  "...dd...dd..........d...",
+  "...kk...kk..........d...",
+  "........................",
+];
+
+// Светящийся шар 16×16 (блик костяного цвета)
+const ORB = [
+  "................",
+  "................",
+  "................",
+  "......yyyy......",
+  ".....yyyyyy.....",
+  "....yybbyyyy....",
+  "...yybbyyyyyy...",
+  "...yybyyyyyyy...",
+  "...yyyyyyyyyy...",
+  "...yyyyyyyyyy...",
+  "....yyyyyyyy....",
+  ".....yyyyyy.....",
+  "......yyyy......",
+  "................",
+  "................",
+  "................",
+];
+
+// Череп 16×16 с бордовыми огоньками в глазницах
+const SKULL = [
+  "................",
+  "................",
+  ".....bbbbbb.....",
+  "....bbbbbbbb....",
+  "...bbbbbbbbbb...",
+  "...bbbbbbbbbb...",
+  "...bkkbbbbkkb...",
+  "...bkkkbbkkkb...",
+  "...bkrkbbkrkb...",
+  "...bbbbkkbbbb...",
+  "....bbbkkbbb....",
+  ".....bbbbbb.....",
+  ".....bkbkbk.....",
+  ".....bbbbbb.....",
+  "................",
+  "................",
+];
+
+// Сердечко 9×8 для жизней
+const HEART = [
+  ".........",
+  ".rr...rr.",
+  "rrbr.rrrr",
+  "rbrrrrrrr",
+  ".rrrrrrr.",
+  "..rrrrr..",
+  "...rrr...",
+  "....r....",
+];
+
+// Пиксельный шрифт 3×5 для цифр и пары знаков
+const FONT = {
+  "0": ["111","101","101","101","111"],
+  "1": ["010","110","010","010","111"],
+  "2": ["111","001","111","100","111"],
+  "3": ["111","001","011","001","111"],
+  "4": ["101","101","111","001","001"],
+  "5": ["111","100","111","001","111"],
+  "6": ["111","100","111","101","111"],
+  "7": ["111","001","010","010","010"],
+  "8": ["111","101","111","101","111"],
+  "9": ["111","101","111","001","111"],
+  "+": ["000","010","111","010","000"],
+  "-": ["000","000","111","000","000"],
+};
+
+// Корона 7×5 — значок рекорда рядом с цифрами
+const CROWN = [
+  "y.y.y.y",
+  "yyyyyyy",
+  "yyyyyyy",
+  "yrryrry",
+  "yyyyyyy",
+];
+
+/* =====================================================================
+   ЗАПЕКАНИЕ СПРАЙТОВ
+   Превращаем массив строк в offscreen-canvas. Каждый прозрачный пиксель,
+   соседний (по 4 направлениям) с закрашенным, становится контуром.
+   ===================================================================== */
+function bakeSprite(rows, { outline = true, flip = false } = {}) {
+  const h = rows.length, w = rows[0].length;
+  const at = (x, y) => (x < 0 || y < 0 || x >= w || y >= h) ? "." : rows[y][x];
+
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const g = c.getContext("2d");
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const ch = at(x, y);
+      let color = null;
+      if (ch !== ".") {
+        color = PALETTE[ch];
+      } else if (outline &&
+        (at(x-1,y) !== "." || at(x+1,y) !== "." || at(x,y-1) !== "." || at(x,y+1) !== ".")) {
+        color = INK;
+      }
+      if (color) {
+        g.fillStyle = color;
+        // зеркалим по горизонтали, если нужно (шаман смотрит влево)
+        g.fillRect(flip ? w - 1 - x : x, y, 1, 1);
+      }
+    }
+  }
+  return c;
+}
+
+const SPR = {
+  shamanR: bakeSprite(SHAMAN),
+  shamanL: bakeSprite(SHAMAN, { flip: true }),
+  orb:     bakeSprite(ORB),
+  skull:   bakeSprite(SKULL),
+  heart:   bakeSprite(HEART),
+  // «пустое» сердце — только силуэт цвета контура
+  heartEmpty: bakeSprite(HEART.map(r => r.replace(/[^.]/g, "k")), { outline: false }),
+  crown:   bakeSprite(CROWN, { outline: false }),
+};
+
+/* =====================================================================
+   CANVAS И МАСШТАБИРОВАНИЕ
+   ===================================================================== */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;   // никакого сглаживания
+
+const wrap = document.getElementById("wrap");
+
+// Вписываем 9:16 в окно целиком, сохраняя пропорции
+function resize() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const scale = Math.min(vw / W, vh / H);
+  wrap.style.width  = Math.floor(W * scale) + "px";
+  wrap.style.height = Math.floor(H * scale) + "px";
+}
+window.addEventListener("resize", resize);
+resize();
+
+/* =====================================================================
+   ЗВУК (WebAudio, генерируем на лету)
+   ===================================================================== */
+let audio = null;
+function initAudio() {
+  if (!audio) {
+    try { audio = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) { audio = null; }
+  }
+  if (audio && audio.state === "suspended") audio.resume();
+}
+
+// Короткий тон с изменением частоты от f1 до f2
+function tone(type, f1, f2, dur, vol = 0.15) {
+  if (!audio) return;
+  const t = audio.currentTime;
+  const osc = audio.createOscillator();
+  const gain = audio.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(f1, t);
+  osc.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.connect(gain).connect(audio.destination);
+  osc.start(t);
+  osc.stop(t + dur + 0.02);
+}
+
+const sfx = {
+  catch()   { tone("square", 880, 1760, 0.09, 0.08); },              // «пик»
+  hit()     { tone("sawtooth", 160, 40, 0.35, 0.2); tone("square", 90, 30, 0.3, 0.12); }, // низкий удар
+  levelUp() { tone("square", 660, 990, 0.08, 0.06); setTimeout(() => tone("square", 990, 1320, 0.1, 0.06), 90); },
+  over()    { tone("triangle", 330, 55, 0.9, 0.2); },
+};
+
+/* =====================================================================
+   РЕКОРД (localStorage, с защитой от ошибок в приватном режиме)
+   ===================================================================== */
+function loadBest() {
+  try { return parseInt(localStorage.getItem(BEST_KEY), 10) || 0; } catch (e) { return 0; }
+}
+function saveBest(v) {
+  try { localStorage.setItem(BEST_KEY, String(v)); } catch (e) { /* хранилище недоступно */ }
+}
+
+/* =====================================================================
+   СОСТОЯНИЕ ИГРЫ
+   ===================================================================== */
+const state = {
+  mode: "menu",        // menu | play | over
+  score: 0,
+  best: loadBest(),
+  lives: 3,
+  level: 0,            // растёт каждые 10 очков
+  items: [],           // падающие шары и черепа
+  particles: [],       // пиксельные искры
+  popups: [],          // всплывающие «+1»
+  spawnTimer: 0,
+  invuln: 0,           // неуязвимость после удара (сек)
+  shake: 0,            // тряска экрана (сек)
+  time: 0,
+};
+
+const shaman = {
+  x: W / 2,            // центр по горизонтали
+  targetX: W / 2,      // куда тянет палец
+  facing: 1,           // 1 вправо, -1 влево
+  w: 24, h: 24,
+};
+
+// Скорость падения и частота появления зависят от уровня
+const fallSpeed     = () => 55 * (1 + state.level * 0.18);      // пикс/сек
+const spawnInterval = () => Math.max(0.32, 0.9 - state.level * 0.07);
+
+function resetGame() {
+  state.score = 0;
+  state.lives = 3;
+  state.level = 0;
+  state.items.length = 0;
+  state.particles.length = 0;
+  state.popups.length = 0;
+  state.spawnTimer = 0.5;
+  state.invuln = 0;
+  state.shake = 0;
+  shaman.x = shaman.targetX = W / 2;
+}
+
+/* =====================================================================
+   УПРАВЛЕНИЕ: палец (или мышь) тянет шамана, клавиши — для ПК
+   ===================================================================== */
+function pointerToCanvasX(clientX) {
+  const rect = canvas.getBoundingClientRect();
+  return (clientX - rect.left) / rect.width * W;
+}
+
+let dragging = false;
+canvas.addEventListener("pointerdown", e => {
+  dragging = true;
+  shaman.targetX = pointerToCanvasX(e.clientX);
+  initAudio();
+});
+window.addEventListener("pointermove", e => {
+  // на телефоне палец всегда «нажат»; мышью двигаем без нажатия тоже
+  if (dragging || e.pointerType === "mouse") shaman.targetX = pointerToCanvasX(e.clientX);
+});
+window.addEventListener("pointerup",     () => dragging = false);
+window.addEventListener("pointercancel", () => dragging = false);
+
+const keys = {};
+window.addEventListener("keydown", e => {
+  keys[e.key] = true;
+  if ((e.key === "Enter" || e.key === " ") && state.mode !== "play") startGame();
+});
+window.addEventListener("keyup", e => keys[e.key] = false);
+
+/* =====================================================================
+   МЕНЮ
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+$("startBest").textContent = state.best;
+
+function startGame() {
+  initAudio();
+  resetGame();
+  state.mode = "play";
+  $("startScreen").classList.add("hidden");
+  $("overScreen").classList.add("hidden");
+}
+$("startBtn").addEventListener("click", startGame);
+$("againBtn").addEventListener("click", startGame);
+
+function gameOver() {
+  state.mode = "over";
+  sfx.over();
+  const isRecord = state.score > state.best;
+  if (isRecord) { state.best = state.score; saveBest(state.best); }
+  $("overScore").textContent = state.score;
+  $("overBest").textContent  = state.best;
+  $("startBest").textContent = state.best;
+  $("newRecord").style.display = isRecord ? "block" : "none";
+  // небольшая пауза, чтобы случайное касание не нажало кнопку сразу
+  setTimeout(() => $("overScreen").classList.remove("hidden"), 450);
+}
+
+/* =====================================================================
+   ЛОГИКА
+   ===================================================================== */
+function spawnItem() {
+  const isSkull = Math.random() < Math.min(0.5, 0.3 + state.level * 0.03);
+  state.items.push({
+    kind: isSkull ? "skull" : "orb",
+    x: 10 + Math.random() * (W - 20),   // центр
+    y: -10,
+    speed: fallSpeed() * (0.85 + Math.random() * 0.3),
+    wobble: Math.random() * Math.PI * 2, // для покачивания черепов
+  });
+}
+
+function burst(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = 20 + Math.random() * 50;
+    state.particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 20, life: 0.5, color });
+  }
+}
+
+function update(dt) {
+  state.time += dt;
+
+  // Частицы и всплывашки обновляем в любом режиме
+  for (const p of state.particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; p.life -= dt; }
+  state.particles = state.particles.filter(p => p.life > 0);
+  for (const p of state.popups) { p.y -= 18 * dt; p.life -= dt; }
+  state.popups = state.popups.filter(p => p.life > 0);
+  state.shake = Math.max(0, state.shake - dt);
+
+  if (state.mode !== "play") return;
+
+  // Клавиатура двигает цель
+  if (keys.ArrowLeft  || keys.a) shaman.targetX -= 140 * dt;
+  if (keys.ArrowRight || keys.d) shaman.targetX += 140 * dt;
+  shaman.targetX = Math.max(10, Math.min(W - 10, shaman.targetX));
+
+  // Плавно, но быстро догоняем палец
+  const prev = shaman.x;
+  shaman.x += (shaman.targetX - shaman.x) * Math.min(1, dt * 14);
+  if (Math.abs(shaman.x - prev) > 0.05) shaman.facing = shaman.x > prev ? 1 : -1;
+
+  state.invuln = Math.max(0, state.invuln - dt);
+
+  // Появление новых предметов
+  state.spawnTimer -= dt;
+  if (state.spawnTimer <= 0) {
+    spawnItem();
+    state.spawnTimer = spawnInterval() * (0.7 + Math.random() * 0.6);
+  }
+
+  // Хитбокс шамана (тело без посоха и рогов)
+  const box = { l: shaman.x - 8, r: shaman.x + 8, t: GROUND_Y - 20, b: GROUND_Y };
+
+  for (const it of state.items) {
+    it.y += it.speed * dt;
+    if (it.kind === "skull") it.wobble += dt * 6;
+
+    // Столкновение: окружность радиуса ~5 против прямоугольника
+    const cx = Math.max(box.l, Math.min(it.x, box.r));
+    const cy = Math.max(box.t, Math.min(it.y, box.b));
+    const hit = (it.x - cx) ** 2 + (it.y - cy) ** 2 < 5 * 5;
+
+    if (hit) {
+      it.dead = true;
+      if (it.kind === "orb") {
+        state.score++;
+        sfx.catch();
+        burst(it.x, it.y, PALETTE.y, 8);
+        state.popups.push({ x: it.x, y: it.y - 8, life: 0.7 });
+        // каждые 10 очков — новый уровень скорости
+        const newLevel = Math.floor(state.score / 10);
+        if (newLevel > state.level) { state.level = newLevel; sfx.levelUp(); }
+      } else if (state.invuln <= 0) {
+        state.lives--;
+        state.invuln = 1.2;
+        state.shake = 0.3;
+        sfx.hit();
+        burst(it.x, it.y, PALETTE.b, 10);
+        if (state.lives <= 0) { burst(shaman.x, GROUND_Y - 12, PALETTE.r, 24); gameOver(); }
+      }
+    } else if (it.y > H + 10) {
+      it.dead = true; // улетел за экран — ничего не происходит
+    }
+  }
+  state.items = state.items.filter(it => !it.dead);
+}
+
+/* =====================================================================
+   ОТРИСОВКА
+   ===================================================================== */
+
+// Число пиксельным шрифтом; align: "left" | "right" | "center"
+function drawText(str, x, y, color, align = "left", scale = 1) {
+  str = String(str);
+  const adv = 4 * scale;                 // 3 пикселя символ + 1 пробел
+  const width = str.length * adv - scale;
+  if (align === "right")  x -= width;
+  if (align === "center") x -= Math.floor(width / 2);
+  for (const ch of str) {
+    const glyph = FONT[ch];
+    if (glyph) {
+      for (let gy = 0; gy < 5; gy++)
+        for (let gx = 0; gx < 3; gx++)
+          if (glyph[gy][gx] === "1") {
+            // тень-контур снизу справа, затем сам пиксель
+            ctx.fillStyle = INK;   ctx.fillRect(x + gx * scale + 1, y + gy * scale + 1, scale, scale);
+          }
+      for (let gy = 0; gy < 5; gy++)
+        for (let gx = 0; gx < 3; gx++)
+          if (glyph[gy][gx] === "1") {
+            ctx.fillStyle = color; ctx.fillRect(x + gx * scale, y + gy * scale, scale, scale);
+          }
+    }
+    x += adv;
+  }
+}
+
+// Пунктирная тень под ногами: два ряда точек через одну, со сдвигом
+function drawShadow(cx) {
+  ctx.fillStyle = INK;
+  const half = 10;
+  for (let dx = -half; dx <= half; dx += 2) ctx.fillRect(Math.round(cx + dx), GROUND_Y, 1, 1);
+  for (let dx = -half + 3; dx <= half - 3; dx += 2) ctx.fillRect(Math.round(cx + dx), GROUND_Y + 1, 1, 1);
+}
+
+function drawShaman() {
+  // Мигание во время неуязвимости
+  if (state.invuln > 0 && Math.floor(state.time * 12) % 2 === 0) return;
+
+  const sprite = shaman.facing < 0 ? SPR.shamanL : SPR.shamanR;
+  // Тело занимает колонки 1..12 спрайта; центрируем по телу, а не по посоху
+  const bodyCenter = shaman.facing < 0 ? 24 - 6.5 : 6.5;
+  // Лёгкое «дыхание» на 1 пиксель
+  const bob = (state.mode === "play" && Math.floor(state.time * 4) % 2) ? 1 : 0;
+  const x = Math.round(shaman.x - bodyCenter);
+  const y = GROUND_Y - 23 + bob;
+  ctx.drawImage(sprite, x, y);
+
+  // Огонь на посохе мерцает: пара пикселей пляшет над шаром
+  const staffX = shaman.facing < 0 ? x + 3 : x + 20;
+  if (Math.floor(state.time * 8) % 2) {
+    ctx.fillStyle = PALETTE.y;
+    ctx.fillRect(staffX, y - 1, 1, 1);
+  } else {
+    ctx.fillStyle = PALETTE.y;
+    ctx.fillRect(staffX + (shaman.facing < 0 ? 1 : -1), y - 1, 1, 1);
+  }
+}
+
+function drawItem(it) {
+  const x = Math.round(it.x - 8), y = Math.round(it.y - 8);
+  if (it.kind === "orb") {
+    ctx.drawImage(SPR.orb, x, y);
+    // «Свечение» без размытия: мерцающие пиксельные искры вокруг шара
+    const phase = Math.floor((state.time * 6 + it.x) % 4);
+    ctx.fillStyle = PALETTE.y;
+    const ring = [[8,0],[15,8],[8,15],[0,8],[3,2],[13,3],[13,13],[2,13]];
+    for (let i = phase % 2; i < ring.length; i += 2) {
+      ctx.fillRect(x + ring[i][0], y + ring[i][1], 1, 1);
+    }
+  } else {
+    // Череп слегка покачивается по горизонтали (целыми пикселями)
+    const wob = Math.round(Math.sin(it.wobble) * 1.5);
+    ctx.drawImage(SPR.skull, x + wob, y);
+  }
+}
+
+function drawHUD() {
+  // Жизни — сердечки слева
+  for (let i = 0; i < 3; i++) {
+    ctx.drawImage(i < state.lives ? SPR.heart : SPR.heartEmpty, 4 + i * 11, 4);
+  }
+  // Счёт — крупно справа
+  drawText(state.score, W - 5, 4, PALETTE.b, "right", 2);
+  // Рекорд — мелко под счётом, с короной
+  const bestStr = String(Math.max(state.best, state.score));
+  drawText(bestStr, W - 5, 17, PALETTE.y, "right", 1);
+  ctx.drawImage(SPR.crown, W - 5 - bestStr.length * 4 - 8, 17);
+  // Индикатор уровня скорости — светло-зелёные пиксельные «зарубки»
+  ctx.fillStyle = PALETTE.g;
+  for (let i = 0; i < Math.min(state.level, 15); i++) ctx.fillRect(5 + i * 3, 15, 2, 3);
+}
+
+function render() {
+  // Тряска экрана при ударе — смещение целыми пикселями
+  const sx = state.shake > 0 ? Math.round((Math.random() - 0.5) * 4) : 0;
+  const sy = state.shake > 0 ? Math.round((Math.random() - 0.5) * 4) : 0;
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = BG;                 // плоский фон одного цвета
+  ctx.fillRect(0, 0, W, H);
+  ctx.setTransform(1, 0, 0, 1, sx, sy);
+
+  for (const it of state.items) drawItem(it);
+
+  if (state.mode !== "over" || state.lives > 0) {
+    drawShadow(shaman.x);
+    drawShaman();
+  } else {
+    drawShadow(shaman.x);             // после поражения остаётся только тень
+  }
+
+  for (const p of state.particles) {
+    ctx.fillStyle = p.color;
+    ctx.fillRect(Math.round(p.x), Math.round(p.y), 1, 1);
+  }
+  for (const p of state.popups) drawText("+1", Math.round(p.x), Math.round(p.y), PALETTE.y, "center");
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (state.mode === "play" || state.mode === "over") drawHUD();
+}
+
+/* =====================================================================
+   ГЛАВНЫЙ ЦИКЛ
+   ===================================================================== */
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); // ограничиваем шаг после сворачивания вкладки
+  last = now;
+  update(dt);
+  render();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
