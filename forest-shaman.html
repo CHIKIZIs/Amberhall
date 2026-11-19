@@ -121,7 +121,7 @@
 <body>
 
 <div id="wrap">
-  <canvas id="game" width="180" height="320"></canvas>
+  <canvas id="game" width="160" height="284"></canvas>
 
   <!-- Стартовый экран -->
   <div id="startScreen" class="screen">
@@ -153,8 +153,8 @@
 /* =====================================================================
    НАСТРОЙКИ
    ===================================================================== */
-const W = 180, H = 320;            // логическое разрешение canvas
-const GROUND_Y = 296;              // линия, на которой стоит шаман
+const W = 160, H = 284;            // логическое разрешение canvas (9:16)
+const GROUND_Y = 266;              // линия, на которой стоит шаман
 const BEST_KEY = "forestShaman.best";
 
 // Палитра: символ в спрайте -> цвет. Точка = прозрачный пиксель.
@@ -165,6 +165,11 @@ const PALETTE = {
   "g": "#7fc46a",  // светло-зелёный
   "y": "#f0c040",  // жёлтый
   "k": "#1a1a22",  // контур
+  // дополнительные тона из референса шамана
+  "p": "#a07779",  // пыльно-розовый (основания рогов, тень кости)
+  "o": "#a26a52",  // коричневый (пояс)
+  "t": "#105a57",  // глубокий бирюзовый (тень плаща и лозы)
+  "a": "#c58d48",  // янтарный (тень жёлтого)
 };
 const BG  = "#4a6b72";
 const INK = PALETTE.k;
@@ -175,70 +180,76 @@ const INK = PALETTE.k;
    (см. bakeSprite), поэтому вокруг рисунка оставлено пустое поле.
    ===================================================================== */
 
-// Шаман 24×24: рогатый капюшон, костяная маска, бордовая мантия, посох с огнём
+// Шаман 37×28 (пиксели сняты с референса): маска-лицо с руной, рога-крюки,
+// бордовый плащ с бирюзовым краем, посох-лоза с янтарным завитком слева.
+// Контур уже нарисован в сетке.
 const SHAMAN = [
-  "........................",
-  "..b.......b........yyy..",
-  "..b.......b.......yyyyy.",
-  "..bb.....bb.......yybyy.",
-  "...bbdddbb........yyyyy.",
-  "....ddddd..........yyy..",
-  "...dbbbbbd..........d...",
-  "...dbkbkbd..........d...",
-  "...dbbbbbd..........d...",
-  "...ddbkbdd..........d...",
-  "..rrrdddrrr.........d...",
-  ".rrrgrgrgrrr........d...",
-  ".rrrrryrrrrrrrrrrrrbbb..",
-  ".rrrrrrrrrrrrrrrrrrbbb..",
-  ".rrrrrrrrrrr........d...",
-  ".rrgrrrrrgrr........d...",
-  ".rrrrrrrrrrr........d...",
-  ".rrrgrrrgrrr........d...",
-  "..rrrrrrrrr.........d...",
-  "..rdgdgdgdr.........d...",
-  "..ddddddddd.........d...",
-  "...dd...dd..........d...",
-  "...kk...kk..........d...",
-  "........................",
+  ".....................................",
+  ".............kkk..............kkk....",
+  "............kbbk..............kbbk...",
+  "...........kbbk................kbbk..",
+  "...........kbk..................kbk..",
+  "...........kbk.kkk..........kkk.kbk..",
+  "..........kbbkkppk.kkkkkkk..kppkkbbk.",
+  "..kkk.....kbppkkkkkgggddtdk..kpkbbbk.",
+  "..kggk....kbpkdgdggdggddtdkk.kpbbbbk.",
+  "..kgdkkk...kpkdgdgyaygtdddkrkpbbbpk..",
+  "...kkorrkk..kkdgaygdgytdddkkpbbpkk...",
+  "...kokkkrdk..kdggygaggtdddkkppkk.....",
+  "..kok...krk..kdggyggggdddkrppk.......",
+  "..kak.kk.krk..kgkgygkgdddkrpkk.......",
+  "..kakkyk.kok..kkkgggkktdtkrpkk.......",
+  ".kgkayyk..krk.kkkgggkktdtkrkk........",
+  ".kgdkkk...kgk..kkgggkktdkrrrk........",
+  ".kgk.......krk.kkgdgkdtdkrrk.........",
+  ".kk........krk.kdgdggdtdkrkk.........",
+  "...........kdk..kkkkkkkkrkttk........",
+  "............kdkkkkarrrarrrktk........",
+  "............kdkrrroyyaoorrrkdk.......",
+  "............kdkrrrooooookrrrkk.......",
+  ".............kdkkkroooorrkrrktkk.....",
+  ".............ktk.krrkkkrrkkkdtddk....",
+  ".............ktk.kppkkkbbkkddktdtk...",
+  "..............k...kk...kk..kk.kkk....",
+  ".....................................",
 ];
 
-// Светящийся шар 16×16 (блик костяного цвета)
+// Светящийся шар 16×16: жёлтый, янтарная тень снизу справа, толстый контур
 const ORB = [
   "................",
-  "................",
-  "................",
-  "......yyyy......",
-  ".....yyyyyy.....",
-  "....yybbyyyy....",
-  "...yybbyyyyyy...",
-  "...yybyyyyyyy...",
-  "...yyyyyyyyyy...",
-  "...yyyyyyyyyy...",
-  "....yyyyyyyy....",
-  ".....yyyyyy.....",
-  "......yyyy......",
-  "................",
-  "................",
+  "......kkkk......",
+  "....kkyyyykk....",
+  "...kyyyyyyyyk...",
+  "..kyyyyyyyyyyk..",
+  "..kyyyyyyyyyak..",
+  ".kyyyyyyyyyyyak.",
+  ".kyyyyyyyyyyyak.",
+  ".kyyyyyyyyyyaak.",
+  ".kyyyyyyyyyyaak.",
+  "..kyyyyyyyyaak..",
+  "..kayyyyyyaaak..",
+  "...kaayyaaaak...",
+  "....kkaaaakk....",
+  "......kkkk......",
   "................",
 ];
 
-// Череп 16×16 с бордовыми огоньками в глазницах
+// Череп 16×16: кость, розовая тень справа, зелёные огоньки в глазницах
 const SKULL = [
   "................",
-  "................",
-  ".....bbbbbb.....",
-  "....bbbbbbbb....",
-  "...bbbbbbbbbb...",
-  "...bbbbbbbbbb...",
-  "...bkkbbbbkkb...",
-  "...bkkkbbkkkb...",
-  "...bkrkbbkrkb...",
-  "...bbbbkkbbbb...",
-  "....bbbkkbbb....",
-  ".....bbbbbb.....",
-  ".....bkbkbk.....",
-  ".....bbbbbb.....",
+  ".....kkkkkkk....",
+  "....kbbbbbbbk...",
+  "...kbbbbbbbbbk..",
+  "..kbbbbbbbbbbpk.",
+  "..kbbbbbbbbbbpk.",
+  "..kbkkkbbbkkkpk.",
+  "..kbkgkbbbkgkpk.",
+  "..kbkkkbkbkkkpk.",
+  "..kbbbbkkkbbppk.",
+  "...kbbbbbbbppk..",
+  "....kpbkbkbpk...",
+  "....kpbkbkbpk...",
+  ".....kkkkkkk....",
   "................",
   "................",
 ];
@@ -247,8 +258,8 @@ const SKULL = [
 const HEART = [
   ".........",
   ".rr...rr.",
-  "rrbr.rrrr",
-  "rbrrrrrrr",
+  "rrrr.rrrr",
+  "rrrrrrrrp",
   ".rrrrrrr.",
   "..rrrrr..",
   "...rrr...",
@@ -288,6 +299,7 @@ const CROWN = [
 function bakeSprite(rows, { outline = true, flip = false } = {}) {
   const h = rows.length, w = rows[0].length;
   const at = (x, y) => (x < 0 || y < 0 || x >= w || y >= h) ? "." : rows[y][x];
+  const solid = (x, y) => { const ch = at(x, y); return ch !== "." && ch !== "k"; };
 
   const c = document.createElement("canvas");
   c.width = w; c.height = h;
@@ -300,7 +312,7 @@ function bakeSprite(rows, { outline = true, flip = false } = {}) {
       if (ch !== ".") {
         color = PALETTE[ch];
       } else if (outline &&
-        (at(x-1,y) !== "." || at(x+1,y) !== "." || at(x,y-1) !== "." || at(x,y+1) !== ".")) {
+        (solid(x-1,y) || solid(x+1,y) || solid(x,y-1) || solid(x,y+1))) {
         color = INK;
       }
       if (color) {
@@ -314,8 +326,8 @@ function bakeSprite(rows, { outline = true, flip = false } = {}) {
 }
 
 const SPR = {
-  shamanR: bakeSprite(SHAMAN),
-  shamanL: bakeSprite(SHAMAN, { flip: true }),
+  shamanL: bakeSprite(SHAMAN),                 // как в сетке: смотрит влево
+  shamanR: bakeSprite(SHAMAN, { flip: true }),  // зеркальная копия
   orb:     bakeSprite(ORB),
   skull:   bakeSprite(SKULL),
   heart:   bakeSprite(HEART),
@@ -409,8 +421,8 @@ const state = {
 const shaman = {
   x: W / 2,            // центр по горизонтали
   targetX: W / 2,      // куда тянет палец
-  facing: 1,           // 1 вправо, -1 влево
-  w: 24, h: 24,
+  facing: -1,          // 1 вправо, -1 влево (по умолчанию как на референсе)
+  w: 37, h: 28,
 };
 
 // Скорость падения и частота появления зависят от уровня
@@ -523,7 +535,7 @@ function update(dt) {
   // Клавиатура двигает цель
   if (keys.ArrowLeft  || keys.a) shaman.targetX -= 140 * dt;
   if (keys.ArrowRight || keys.d) shaman.targetX += 140 * dt;
-  shaman.targetX = Math.max(10, Math.min(W - 10, shaman.targetX));
+  shaman.targetX = Math.max(16, Math.min(W - 16, shaman.targetX));
 
   // Плавно, но быстро догоняем палец
   const prev = shaman.x;
@@ -540,7 +552,7 @@ function update(dt) {
   }
 
   // Хитбокс шамана (тело без посоха и рогов)
-  const box = { l: shaman.x - 8, r: shaman.x + 8, t: GROUND_Y - 20, b: GROUND_Y };
+  const box = { l: shaman.x - 8, r: shaman.x + 8, t: GROUND_Y - 22, b: GROUND_Y };
 
   for (const it of state.items) {
     it.y += it.speed * dt;
@@ -609,33 +621,30 @@ function drawText(str, x, y, color, align = "left", scale = 1) {
 // Пунктирная тень под ногами: два ряда точек через одну, со сдвигом
 function drawShadow(cx) {
   ctx.fillStyle = INK;
-  const half = 10;
-  for (let dx = -half; dx <= half; dx += 2) ctx.fillRect(Math.round(cx + dx), GROUND_Y, 1, 1);
-  for (let dx = -half + 3; dx <= half - 3; dx += 2) ctx.fillRect(Math.round(cx + dx), GROUND_Y + 1, 1, 1);
+  const half = 16;
+  for (let dx = -half; dx <= half; dx += 2) ctx.fillRect(Math.round(cx + dx), GROUND_Y + 1, 1, 1);
+  for (let dx = -half + 3; dx <= half - 3; dx += 2) ctx.fillRect(Math.round(cx + dx), GROUND_Y + 2, 1, 1);
 }
 
 function drawShaman() {
   // Мигание во время неуязвимости
   if (state.invuln > 0 && Math.floor(state.time * 12) % 2 === 0) return;
 
-  const sprite = shaman.facing < 0 ? SPR.shamanL : SPR.shamanR;
-  // Тело занимает колонки 1..12 спрайта; центрируем по телу, а не по посоху
-  const bodyCenter = shaman.facing < 0 ? 24 - 6.5 : 6.5;
+  // Исходный спрайт смотрит влево (посох слева); при движении вправо зеркалим
+  const flipped = shaman.facing > 0;
+  const sprite = flipped ? SPR.shamanR : SPR.shamanL;
+  // Центрируем по маске (колонка 20 исходника), а не по посоху
+  const bodyCenter = flipped ? 37 - 1 - 20 : 20;
   // Лёгкое «дыхание» на 1 пиксель
   const bob = (state.mode === "play" && Math.floor(state.time * 4) % 2) ? 1 : 0;
   const x = Math.round(shaman.x - bodyCenter);
-  const y = GROUND_Y - 23 + bob;
+  const y = GROUND_Y - 26 + bob;
   ctx.drawImage(sprite, x, y);
 
-  // Огонь на посохе мерцает: пара пикселей пляшет над шаром
-  const staffX = shaman.facing < 0 ? x + 3 : x + 20;
-  if (Math.floor(state.time * 8) % 2) {
-    ctx.fillStyle = PALETTE.y;
-    ctx.fillRect(staffX, y - 1, 1, 1);
-  } else {
-    ctx.fillStyle = PALETTE.y;
-    ctx.fillRect(staffX + (shaman.facing < 0 ? 1 : -1), y - 1, 1, 1);
-  }
+  // Искра над янтарным завитком посоха мерцает
+  const sparkX = flipped ? x + 37 - 1 - 3 : x + 3;
+  ctx.fillStyle = PALETTE.y;
+  ctx.fillRect(sparkX, y + (Math.floor(state.time * 6) % 2 ? 8 : 9), 1, 1);
 }
 
 function drawItem(it) {
