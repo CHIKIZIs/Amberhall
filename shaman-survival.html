@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#4a6b72">
+<title>Шаман: выживание</title>
+<style>
+  /* ===== Палитра ===== */
+  :root {
+    --bg:     #4a6b72;
+    --wine:   #7a2e3a;
+    --dgreen: #1f6b5a;
+    --lgreen: #7fc46a;
+    --bone:   #e8d9b5;
+    --yellow: #f0c040;
+    --ink:    #1a1a22;
+  }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--ink);          /* за пределами холста — тёмная рамка */
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    font-family: "Courier New", ui-monospace, Menlo, Consolas, monospace;
+  }
+
+  /* Обёртка 9:16 по центру экрана; размер шрифтов привязан к её ширине (--u) */
+  #wrap {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    --u: 3.6px;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  /* ===== Кнопки управления (правый нижний угол) ===== */
+  #controls {
+    position: absolute;
+    right: 3%;
+    bottom: 2.5%;
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 2);
+  }
+  #controls.hidden { display: none; }
+
+  button.pix {
+    font: inherit;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    background: var(--bone);
+    border: calc(var(--u) * 0.9) solid var(--ink);
+    box-shadow: calc(var(--u) * 0.9) calc(var(--u) * 0.9) 0 var(--ink);
+    border-radius: 0;
+    padding: calc(var(--u) * 1.6) calc(var(--u) * 1);
+    font-size: calc(var(--u) * 3.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 1);
+    cursor: pointer;
+    touch-action: none;
+  }
+  button.pix img {
+    image-rendering: pixelated;
+    height: calc(var(--u) * 4);
+  }
+  button.pix .cost { display: inline-flex; align-items: center; gap: calc(var(--u) * 0.4); }
+  button.pix.big {
+    background: var(--yellow);
+    font-size: calc(var(--u) * 4.6);
+    padding: calc(var(--u) * 3.2) calc(var(--u) * 1);
+  }
+  button.pix.down, button.pix:active {
+    transform: translate(calc(var(--u) * 0.9), calc(var(--u) * 0.9));
+    box-shadow: 0 0 0 var(--ink);
+  }
+  button.pix.off { opacity: 0.45; }
+
+  /* ===== Экраны меню ===== */
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--bone);
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+  .screen.hidden { display: none; }
+  .panel {
+    background: var(--dgreen);
+    border: calc(var(--u) * 1) solid var(--ink);
+    box-shadow: calc(var(--u) * 1.5) calc(var(--u) * 1.5) 0 var(--ink);
+    padding: calc(var(--u) * 5) calc(var(--u) * 4);
+    width: 76%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--u) * 2.2);
+  }
+  .title {
+    font-size: calc(var(--u) * 8);
+    color: var(--yellow);
+    line-height: 1.05;
+    letter-spacing: 0.06em;
+    text-shadow: calc(var(--u) * 0.8) calc(var(--u) * 0.8) 0 var(--ink);
+  }
+  .sub {
+    font-size: calc(var(--u) * 4.2);
+    color: var(--lgreen);
+    text-shadow: calc(var(--u) * 0.5) calc(var(--u) * 0.5) 0 var(--ink);
+  }
+  .line {
+    font-size: calc(var(--u) * 3.3);
+    line-height: 1.35;
+    text-shadow: calc(var(--u) * 0.5) calc(var(--u) * 0.5) 0 var(--ink);
+  }
+  .line b { color: var(--yellow); }
+  .panel button.pix { background: var(--yellow); font-size: calc(var(--u) * 5); padding: calc(var(--u) * 2.5) calc(var(--u) * 5); }
+</style>
+</head>
+<body>
+
+<div id="wrap">
+  <canvas id="game" width="160" height="284"></canvas>
+
+  <div id="controls" class="hidden">
+    <button class="pix" id="btnEat">Съесть <span class="cost"><img data-icon="berry" alt=""></span></button>
+    <button class="pix" id="btnFire">Костёр
+      <span class="cost">5<img data-icon="wood" alt=""></span>
+      <span class="cost">3<img data-icon="stone" alt=""></span>
+    </button>
+    <button class="pix big" id="btnAct">Действие</button>
+  </div>
+
+  <div id="startScreen" class="screen">
+    <div class="panel">
+      <div class="title">Лесной<br>шаман</div>
+      <div class="sub">Выживание</div>
+      <div class="line">Веди пальцем по экрану — <b>ходить</b></div>
+      <div class="line"><b>Действие</b> — рубить, копать,<br>рвать ягоды, колдовать</div>
+      <div class="line">Ночью приходят черепа.<br><b>Костёр</b> их не пускает</div>
+      <div class="line">Рекорд: день <b id="startBest">0</b></div>
+      <button class="pix" id="startBtn">Играть</button>
+    </div>
+  </div>
+
+  <div id="overScreen" class="screen hidden">
+    <div class="panel">
+      <div class="title">Духи<br>победили</div>
+      <div class="line">Ты дожил до дня <b id="overDay">1</b></div>
+      <div class="line">Рекорд: день <b id="overBest">1</b></div>
+      <div class="sub" id="newRecord" style="display:none">Новый рекорд!</div>
+      <button class="pix" id="againBtn">Играть снова</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* =====================================================================
+   НАСТРОЙКИ
+   ===================================================================== */
+const W = 160, H = 284;          // логическое разрешение холста
+const TILE = 16;                 // размер клетки мира
+const MAP = 40;                  // мир 40×40 клеток = 640×640 пикселей
+const WORLD = MAP * TILE;
+const BEST_KEY = "forestShaman.survivalBest";
+
+const DAY_LEN = 100;             // полный цикл суток, сек
+// фазы суток (секунды от начала цикла)
+const DUSK_START = 55, NIGHT_START = 63, DAWN_START = 92;
+const MAX_DARK = 0.72;           // максимальная плотность ночного дизеринга
+
+const MAX_HP = 5;
+const HUNGER_RATE = 0.6;         // единиц голода в секунду (из 100)
+const PLAYER_SPEED = 52;
+const FIRE_COST = { wood: 5, stone: 3 };
+const FIRE_LIFE = 90;            // сек горения костра
+const FIRE_R = 46;               // радиус света костра
+
+const PALETTE = {
+  "b": "#e8d9b5",  // костяной
+  "r": "#7a2e3a",  // бордовый
+  "d": "#1f6b5a",  // тёмно-зелёный
+  "g": "#7fc46a",  // светло-зелёный
+  "y": "#f0c040",  // жёлтый
+  "k": "#1a1a22",  // контур
+  "p": "#a07779",  // пыльно-розовый
+  "o": "#a26a52",  // коричневый
+  "t": "#105a57",  // глубокий бирюзовый (вода, тени)
+  "a": "#c58d48",  // янтарный
+};
+const BG = "#4a6b72";
+const INK = PALETTE.k;
+
+/* =====================================================================
+   СПРАЙТЫ. Символ = цвет, точка = прозрачно.
+   Где контура «k» нет, он добавится автоматически (bakeSprite).
+   ===================================================================== */
+
+// Шаман 37×28, смотрит влево; ноги — нижняя строка контура (y = 26)
+const SHAMAN = [
+  ".....................................",
+  ".............kkk..............kkk....",
+  "............kbbk..............kbbk...",
+  "...........kbbk................kbbk..",
+  "...........kbk..................kbk..",
+  "...........kbk.kkk..........kkk.kbk..",
+  "..........kbbkkppk.kkkkkkk..kppkkbbk.",
+  "..kkk.....kbppkkkkkgggddddk..kpkbbbk.",
+  "..kggk....kbpkdgggggggddddkk.kpbbbbk.",
+  "..kgdkkk...kpkdggygyggddddkrkpbbbbk..",
+  "...kkorrkk..kkdggygyggddddkkpbbbkk...",
+  "...kokkkrrk..kdgggygggddddkkppkk.....",
+  "..kok...krk..kdgggygggdddkrppk.......",
+  "..kak.kk.krk..kgkgygkgdddkrpkk.......",
+  "..kakkyk.krk..kkkgggkkdddkrpkk.......",
+  ".kgkayyk..krk.kkkgggkkdddkrkk........",
+  ".kgdkkk...krk..kkgggkkddkrrrk........",
+  ".kgk.......krk.kggggggddkrrk.........",
+  ".kk........krk.kddddddddkrkk.........",
+  "...........kdk..kkkkkkkkrkddk........",
+  "............kdkkkkrrrrrrrrkdk........",
+  "............kdkrrroyyaoorrrkdk.......",
+  "............kdkrrrooooookrrrkk.......",
+  ".............kdkkkroooorrkrrkdkk.....",
+  ".............kdk.krrkkkrrkkkddddk....",
+  ".............kdk.kbbkkkbbkkddktttk...",
+  "..............k...kk...kk..kk.kkk....",
+  ".....................................",
+];
+
+// Дерево 16×19, основание ствола — строка 17
+const TREE = [
+  "................",
+  ".....dddddd.....",
+  "...ddggggdddd...",
+  "..dggggggddddd..",
+  "..dgggggdddddd..",
+  ".ddggggddddgddd.",
+  ".dggddddddgggdd.",
+  ".ddddggdddggddt.",
+  ".dddgggddddddtt.",
+  ".tddgggdddddttt.",
+  "..tdddddddtttt..",
+  "..ttdddttdtttt..",
+  "...tttttttttt...",
+  ".....ttrrtt.....",
+  "......rrpr......",
+  "......rrpr......",
+  "......rrpr......",
+  ".....rrrppr.....",
+  "................",
+];
+
+// Пень 16×7, основание — строка 5
+const STUMP = [
+  "................",
+  "......bbbb......",
+  ".....rbppbr.....",
+  ".....rrrprr.....",
+  ".....rrrprr.....",
+  "....rrrrrppr....",
+  "................",
+];
+
+// Камень 16×9, основание — строка 7
+const ROCK = [
+  "................",
+  ".....bbbbb......",
+  "...bbbbbbbbp....",
+  "..bbbbbbbbbpp...",
+  "..bbbbbbbbpppp..",
+  ".pbbbbbbpppppp..",
+  ".ppbbbppppppppp.",
+  "..pppppppppppp..",
+  "................",
+];
+
+// Куст 16×9 с жёлтыми ягодами (без ягод — заменяем «y» на «d»)
+const BUSH = [
+  "................",
+  ".....dddddd.....",
+  "...ddgdddgddd...",
+  "..dgggdydgggdd..",
+  ".ddgydddddgyddd.",
+  ".dddddgddydddtd.",
+  ".tddydddddddttd.",
+  "..tttddtddtttt..",
+  "................",
+];
+
+// Костёр 16×13: пламя (два кадра) и основание из поленьев и камней
+const FIRE_FLAME = [
+  "................",
+  "................",
+  ".......y........",
+  "......yy...y....",
+  "......yay..y....",
+  ".....yaay.yy....",
+  ".....yaaayay....",
+  "....yaaaaaay....",
+  "....yarrraay....",
+];
+const FIRE_BASE = [
+  "...bprrrrrrpb...",
+  "..bbprpprprpbb..",
+  "...pp.pp.pp.pp..",
+  "................",
+];
+
+// Череп-дух 16×16
+const SKULL = [
+  "................",
+  ".....kkkkkkk....",
+  "....kbbbbbbbk...",
+  "...kbbbbbbbbbk..",
+  "..kbbbbbbbbbbpk.",
+  "..kbbbbbbbbbbpk.",
+  "..kbkkkbbbkkkpk.",
+  "..kbkgkbbbkgkpk.",
+  "..kbkkkbkbkkkpk.",
+  "..kbbbbkkkbbppk.",
+  "...kbbbbbbbppk..",
+  "....kpbkbkbpk...",
+  "....kpbkbkbpk...",
+  ".....kkkkkkk....",
+  "................",
+  "................",
+];
+
+// Снаряд — огонёк посоха 6×6
+const BOLT = [
+  "......",
+  "..yy..",
+  ".yyya.",
+  ".yyaa.",
+  "..aa..",
+  "......",
+];
+
+// Иконки интерфейса
+const HEART = [
+  ".........",
+  ".rr...rr.",
+  "rrrr.rrrr",
+  "rrrrrrrrp",
+  ".rrrrrrp.",
+  "..rrrrp..",
+  "...rrp...",
+  "....r....",
+];
+const ICON_WOOD = [
+  "..........",
+  "..rrrrbb..",
+  ".rrrrrbpb.",
+  ".rrrrrbbb.",
+  "..rrrrbb..",
+  "..........",
+];
+const ICON_STONE = [
+  "..........",
+  "...bbb....",
+  "..bbbbbp..",
+  ".bbbbbppp.",
+  ".pbbpppp..",
+  "..pppppp..",
+  "..........",
+];
+const ICON_BERRY = [
+  "........",
+  ".....d..",
+  "....d...",
+  "..yyay..",
+  ".yyyaay.",
+  ".yyaaa..",
+  "..aaa...",
+  "........",
+];
+const ICON_SUN = [
+  ".........",
+  "...yyy...",
+  "..yyyyy..",
+  "..yyyya..",
+  "..yyyaa..",
+  "...aaa...",
+  ".........",
+];
+const ICON_MOON = [
+  ".........",
+  "...bbb...",
+  "..bbp....",
+  "..bb.....",
+  "..bbp....",
+  "...bbb...",
+  ".........",
+];
+
+// Пиксельный шрифт 3×5 для цифр
+const FONT = {
+  "0": ["111","101","101","101","111"],
+  "1": ["010","110","010","010","111"],
+  "2": ["111","001","111","100","111"],
+  "3": ["111","001","011","001","111"],
+  "4": ["101","101","111","001","001"],
+  "5": ["111","100","111","001","111"],
+  "6": ["111","100","111","101","111"],
+  "7": ["111","001","010","010","010"],
+  "8": ["111","101","111","101","111"],
+  "9": ["111","101","111","001","111"],
+  "+": ["000","010","111","010","000"],
+};
+
+/* =====================================================================
+   ЗАПЕКАНИЕ СПРАЙТОВ в offscreen-canvas.
+   Прозрачный пиксель рядом с цветным (не контурным) становится контуром.
+   ===================================================================== */
+function bakeSprite(rows, { flip = false, outline = true } = {}) {
+  const h = rows.length, w = rows[0].length;
+  const at = (x, y) => (x < 0 || y < 0 || x >= w || y >= h) ? "." : rows[y][x];
+  const solid = (x, y) => { const c = at(x, y); return c !== "." && c !== "k"; };
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const g = c.getContext("2d");
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const ch = at(x, y);
+      let color = null;
+      if (ch !== ".") color = PALETTE[ch];
+      else if (outline && (solid(x-1,y) || solid(x+1,y) || solid(x,y-1) || solid(x,y+1))) color = INK;
+      if (color) { g.fillStyle = color; g.fillRect(flip ? w - 1 - x : x, y, 1, 1); }
+    }
+  }
+  return c;
+}
+
+const mirrorRow = r => r.split("").reverse().join("");
+const SPR = {
+  shamanL: bakeSprite(SHAMAN),
+  shamanR: bakeSprite(SHAMAN, { flip: true }),
+  tree:    bakeSprite(TREE),
+  stump:   bakeSprite(STUMP),
+  rock:    bakeSprite(ROCK),
+  bush:    bakeSprite(BUSH),
+  bushEmpty: bakeSprite(BUSH.map(r => r.replace(/y/g, "d"))),
+  fireA:   bakeSprite(FIRE_FLAME.concat(FIRE_BASE)),
+  fireB:   bakeSprite(FIRE_FLAME.map(mirrorRow).concat(FIRE_BASE)),
+  skull:   bakeSprite(SKULL),
+  bolt:    bakeSprite(BOLT),
+  heart:   bakeSprite(HEART),
+  heartEmpty: bakeSprite(HEART.map(r => r.replace(/[^.]/g, "k")), { outline: false }),
+  wood:    bakeSprite(ICON_WOOD),
+  stone:   bakeSprite(ICON_STONE),
+  berry:   bakeSprite(ICON_BERRY),
+  sun:     bakeSprite(ICON_SUN),
+  moon:    bakeSprite(ICON_MOON),
+};
+
+// Иконки в кнопках — те же пиксельные спрайты
+document.querySelectorAll("img[data-icon]").forEach(img => {
+  img.src = SPR[img.dataset.icon].toDataURL();
+});
+
+/* =====================================================================
+   CANVAS, МАСШТАБ
+   ===================================================================== */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+const wrap = document.getElementById("wrap");
+
+function resize() {
+  const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
+  const w = Math.floor(W * scale), h = Math.floor(H * scale);
+  wrap.style.width = w + "px";
+  wrap.style.height = h + "px";
+  wrap.style.setProperty("--u", (w / 100) + "px");   // 1u = 1% ширины игры
+}
+window.addEventListener("resize", resize);
+resize();
+
+// Слой ночи: рисуем дизеринг попиксельно в отдельный буфер
+const darkCanvas = document.createElement("canvas");
+darkCanvas.width = W; darkCanvas.height = H;
+const darkCtx = darkCanvas.getContext("2d");
+const darkImg = darkCtx.createImageData(W, H);
+const darkBuf = new Uint32Array(darkImg.data.buffer);
+const INK32 = 0xFF221A1A;                      // #1a1a22 в формате ABGR
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+
+/* =====================================================================
+   ЗВУК (WebAudio)
+   ===================================================================== */
+let audio = null;
+function initAudio() {
+  if (!audio) {
+    try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audio = null; }
+  }
+  if (audio && audio.state === "suspended") audio.resume();
+}
+function tone(type, f1, f2, dur, vol = 0.12, delay = 0) {
+  if (!audio) return;
+  const t = audio.currentTime + delay;
+  const osc = audio.createOscillator(), gain = audio.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(f1, t);
+  osc.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.connect(gain).connect(audio.destination);
+  osc.start(t); osc.stop(t + dur + 0.02);
+}
+const sfx = {
+  chop()  { tone("square", 180, 90, 0.06, 0.08); },
+  stone() { tone("square", 420, 260, 0.05, 0.06); },
+  pick()  { tone("square", 880, 1760, 0.09, 0.07); },
+  eat()   { tone("square", 520, 700, 0.07, 0.07); tone("square", 700, 980, 0.08, 0.07, 0.08); },
+  craft() { tone("sawtooth", 200, 600, 0.25, 0.08); },
+  shoot() { tone("square", 1200, 500, 0.12, 0.06); },
+  kill()  { tone("square", 300, 1200, 0.15, 0.07); },
+  hit()   { tone("sawtooth", 160, 40, 0.35, 0.18); },
+  night() { tone("triangle", 220, 110, 1.2, 0.15); },
+  day()   { tone("square", 660, 990, 0.1, 0.06); tone("square", 990, 1320, 0.12, 0.06, 0.12); },
+  over()  { tone("triangle", 330, 55, 0.9, 0.2); },
+};
+
+/* =====================================================================
+   РЕКОРД
+   ===================================================================== */
+function loadBest() { try { return parseInt(localStorage.getItem(BEST_KEY), 10) || 0; } catch (e) { return 0; } }
+function saveBest(v) { try { localStorage.setItem(BEST_KEY, String(v)); } catch (e) {} }
+
+/* =====================================================================
+   ГЕНЕРАЦИЯ МИРА
+   ===================================================================== */
+// Простой сидированный генератор случайных чисел
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+let tiles;          // 0 — земля, 1 — вода
+let objects;        // деревья, камни, кусты, костры
+let decor;          // травинки и цветочки (только украшение)
+
+const isWaterTile = (tx, ty) => tx < 0 || ty < 0 || tx >= MAP || ty >= MAP || tiles[ty * MAP + tx] === 1;
+const isWaterAt = (x, y) => isWaterTile(Math.floor(x / TILE), Math.floor(y / TILE));
+
+function generateWorld() {
+  const rnd = mulberry32((Math.random() * 1e9) | 0);
+  const R = (a, b) => a + rnd() * (b - a);
+  tiles = new Uint8Array(MAP * MAP);
+  const c = MAP / 2;
+
+  // Вода по краям с неровным берегом
+  for (let y = 0; y < MAP; y++)
+    for (let x = 0; x < MAP; x++) {
+      const edge = Math.min(x, y, MAP - 1 - x, MAP - 1 - y);
+      if (edge < 2 || (edge === 2 && rnd() < 0.45)) tiles[y * MAP + x] = 1;
+    }
+  // Несколько прудов, не рядом с центром
+  for (let i = 0; i < 5; i++) {
+    let px, py;
+    do { px = R(6, MAP - 6); py = R(6, MAP - 6); } while (Math.hypot(px - c, py - c) < 8);
+    const r = R(1.6, 3.2);
+    for (let y = -4; y <= 4; y++)
+      for (let x = -4; x <= 4; x++)
+        if (x * x + y * y < r * r * R(0.75, 1.15)) tiles[(Math.floor(py) + y) * MAP + Math.floor(px) + x] = 1;
+  }
+
+  // Объекты
+  objects = [];
+  const center = WORLD / 2;
+  const free = (x, y, minD) => {
+    if (isWaterAt(x, y) || isWaterAt(x - 8, y) || isWaterAt(x + 8, y) || isWaterAt(x, y - 10)) return false;
+    if (Math.hypot(x - center, y - center) < 36) return false;     // поляна для старта
+    for (const o of objects) if (Math.hypot(o.x - x, o.y - y) < minD) return false;
+    return true;
+  };
+  const place = (type, count, minD, extra) => {
+    for (let n = 0, tries = 0; n < count && tries < count * 40; tries++) {
+      const x = Math.round(R(TILE * 2, WORLD - TILE * 2)), y = Math.round(R(TILE * 2, WORLD - TILE * 2));
+      if (free(x, y, minD)) { objects.push(Object.assign({ type, x, y, timer: 0, shake: 0 }, extra())); n++; }
+    }
+  };
+  place("tree", 120, 16, () => ({ state: "alive", hp: 3 }));
+  place("rock", 40, 16, () => ({ state: "alive", hp: 4 }));
+  place("bush", 32, 16, () => ({ state: "ripe" }));
+
+  // Украшения: травинки и редкие цветы
+  decor = [];
+  for (let i = 0; i < 420; i++) {
+    const x = Math.round(R(0, WORLD)), y = Math.round(R(0, WORLD));
+    if (!isWaterAt(x, y)) decor.push({ x, y, kind: rnd() < 0.12 ? 1 : 0 });
+  }
+}
+
+/* =====================================================================
+   СОСТОЯНИЕ
+   ===================================================================== */
+const state = {
+  mode: "menu",
+  best: loadBest(),
+  day: 1,
+  dayTime: 5,
+  darkness: 0,
+  wasNight: false,
+  time: 0,
+  shake: 0,
+};
+const player = { x: 0, y: 0, hp: MAX_HP, hunger: 100, facing: -1, invuln: 0, cd: 0,
+                 starve: 0, regen: 0, fireHeal: 0, walk: 0 };
+const inv = { wood: 0, stone: 0, berry: 0 };
+let enemies = [], bolts = [], particles = [], popups = [];
+let spawnTimer = 0;
+const cam = { x: 0, y: 0 };
+
+function resetGame() {
+  generateWorld();
+  Object.assign(player, { x: WORLD / 2, y: WORLD / 2, hp: MAX_HP, hunger: 100, facing: -1,
+                          invuln: 0, cd: 0, starve: 0, regen: 0, fireHeal: 0, walk: 0 });
+  Object.assign(inv, { wood: 0, stone: 0, berry: 2 });
+  enemies = []; bolts = []; particles = []; popups = [];
+  state.day = 1; state.dayTime = 5; state.darkness = 0; state.wasNight = false; state.shake = 0;
+  spawnTimer = 2;
+}
+
+/* =====================================================================
+   УПРАВЛЕНИЕ
+   ===================================================================== */
+// Виртуальный джойстик: касание в любом месте холста задаёт центр
+const stick = { id: null, ox: 0, oy: 0, dx: 0, dy: 0 };
+const STICK_R = 18;
+
+function toCanvas(e) {
+  const r = canvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H };
+}
+canvas.addEventListener("pointerdown", e => {
+  initAudio();
+  if (state.mode !== "play" || stick.id !== null) return;
+  const p = toCanvas(e);
+  stick.id = e.pointerId; stick.ox = p.x; stick.oy = p.y; stick.dx = stick.dy = 0;
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove", e => {
+  if (e.pointerId !== stick.id) return;
+  const p = toCanvas(e);
+  let dx = p.x - stick.ox, dy = p.y - stick.oy;
+  const len = Math.hypot(dx, dy);
+  if (len > STICK_R) { dx *= STICK_R / len; dy *= STICK_R / len; }
+  stick.dx = dx; stick.dy = dy;
+});
+const releaseStick = e => { if (e.pointerId === stick.id) { stick.id = null; stick.dx = stick.dy = 0; } };
+canvas.addEventListener("pointerup", releaseStick);
+canvas.addEventListener("pointercancel", releaseStick);
+
+// Кнопки: срабатывают сразу при нажатии, «Действие» повторяется при удержании
+let actionHeld = false;
+function bindButton(id, onDown, onUp) {
+  const el = document.getElementById(id);
+  el.addEventListener("pointerdown", e => {
+    e.preventDefault(); e.stopPropagation(); initAudio();
+    el.classList.add("down"); onDown && onDown();
+  });
+  const up = () => { el.classList.remove("down"); onUp && onUp(); };
+  el.addEventListener("pointerup", up);
+  el.addEventListener("pointercancel", up);
+  el.addEventListener("pointerleave", up);
+  return el;
+}
+const btnAct  = bindButton("btnAct",  () => actionHeld = true, () => actionHeld = false);
+const btnFire = bindButton("btnFire", () => craftFire());
+const btnEat  = bindButton("btnEat",  () => eatBerry());
+
+// Клавиатура для ПК
+const keys = {};
+window.addEventListener("keydown", e => {
+  keys[e.code] = true;
+  if (state.mode !== "play" && (e.code === "Enter" || e.code === "Space")) { startGame(); return; }
+  if (e.code === "Space" || e.code === "KeyJ") actionHeld = true;
+  if (e.code === "KeyF") craftFire();
+  if (e.code === "KeyE") eatBerry();
+});
+window.addEventListener("keyup", e => {
+  keys[e.code] = false;
+  if (e.code === "Space" || e.code === "KeyJ") actionHeld = false;
+});
+
+/* =====================================================================
+   МЕНЮ
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+$("startBest").textContent = state.best;
+
+function startGame() {
+  initAudio();
+  resetGame();
+  state.mode = "play";
+  $("startScreen").classList.add("hidden");
+  $("overScreen").classList.add("hidden");
+  $("controls").classList.remove("hidden");
+}
+$("startBtn").addEventListener("click", startGame);
+$("againBtn").addEventListener("click", startGame);
+
+function gameOver() {
+  state.mode = "over";
+  actionHeld = false; stick.id = null; stick.dx = stick.dy = 0;
+  sfx.over();
+  burst(player.x, player.y - 12, ["r", "g", "b"], 30);
+  const isRecord = state.day > state.best;
+  if (isRecord) { state.best = state.day; saveBest(state.best); }
+  $("overDay").textContent = state.day;
+  $("overBest").textContent = state.best;
+  $("startBest").textContent = state.best;
+  $("newRecord").style.display = isRecord ? "block" : "none";
+  $("controls").classList.add("hidden");
+  setTimeout(() => $("overScreen").classList.remove("hidden"), 700);
+}
+
+/* =====================================================================
+   ЭФФЕКТЫ
+   ===================================================================== */
+function burst(x, y, colors, n, speed = 50) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = 15 + Math.random() * speed;
+    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 25, life: 0.4 + Math.random() * 0.3,
+                     color: PALETTE[colors[i % colors.length]] });
+  }
+}
+function popup(x, y, n, icon) { popups.push({ x, y, text: "+" + n, icon, life: 0.9 }); }
+
+/* =====================================================================
+   ДЕЙСТВИЯ ИГРОКА
+   ===================================================================== */
+const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
+
+function nearestEnemy(range) {
+  let best = null, bd = range;
+  for (const e of enemies) { const d = dist(player.x, player.y - 10, e.x, e.y - 8); if (d < bd) { bd = d; best = e; } }
+  return best;
+}
+function nearestResource(range) {
+  let best = null, bd = range;
+  for (const o of objects) {
+    const usable = (o.type === "tree" || o.type === "rock") ? o.state === "alive" : o.type === "bush" && o.state === "ripe";
+    if (!usable) continue;
+    const d = dist(player.x, player.y - 4, o.x, o.y - 4);
+    if (d < bd) { bd = d; best = o; }
+  }
+  return best;
+}
+
+function doAction() {
+  // 1) Рядом враг — посох стреляет огоньком
+  const enemy = nearestEnemy(85);
+  if (enemy) {
+    const sx = player.x + player.facing * 12, sy = player.y - 18;
+    const a = Math.atan2(enemy.y - 8 - sy, enemy.x - sx);
+    bolts.push({ x: sx, y: sy, vx: Math.cos(a) * 130, vy: Math.sin(a) * 130, life: 0.9 });
+    player.facing = enemy.x < player.x ? -1 : 1;
+    player.cd = 0.45;
+    sfx.shoot();
+    return;
+  }
+  // 2) Рядом ресурс — добываем
+  const o = nearestResource(24);
+  if (!o) { player.cd = 0.15; return; }
+  player.facing = o.x < player.x ? -1 : 1;
+  player.cd = 0.32;
+  if (o.type === "tree") {
+    o.hp--; o.shake = 0.15; sfx.chop();
+    burst(o.x, o.y - 10, ["d", "g"], 4, 30);
+    if (o.hp <= 0) { o.state = "stump"; o.timer = 45; inv.wood += 2; popup(o.x, o.y - 18, 2, "wood"); burst(o.x, o.y - 10, ["d", "g", "t"], 12); }
+  } else if (o.type === "rock") {
+    o.hp--; o.shake = 0.15; sfx.stone();
+    burst(o.x, o.y - 4, ["b", "p"], 4, 30);
+    if (o.hp <= 0) { o.state = "gone"; o.timer = 70; inv.stone += 2; popup(o.x, o.y - 10, 2, "stone"); burst(o.x, o.y - 4, ["b", "p"], 12); }
+  } else if (o.type === "bush") {
+    o.state = "empty"; o.timer = 35; o.shake = 0.15; inv.berry += 2; sfx.pick();
+    popup(o.x, o.y - 10, 2, "berry"); burst(o.x, o.y - 6, ["y", "d"], 6, 30);
+  }
+}
+
+function craftFire() {
+  if (state.mode !== "play" || inv.wood < FIRE_COST.wood || inv.stone < FIRE_COST.stone) return;
+  // ищем свободное место рядом: впереди, сзади, ниже
+  const spots = [[player.facing * 16, 2], [-player.facing * 16, 2], [0, 14], [0, -14]];
+  for (const [dx, dy] of spots) {
+    const x = Math.round(player.x + dx), y = Math.round(player.y + dy);
+    if (isWaterAt(x, y)) continue;
+    if (objects.some(o => o.state !== "gone" && dist(o.x, o.y, x, y) < 12)) continue;
+    inv.wood -= FIRE_COST.wood; inv.stone -= FIRE_COST.stone;
+    objects.push({ type: "fire", x, y, life: FIRE_LIFE, state: "alive", timer: 0, shake: 0 });
+    sfx.craft();
+    burst(x, y - 6, ["y", "a", "r"], 14);
+    return;
+  }
+}
+
+function eatBerry() {
+  if (state.mode !== "play" || inv.berry <= 0 || player.hunger >= 100) return;
+  inv.berry--;
+  player.hunger = Math.min(100, player.hunger + 25);
+  sfx.eat();
+  burst(player.x, player.y - 18, ["y", "a"], 6, 25);
+}
+
+function hurtPlayer(fromX, fromY) {
+  if (player.invuln > 0 || state.mode !== "play") return;
+  player.hp--;
+  player.invuln = 1.2;
+  state.shake = 0.3;
+  sfx.hit();
+  burst(player.x, player.y - 12, ["r", "b"], 10);
+  // небольшой отброс от источника урона
+  const a = Math.atan2(player.y - fromY, player.x - fromX);
+  movePlayer(Math.cos(a) * 10, Math.sin(a) * 10);
+  if (player.hp <= 0) gameOver();
+}
+
+/* =====================================================================
+   ДВИЖЕНИЕ И СТОЛКНОВЕНИЯ
+   ===================================================================== */
+// Радиусы «твёрдых» оснований объектов
+function solidRadius(o) {
+  if (o.type === "tree") return o.state === "alive" ? 5 : 4;
+  if (o.type === "rock") return o.state === "alive" ? 7 : 0;
+  if (o.type === "bush") return 5;
+  if (o.type === "fire") return 5;
+  return 0;
+}
+function blockedByWater(x, y) {
+  return isWaterAt(x - 5, y) || isWaterAt(x + 5, y) || isWaterAt(x, y - 3) || isWaterAt(x, y + 2);
+}
+function movePlayer(dx, dy) {
+  // двигаемся по осям отдельно, чтобы скользить вдоль берега
+  if (!blockedByWater(player.x + dx, player.y)) player.x += dx;
+  if (!blockedByWater(player.x, player.y + dy)) player.y += dy;
+  // выталкиваем из объектов
+  for (const o of objects) {
+    const r = solidRadius(o);
+    if (!r) continue;
+    const ddx = player.x - o.x, ddy = (player.y - o.y) * 1.6;   // сплюснутый круг — вид сверху
+    const d = Math.hypot(ddx, ddy), min = r + 5;
+    if (d < min && d > 0.01) {
+      const nx = o.x + ddx / d * min, ny = o.y + ddy / d * min / 1.6;
+      if (!blockedByWater(nx, ny)) { player.x = nx; player.y = ny; }
+    }
+  }
+}
+
+/* =====================================================================
+   СУТКИ
+   ===================================================================== */
+function darknessAt(t) {
+  if (t < DUSK_START) return 0;
+  if (t < NIGHT_START) return MAX_DARK * (t - DUSK_START) / (NIGHT_START - DUSK_START);
+  if (t < DAWN_START) return MAX_DARK;
+  return MAX_DARK * (1 - (t - DAWN_START) / (DAY_LEN - DAWN_START));
+}
+const isNight = () => state.dayTime >= NIGHT_START - 4 && state.dayTime < DAY_LEN - 3;
+
+/* =====================================================================
+   ОБНОВЛЕНИЕ
+   ===================================================================== */
+function update(dt) {
+  state.time += dt;
+  state.shake = Math.max(0, state.shake - dt);
+
+  for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 140 * dt; p.life -= dt; }
+  particles = particles.filter(p => p.life > 0);
+  for (const p of popups) { p.y -= 16 * dt; p.life -= dt; }
+  popups = popups.filter(p => p.life > 0);
+
+  if (state.mode !== "play") return;
+
+  // --- время суток
+  state.dayTime += dt;
+  if (state.dayTime >= DAY_LEN) { state.dayTime -= DAY_LEN; state.day++; }
+  state.darkness = darknessAt(state.dayTime);
+  const night = isNight();
+  if (night && !state.wasNight) sfx.night();
+  if (!night && state.wasNight) {
+    // рассвет: духи рассыпаются
+    for (const e of enemies) burst(e.x, e.y - 8, ["b", "p", "g"], 10);
+    enemies = [];
+    sfx.day();
+  }
+  state.wasNight = night;
+
+  // --- движение
+  let mx = stick.dx / STICK_R, my = stick.dy / STICK_R;
+  if (keys.ArrowLeft || keys.KeyA) mx -= 1;
+  if (keys.ArrowRight || keys.KeyD) mx += 1;
+  if (keys.ArrowUp || keys.KeyW) my -= 1;
+  if (keys.ArrowDown || keys.KeyS) my += 1;
+  let len = Math.hypot(mx, my);
+  if (len < 0.2) { mx = my = 0; len = 0; }               // мёртвая зона
+  else if (len > 1) { mx /= len; my /= len; }
+  if (len) {
+    movePlayer(mx * PLAYER_SPEED * dt, my * PLAYER_SPEED * dt);
+    if (Math.abs(mx) > 0.15) player.facing = mx > 0 ? 1 : -1;
+    player.walk += dt;
+  } else player.walk = 0;
+
+  // --- действие
+  player.cd = Math.max(0, player.cd - dt);
+  player.invuln = Math.max(0, player.invuln - dt);
+  if (actionHeld && player.cd <= 0) doAction();
+
+  // --- голод и здоровье
+  player.hunger = Math.max(0, player.hunger - HUNGER_RATE * dt);
+  if (player.hunger <= 0) {
+    player.starve += dt;
+    if (player.starve >= 5) { player.starve = 0; hurtPlayer(player.x, player.y + 1); }
+  } else player.starve = 0;
+
+  const nearFire = objects.some(o => o.type === "fire" && dist(o.x, o.y, player.x, player.y) < FIRE_R);
+  if (nearFire && player.hp < MAX_HP) {
+    player.fireHeal += dt;
+    if (player.fireHeal >= 4) { player.fireHeal = 0; player.hp++; burst(player.x, player.y - 14, ["r"], 5, 20); }
+  } else player.fireHeal = 0;
+  if (player.hunger > 60 && player.hp < MAX_HP) {
+    player.regen += dt;
+    if (player.regen >= 20) { player.regen = 0; player.hp++; }
+  } else player.regen = 0;
+
+  // --- объекты: тряска, отрастание, догорание костров
+  for (const o of objects) {
+    o.shake = Math.max(0, o.shake - dt);
+    if (o.type === "fire") { o.life -= dt; if (o.life <= 0) { o.state = "dead"; burst(o.x, o.y - 4, ["k", "p"], 8, 20); } continue; }
+    if (o.timer > 0) {
+      o.timer -= dt;
+      if (o.timer <= 0) {
+        if (dist(o.x, o.y, player.x, player.y) < 20) { o.timer = 3; continue; }  // не вырастаем на игроке
+        if (o.type === "tree") { o.state = "alive"; o.hp = 3; }
+        if (o.type === "rock") { o.state = "alive"; o.hp = 4; }
+        if (o.type === "bush") o.state = "ripe";
+      }
+    }
+  }
+  objects = objects.filter(o => o.state !== "dead");
+  const fires = objects.filter(o => o.type === "fire");
+
+  // --- враги ночью
+  if (night) {
+    spawnTimer -= dt;
+    const maxEnemies = Math.min(10, 1 + state.day);
+    if (spawnTimer <= 0 && enemies.length < maxEnemies) {
+      spawnTimer = Math.max(1.2, 3.5 - state.day * 0.25);
+      for (let tries = 0; tries < 10; tries++) {
+        const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 50;
+        const x = player.x + Math.cos(a) * r, y = player.y + Math.sin(a) * r;
+        if (x < 8 || y < 8 || x > WORLD - 8 || y > WORLD - 8) continue;
+        if (fires.some(f => dist(f.x, f.y, x, y) < FIRE_R + 10)) continue;
+        enemies.push({ x, y, hp: 2, hurt: 0, phase: Math.random() * 6 });
+        break;
+      }
+    }
+  }
+  const espeed = Math.min(40, 22 + state.day * 2);
+  for (const e of enemies) {
+    e.hurt = Math.max(0, e.hurt - dt);
+    e.phase += dt * 4;
+    const a = Math.atan2(player.y - e.y, player.x - e.x);
+    e.x += Math.cos(a) * espeed * dt;
+    e.y += Math.sin(a) * espeed * dt;
+    // свет костра не пускает духов внутрь
+    for (const f of fires) {
+      const d = dist(e.x, e.y, f.x, f.y);
+      if (d < FIRE_R) {
+        const fa = Math.atan2(e.y - f.y, e.x - f.x);
+        e.x = f.x + Math.cos(fa) * FIRE_R;
+        e.y = f.y + Math.sin(fa) * FIRE_R;
+      }
+    }
+    // разводим духов, чтобы не слипались
+    for (const o of enemies) {
+      if (o === e) continue;
+      const d = dist(e.x, e.y, o.x, o.y);
+      if (d < 12 && d > 0.01) { e.x += (e.x - o.x) / d * 20 * dt; e.y += (e.y - o.y) / d * 20 * dt; }
+    }
+    // касание
+    if (dist(e.x, e.y - 6, player.x, player.y - 10) < 12) {
+      hurtPlayer(e.x, e.y);
+      const ka = Math.atan2(e.y - player.y, e.x - player.x);
+      e.x += Math.cos(ka) * 22; e.y += Math.sin(ka) * 22;
+    }
+  }
+
+  // --- снаряды
+  for (const b of bolts) {
+    b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+    if (Math.random() < 0.5) particles.push({ x: b.x, y: b.y, vx: 0, vy: 0, life: 0.15, color: PALETTE.a });
+    for (const e of enemies) {
+      if (e.hp > 0 && dist(b.x, b.y, e.x, e.y - 8) < 9) {
+        b.life = 0; e.hp--; e.hurt = 0.15;
+        burst(b.x, b.y, ["y", "a"], 6, 30);
+        if (e.hp <= 0) { burst(e.x, e.y - 8, ["b", "p", "g"], 14); sfx.kill(); }
+        break;
+      }
+    }
+  }
+  bolts = bolts.filter(b => b.life > 0);
+  enemies = enemies.filter(e => e.hp > 0);
+
+  updateButtons();
+}
+
+// Кнопки бледнеют, если действие сейчас недоступно
+function updateButtons() {
+  btnFire.classList.toggle("off", inv.wood < FIRE_COST.wood || inv.stone < FIRE_COST.stone);
+  btnEat.classList.toggle("off", inv.berry <= 0 || player.hunger >= 100);
+}
+
+/* =====================================================================
+   ОТРИСОВКА
+   ===================================================================== */
+function drawText(str, x, y, color, align = "left", scale = 1) {
+  str = String(str);
+  const adv = 4 * scale, width = str.length * adv - scale;
+  if (align === "right") x -= width;
+  if (align === "center") x -= Math.floor(width / 2);
+  for (const pass of [0, 1]) {
+    let cx = x;
+    for (const ch of str) {
+      const glyph = FONT[ch];
+      if (glyph) for (let gy = 0; gy < 5; gy++) for (let gx = 0; gx < 3; gx++) if (glyph[gy][gx] === "1") {
+        ctx.fillStyle = pass ? color : INK;
+        ctx.fillRect(cx + gx * scale + (pass ? 0 : 1), y + gy * scale + (pass ? 0 : 1), scale, scale);
+      }
+      cx += adv;
+    }
+  }
+}
+
+// Пунктирная тень под существом
+function dottedShadow(x, y, half) {
+  ctx.fillStyle = INK;
+  for (let dx = -half; dx <= half; dx += 2) ctx.fillRect(x + dx, y, 1, 1);
+  for (let dx = -half + 3; dx <= half - 3; dx += 2) ctx.fillRect(x + dx + 1, y + 1, 1, 1);
+}
+
+function drawWater(x0, y0, x1, y1) {
+  const frame = Math.floor(state.time * 2) % 2;
+  for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
+    if (!isWaterTile(tx, ty)) continue;
+    const sx = tx * TILE - cam.x, sy = ty * TILE - cam.y;
+    ctx.fillStyle = PALETTE.t;
+    ctx.fillRect(sx, sy, TILE, TILE);
+    // короткие волны — тёмно-зелёные штрихи, «качаются» через кадр
+    const h = (tx * 7 + ty * 13) % 5;
+    ctx.fillStyle = PALETTE.d;
+    ctx.fillRect(sx + 3 + h + frame, sy + 5 + (h % 3) * 3, 3, 1);
+    if (h > 2) ctx.fillRect(sx + 9 - h + frame, sy + 11, 2, 1);
+    // берег: контур со стороны суши и полоса светлой воды под ним
+    ctx.fillStyle = INK;
+    if (!isWaterTile(tx, ty - 1)) { ctx.fillRect(sx, sy, TILE, 1); ctx.fillStyle = PALETTE.d; ctx.fillRect(sx, sy + 1, TILE, 1); ctx.fillStyle = INK; }
+    if (!isWaterTile(tx, ty + 1)) ctx.fillRect(sx, sy + TILE - 1, TILE, 1);
+    if (!isWaterTile(tx - 1, ty)) ctx.fillRect(sx, sy, 1, TILE);
+    if (!isWaterTile(tx + 1, ty)) ctx.fillRect(sx + TILE - 1, sy, 1, TILE);
+  }
+}
+
+function drawDecor() {
+  for (const d of decor) {
+    const sx = d.x - cam.x, sy = d.y - cam.y;
+    if (sx < -4 || sy < -4 || sx > W + 4 || sy > H + 4) continue;
+    if (d.kind === 0) {             // травинка «^»
+      ctx.fillStyle = PALETTE.d;
+      ctx.fillRect(sx, sy, 1, 1); ctx.fillRect(sx + 1, sy - 1, 1, 1); ctx.fillRect(sx + 2, sy, 1, 1);
+    } else {                        // цветочек
+      ctx.fillStyle = PALETTE.d; ctx.fillRect(sx + 1, sy, 1, 2);
+      ctx.fillStyle = PALETTE.b; ctx.fillRect(sx + 1, sy - 1, 1, 1);
+    }
+  }
+}
+
+// Объект мира; (x, y) — точка основания
+function drawObject(o) {
+  const sx = Math.round(o.x - cam.x), sy = Math.round(o.y - cam.y);
+  const jig = o.shake > 0 ? (Math.floor(state.time * 40) % 2 ? 1 : -1) : 0;
+  if (o.type === "tree") {
+    if (o.state === "alive") ctx.drawImage(SPR.tree, sx - 8 + jig, sy - 17);
+    else ctx.drawImage(SPR.stump, sx - 8, sy - 5);
+  } else if (o.type === "rock") {
+    if (o.state === "alive") ctx.drawImage(SPR.rock, sx - 8 + jig, sy - 7);
+  } else if (o.type === "bush") {
+    ctx.drawImage(o.state === "ripe" ? SPR.bush : SPR.bushEmpty, sx - 8 + jig, sy - 7);
+  } else if (o.type === "fire") {
+    const spr = Math.floor(state.time * 6) % 2 ? SPR.fireA : SPR.fireB;
+    ctx.drawImage(spr, sx - 8, sy - 11);
+    // в конце горения пламя мигает
+    if (o.life < 10 && Math.floor(state.time * 4) % 2) { ctx.fillStyle = INK; ctx.fillRect(sx - 3, sy - 9, 1, 1); }
+  }
+}
+
+function drawPlayer() {
+  const sx = Math.round(player.x - cam.x), sy = Math.round(player.y - cam.y);
+  dottedShadow(sx, sy + 1, 12);
+  if (player.invuln > 0 && Math.floor(state.time * 12) % 2 === 0) return;
+  const flipped = player.facing > 0;
+  const cx = flipped ? 37 - 1 - 20 : 20;            // центр по маске
+  const bob = player.walk > 0 ? (Math.floor(player.walk * 8) % 2) : (Math.floor(state.time * 2) % 2);
+  ctx.drawImage(flipped ? SPR.shamanR : SPR.shamanL, sx - cx, sy - 26 + bob);
+}
+
+function drawEnemy(e) {
+  const sx = Math.round(e.x - cam.x), sy = Math.round(e.y - cam.y);
+  const float = Math.round(Math.sin(e.phase) * 2);
+  dottedShadow(sx, sy, 5);
+  if (e.hurt > 0 && Math.floor(state.time * 30) % 2) return;
+  ctx.drawImage(SPR.skull, sx - 8, sy - 20 + float);
+}
+
+// Ночь: попиксельный дизеринг по матрице Байера, без градиентов.
+// Свет — ступенчатые круги вокруг игрока, костров и огоньков.
+function drawNight() {
+  const L = state.darkness;
+  if (L <= 0) return;
+  const lights = [];
+  lights.push({ x: player.x - cam.x, y: player.y - 12 - cam.y, r: 24 });
+  for (const o of objects) if (o.type === "fire") {
+    const flick = Math.floor(state.time * 5) % 2 ? 2 : 0;
+    lights.push({ x: o.x - cam.x, y: o.y - 6 - cam.y, r: FIRE_R + flick });
+  }
+  for (const b of bolts) lights.push({ x: b.x - cam.x, y: b.y - cam.y, r: 12 });
+  // только видимые источники
+  const vis = lights.filter(l => l.x > -l.r && l.y > -l.r && l.x < W + l.r && l.y < H + l.r);
+
+  const ox = cam.x & 3, oy = cam.y & 3;           // узор привязан к миру и не «плывёт»
+  for (let y = 0; y < H; y++) {
+    const row = ((y + oy) & 3) * 4;
+    for (let x = 0; x < W; x++) {
+      let lvl = L;
+      for (let i = 0; i < vis.length; i++) {
+        const l = vis[i], dx = x - l.x, dy = (y - l.y) * 1.2, d2 = dx * dx + dy * dy, r2 = l.r * l.r;
+        if (d2 < r2 * 0.36) { lvl -= 1; break; }
+        if (d2 < r2) lvl -= 0.45;
+      }
+      darkBuf[y * W + x] = (lvl > 0 && BAYER[row + ((x + ox) & 3)] < lvl * 16) ? INK32 : 0;
+    }
+  }
+  darkCtx.putImageData(darkImg, 0, 0);
+  ctx.drawImage(darkCanvas, 0, 0);
+
+  // глаза духов светятся сквозь темноту
+  ctx.fillStyle = PALETTE.g;
+  for (const e of enemies) {
+    const sx = Math.round(e.x - cam.x), sy = Math.round(e.y - cam.y) + Math.round(Math.sin(e.phase) * 2);
+    ctx.fillRect(sx - 3, sy - 13, 1, 1);
+    ctx.fillRect(sx + 3, sy - 13, 1, 1);
+  }
+}
+
+function drawHUD() {
+  // жизни
+  for (let i = 0; i < MAX_HP; i++) ctx.drawImage(i < player.hp ? SPR.heart : SPR.heartEmpty, 3 + i * 10, 3);
+  // голод: ягода + полоска
+  ctx.drawImage(SPR.berry, 2, 12);
+  ctx.fillStyle = INK; ctx.fillRect(11, 14, 40, 5);
+  const low = player.hunger < 25 && Math.floor(state.time * 4) % 2;
+  ctx.fillStyle = low ? PALETTE.r : PALETTE.y;
+  ctx.fillRect(12, 15, Math.round(38 * player.hunger / 100), 3);
+  // инвентарь
+  ctx.drawImage(SPR.wood, 1, 22);  drawText(inv.wood, 12, 23, PALETTE.b);
+  ctx.drawImage(SPR.stone, 25, 21); drawText(inv.stone, 36, 23, PALETTE.b);
+  ctx.drawImage(SPR.berry, 48, 21); drawText(inv.berry, 57, 23, PALETTE.b);
+  // день
+  const dayStr = String(state.day);
+  drawText(dayStr, W - 4, 4, PALETTE.b, "right", 2);
+  ctx.drawImage(isNight() ? SPR.moon : SPR.sun, W - 4 - dayStr.length * 8 - 9, 4);
+}
+
+function drawStick() {
+  if (stick.id === null) return;
+  const ox = Math.round(stick.ox), oy = Math.round(stick.oy);
+  // кольцо из точек
+  for (let i = 0; i < 16; i++) {
+    const a = i / 16 * Math.PI * 2;
+    const x = Math.round(ox + Math.cos(a) * STICK_R), y = Math.round(oy + Math.sin(a) * STICK_R);
+    ctx.fillStyle = INK; ctx.fillRect(x, y, 2, 2);
+    ctx.fillStyle = PALETTE.b; ctx.fillRect(x, y, 1, 1);
+  }
+  // ручка
+  const kx = Math.round(ox + stick.dx) - 3, ky = Math.round(oy + stick.dy) - 3;
+  ctx.fillStyle = INK; ctx.fillRect(kx - 1, ky - 1, 8, 8);
+  ctx.fillStyle = PALETTE.b; ctx.fillRect(kx, ky, 6, 6);
+  ctx.fillStyle = PALETTE.p; ctx.fillRect(kx + 1, ky + 5, 5, 1); ctx.fillRect(kx + 5, ky + 1, 1, 5);
+}
+
+function render() {
+  // камера: игрок чуть выше центра, т.к. внизу кнопки
+  cam.x = Math.round(Math.max(0, Math.min(WORLD - W, player.x - W / 2)));
+  cam.y = Math.round(Math.max(0, Math.min(WORLD - H, player.y - H * 0.45)));
+  if (state.shake > 0) { cam.x += Math.round((Math.random() - 0.5) * 4); cam.y += Math.round((Math.random() - 0.5) * 4); }
+
+  ctx.fillStyle = BG;                          // земля — плоский цвет
+  ctx.fillRect(0, 0, W, H);
+  if (!tiles) return;
+
+  const tx0 = Math.floor(cam.x / TILE) - 1, ty0 = Math.floor(cam.y / TILE) - 1;
+  drawWater(tx0, ty0, tx0 + Math.ceil(W / TILE) + 2, ty0 + Math.ceil(H / TILE) + 2);
+  drawDecor();
+
+  // сортировка по глубине: чем ниже основание, тем позже рисуем
+  const list = [];
+  for (const o of objects) {
+    const sx = o.x - cam.x, sy = o.y - cam.y;
+    if (sx > -20 && sx < W + 20 && sy > -6 && sy < H + 24) list.push({ y: o.y, draw: () => drawObject(o) });
+  }
+  for (const e of enemies) list.push({ y: e.y, draw: () => drawEnemy(e) });
+  if (state.mode === "play") list.push({ y: player.y, draw: drawPlayer });
+  list.sort((a, b) => a.y - b.y);
+  for (const it of list) it.draw();
+
+  for (const b of bolts) ctx.drawImage(SPR.bolt, Math.round(b.x - cam.x) - 3, Math.round(b.y - cam.y) - 3);
+  for (const p of particles) { ctx.fillStyle = p.color; ctx.fillRect(Math.round(p.x - cam.x), Math.round(p.y - cam.y), 1, 1); }
+
+  drawNight();
+
+  for (const p of popups) {
+    const sx = Math.round(p.x - cam.x), sy = Math.round(p.y - cam.y);
+    drawText(p.text, sx - 6, sy, PALETTE.y);
+    ctx.drawImage(SPR[p.icon], sx + 3, sy - 1);
+  }
+
+  if (state.mode !== "menu") drawHUD();
+  if (state.mode === "play") drawStick();
+}
+
+/* =====================================================================
+   ГЛАВНЫЙ ЦИКЛ
+   ===================================================================== */
+// на фоне меню показываем уже сгенерированный мир
+resetGame();
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  update(dt);
+  render();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
