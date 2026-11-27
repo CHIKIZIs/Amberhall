@@ -20,10 +20,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--panel);
   font-family:EH,'Courier New',Consolas,monospace;font-size:16px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
-body{background:
-  radial-gradient(circle at 50% 40%, #1f2236 0, transparent 70%),
-  repeating-linear-gradient(45deg, transparent 0 14px, var(--dots) 14px 16px),
-  var(--bg)}
+body{background-color:var(--bg);background-size:256px 256px;image-rendering:pixelated}
 .hidden{display:none!important}
 img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 button{font-family:inherit;font-size:inherit;color:inherit}
@@ -31,9 +28,11 @@ button{font-family:inherit;font-size:inherit;color:inherit}
 /* pixel frames */
 .pnl{background:var(--panel);color:var(--ink);
   box-shadow:0 -4px 0 0 var(--edge),0 4px 0 0 var(--edge),-4px 0 0 0 var(--edge),4px 0 0 0 var(--edge),
-  inset 0 -4px 0 0 var(--panel2)}
+  inset 0 -4px 0 0 var(--panel2),inset 3px 3px 0 0 #fbf4e2}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:50;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.10) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.45) 100%)}
 .btn{background:var(--panel);color:var(--ink);border:0;padding:8px 12px;cursor:pointer;line-height:1.1;
-  box-shadow:0 -3px 0 0 var(--edge),0 3px 0 0 var(--edge),-3px 0 0 0 var(--edge),3px 0 0 0 var(--edge),inset 0 -4px 0 0 var(--panel2);
+  box-shadow:0 -3px 0 0 var(--edge),0 3px 0 0 var(--edge),-3px 0 0 0 var(--edge),3px 0 0 0 var(--edge),inset 0 -4px 0 0 var(--panel2),inset 2px 2px 0 0 #fbf4e2;
   margin:3px;white-space:nowrap}
 .btn:active{transform:translateY(2px);box-shadow:0 -3px 0 0 var(--edge),0 3px 0 0 var(--edge),-3px 0 0 0 var(--edge),3px 0 0 0 var(--edge)}
 .btn[disabled]{opacity:.45;cursor:default}
@@ -59,8 +58,7 @@ button{font-family:inherit;font-size:inherit;color:inherit}
 .chip img{width:24px;height:24px}
 .chip.empty{opacity:.35;cursor:default}
 #boardwrap{grid-area:board;display:grid;place-items:center;min-height:0;min-width:0;position:relative}
-#board{display:block;touch-action:none;
-  box-shadow:0 -6px 0 0 #2a1f27,0 6px 0 0 #2a1f27,-6px 0 0 0 #2a1f27,6px 0 0 0 #2a1f27,0 0 0 9px #c9b68f,0 0 0 12px #2a1f27,0 14px 30px 12px rgba(0,0,0,.55)}
+#board{display:block;touch-action:none}
 #side{grid-area:side;display:flex;flex-direction:column;gap:8px}
 #info{min-height:52px;padding:7px 10px;font-size:14px;line-height:1.3}
 #info b{color:#7a2e3b}
@@ -97,15 +95,17 @@ button{font-family:inherit;font-size:inherit;color:inherit}
 .shopgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
 .card{background:#f6efdc;padding:8px 4px 6px;text-align:center;cursor:pointer;position:relative;font-size:12px;
   box-shadow:0 -3px 0 0 var(--edge),0 3px 0 0 var(--edge),-3px 0 0 0 var(--edge),3px 0 0 0 var(--edge)}
-.card img{width:44px;height:44px;display:block;margin:0 auto 4px}
+.card img{height:58px;width:auto;display:block;margin:0 auto 4px}
+.card img.ic{width:44px;height:44px;margin:7px auto 11px}
 .card .pr{display:inline-block;margin-top:4px;background:var(--ink);color:var(--gold);padding:2px 6px;font-size:12px}
 .card .tag{position:absolute;top:2px;left:3px;font-size:9px;color:var(--muted)}
 .card.sel{background:#fff7d6;box-shadow:0 -3px 0 0 #c98a1a,0 3px 0 0 #c98a1a,-3px 0 0 0 #c98a1a,3px 0 0 0 #c98a1a}
 .card.sold{opacity:.3;pointer-events:none}
 .roster{display:flex;flex-wrap:wrap;gap:6px}
-.rp{width:48px;height:52px;background:#f6efdc;display:grid;place-items:center;cursor:pointer;position:relative;
+.rp{width:48px;height:56px;background:#f6efdc;display:grid;place-items:center;cursor:pointer;position:relative;
   box-shadow:0 -2px 0 0 var(--edge),0 2px 0 0 var(--edge),-2px 0 0 0 var(--edge),2px 0 0 0 var(--edge)}
-.rp img{width:40px;height:40px}
+.rp img{height:46px;width:auto}
+.rp img.ic{width:34px;height:34px}
 .rp.bench{opacity:.4}
 .rp.sel{background:#fff7d6;box-shadow:0 -2px 0 0 #c98a1a,0 2px 0 0 #c98a1a,-2px 0 0 0 #c98a1a,2px 0 0 0 #c98a1a}
 .rp .z{position:absolute;bottom:1px;right:2px;font-size:9px;color:var(--muted)}
@@ -121,7 +121,7 @@ button{font-family:inherit;font-size:inherit;color:inherit}
 .helpgrid{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;font-size:13px}
 .helpgrid img{width:32px;height:32px}
 .logo{display:flex;justify-content:center;gap:4px;margin-top:6px}
-.logo img{width:48px;height:48px}
+.logo img{height:72px;width:auto}
 </style>
 </head>
 <body>
@@ -208,20 +208,21 @@ const MAX_RELICS=6, MAX_ROSTER=12, TURN_LIMIT=60;
 
 /* ================= PIXEL ART ================= */
 const SPR={
-P:["............",".....##.....","....####....","....####....",".....##.....","....####....",".....##.....",".....##.....","....####....","...######...","..########..","..########.."],
-N:["............","....##......","...#####....","..###x###...",".#########..",".####.####..","..#..#####..",".....#####..","....#####...","....####....","..########..","..########.."],
-B:[".....##.....","....####....","...##.###...","...#.####...","...######...","....####....",".....##.....","....####....",".....##.....","....####....","..########..","..########.."],
-R:["..##.##.##..","..########..","..########..","...######...","...######...","...##x###...","...######...","...######...","...######...","..########..",".##########.",".##########."],
-Q:[".#...##...#.",".##.####.##.","..########..","..##x##x##..","...######...","....####....","....####....","...######...","....####....","...######...","..########..","..########.."],
-K:[".....##.....","....####....",".....##.....","..##.##.##..",".##########.",".####xx####.","..########..","...######...","....####....","...######...","..########..","..########.."],
-G:["............","..########..","..##x##x##..","..########..","..###xx###..","...######...","....####....",".....##.....","....####....","...######...","..########..","..########.."],
-C:["............","........##..",".......####.","...##..##x#.","..######.##.",".#######....",".#######....","..#.##.#....","..#.##.#....","...######...","..########..","..########.."],
-A:[".....##.....","...######...","..##.##.##..","..###..###..","..###xx###..","...######...","....####....","...######...",".....##.....","....####....","..########..","..########.."],
-H:["..#.#.#.....","..#######...","..###x####..","..########..","...#######..","..#.#.#.#...","..#######...","...#####....","...#####....","...#####....","..#######...",".#########.."],
+P:["................","................","................","................","......####......",".....######.....","....########....","....########....","....########....",".....######.....","......####......","....########....",".....dddddd.....","......####......",".....######.....",".....######.....","....########....","....dddddddd...."],
+R:["................","..###..##..###..","..###..##..###..","..############..","..dddddddddddd..","...##########...","....########....","....###dd###....","....###dd###....","....########....","....##d##d##....","....########....","....########....","....d###d###....","....########....","...##########...","...##########...","...dddddddddd..."],
+N:["................",".......##.......","......####......",".....######.....","....#######d....","...###x#####d...","..##########d...",".###########dd..",".####dd######d..","..##...######d..","......######d...",".....#######d...","....########d...","....########....",".....######.....","....########....","...##########...","...dddddddddd..."],
+B:["................",".......##.......","......####......",".....######.....","....####d###....","....###d####....","....##d#####....","....########....",".....######.....","......####......","....########....",".....dddddd.....","......####......","......####......",".....######.....","....########....","...##########...","...dddddddddd..."],
+Q:["..x....xx....x..","..#...####...#..","..##..####..##..","..###.####.###..","..############..","..##x##xx##x##..","...##########...","....dddddddd....",".....######.....","......####......","......####......",".....######.....","....########....",".....dddddd.....",".....######.....","....########....","...##########...","...dddddddddd..."],
+K:[".......##.......","......####......",".......##.......","......####......","..###.####.###..",".##############.",".######xx######.",".##############.","..############..","...dddddddddd...",".....######.....","......####......","......####......",".....######.....","....########....",".....dddddd.....","...##########...","...dddddddddd..."],
+G:["................","................",".....######.....","....########....","...##########...","...##dddddd##...","...##x####x##...","...##########...","....########....",".....######.....","...##########...","..############..","..##x######x##..","...##########...",".....######.....","....########....","...##########...","...dddddddddd..."],
+C:["................","................","..........###...",".........#####..",".........##x###.","...##....###....","..####...###....",".######.####....","############....","###########.....",".##########.....","..########......","..#d#..#d#......","..#d#..#d#......","..###..###......","....########....","...##########...","...dddddddddd..."],
+A:["................",".......##.......","......####......",".....##dd##.....","....###dd###....","....#dddddd#....","....###dd###....","....###dd###....",".....######.....","...##########...","...#x######x#...","....########....",".....dddddd.....","......####......",".....######.....","....########....","...##########...","...dddddddddd..."],
+H:["................","......##........",".....#####......","....###x###.....","...#########....","...##d#######...","......#######...","...##.##.##.##..","...###########..","...ddddddddddd..","....#########...","....##d###d##...","....#########...","....##d####d#...","....#########...","....#########...","...##########...","...dddddddddd..."],
 };
+const PED=["..############..",".##############.",".dddddddddddddd.",".##############.",".##############.","..dddddddddddd.."];
 const PAL={
-  P:{o:'#22181d',b:'#f1e5c8',l:'#fffbf0',s:'#bfa880',x:'#4f8fd0'},
-  E:{o:'#140a0e',b:'#b2474f',l:'#e06a6e',s:'#702634',x:'#ffd24a'},
+  P:{o:'#2a1c22',d:'#8f7a5c',s:'#c4ad85',b:'#eadcbc',l:'#f8efd9',h:'#ffffff',x:'#3f86d0',xl:'#9fd0ff'},
+  E:{o:'#1a0b10',d:'#4f1824',s:'#7c2a38',b:'#a9424e',l:'#cd5f68',h:'#f39191',x:'#f2b522',xl:'#ffe98a'},
 };
 const ICONS={
 piggy:["........","..####..",".#+####.",".#+#####",".#######","..####..","..#..#..","........"],
@@ -251,10 +252,10 @@ skull:["..####..",".######.","##..#..#","##..#..#",".######.","..#.#.#.","..####
 };
 function shade(hex,k){const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;
   const f=v=>clamp(Math.round(k>0?v+(255-v)*k:v*(1+k)),0,255);return '#'+((1<<24)+(f(r)<<16)+(f(g)<<8)+f(b)).toString(16).slice(1)}
-function bitmap(rows,size,colorOf,outline){
-  const c=document.createElement('canvas');c.width=size+2;c.height=size+2;const g=c.getContext('2d');
+function bitmap(rows,wd,ht,colorOf,outline){
+  const c=document.createElement('canvas');c.width=wd+2;c.height=ht+2;const g=c.getContext('2d');
   const at=(x,y)=>{const ch=(rows[y]||'')[x];return ch&&ch!=='.'?ch:null};
-  for(let y=-1;y<=size;y++)for(let x=-1;x<=size;x++){
+  for(let y=-1;y<=ht;y++)for(let x=-1;x<=wd;x++){
     const ch=at(x,y);let col=null;
     if(ch)col=colorOf(ch,x,y,at);
     else if(outline&&(at(x-1,y)||at(x+1,y)||at(x,y-1)||at(x,y+1)))col=outline;
@@ -262,17 +263,24 @@ function bitmap(rows,size,colorOf,outline){
   }
   return c;
 }
+/* Объёмная заливка: свет слева-сверху. Для каждого пикселя считаем положение внутри горизонтального «среза» фигуры
+   и красим как цилиндр: блик → светлый → основной → полутень (дизеринг) → тень. */
 function pieceSprite(t,side){
-  const p=PAL[side];
-  return bitmap(SPR[t],12,(ch,x,y,at)=>{
-    if(ch==='x')return p.x;
-    if(!at(x-1,y)||!at(x,y-1))return p.l;
-    if(!at(x+1,y)||!at(x,y+1))return p.s;
-    return p.b;
-  },p.o);
+  const P=PAL[side];
+  return bitmap(SPR[t].concat(PED),16,24,(ch,x,y,at)=>{
+    if(ch==='x')return at(x,y-1)?P.x:P.xl;
+    let l=x,r=x;while(at(l-1,y))l--;while(at(r+1,y))r++;
+    const k=(x-l)/Math.max(1,r-l);
+    if(ch==='d')return k<.22?P.s:P.d;
+    if(!at(x,y-1)&&k<.75)return k<.4?P.h:P.l;
+    if(k<.18)return P.l;
+    if(k>.84)return P.s;
+    if(k>.62&&(x+y)%2===0)return P.s;
+    return P.b;
+  },P.o);
 }
 function iconSprite(key,col){
-  return bitmap(ICONS[key],8,(ch,x,y,at)=>ch==='+'?shade(col,.55):(!at(x+1,y)||!at(x,y+1))?shade(col,-.25):col,'#1c1418');
+  return bitmap(ICONS[key],8,8,(ch,x,y,at)=>ch==='+'?shade(col,.55):(!at(x,y-1)&&!at(x-1,y))?shade(col,.3):(!at(x+1,y)||!at(x,y+1))?shade(col,-.25):col,'#1c1418');
 }
 const SP={P:{},E:{}},SPURL={P:{},E:{}},ICO={},ICOURL={};
 for(const t in SPR)for(const s of ['P','E']){SP[s][t]=pieceSprite(t,s);SPURL[s][t]=SP[s][t].toDataURL()}
@@ -471,82 +479,146 @@ function floatText(i,txt,col){const [x,y]=cellCenter(i);FX.texts.push({x,y:y-T*.
 function animate(id,f,t,dur=200){const w=B.s.w;ANIM.set(id,{fx:f%w,fy:(f/w)|0,t0:performance.now(),d:dur})}
 
 /* ================= BOARD RENDER ================= */
-const cv=$('#board'),g=cv.getContext('2d');let T=48,DPR=1;
+const cv=$('#board'),g=cv.getContext('2d');let T=48,DPR=1,OX=12,OY=24,FR=12,DEP=14,PU=2,PSC=3;
 function resize(){
   if(!B)return;
   const wrap=$('#boardwrap');const land=matchMedia('(min-aspect-ratio: 5/4)').matches;
   let W,H;
-  if(land){H=wrap.clientHeight;W=Math.min(window.innerWidth*.56,H);document.documentElement.style.setProperty('--bw',Math.floor(W)+'px')}
+  if(land){H=wrap.clientHeight;W=Math.min(window.innerWidth*.58,H*1.02);document.documentElement.style.setProperty('--bw',Math.floor(W)+'px')}
   else{W=wrap.clientWidth;H=wrap.clientHeight}
-  const pad=land?24:16;T=Math.max(22,Math.floor(Math.min((W-pad*2)/B.s.w,(H-pad*2)/B.s.h)));
+  const w=B.s.w,h=B.s.h;
+  T=Math.max(22,Math.floor(Math.min((W-6)/(w+.62),(H-6)/(h+1.25))));
   DPR=Math.min(3,window.devicePixelRatio||1);
-  cv.width=B.s.w*T*DPR;cv.height=B.s.h*T*DPR;cv.style.width=B.s.w*T+'px';cv.style.height=B.s.h*T+'px';
+  FR=Math.round(T*.3);DEP=Math.round(T*.32);PU=Math.max(1,Math.round(T/22));
+  PSC=Math.max(1,Math.floor(T*DPR*.95/18))/DPR;
+  OX=FR;OY=Math.max(FR,Math.round(T*.58));
+  const CW=w*T+FR*2,CH=OY+h*T+FR+DEP+PU*4;
+  cv.width=Math.round(CW*DPR);cv.height=Math.round(CH*DPR);cv.style.width=CW+'px';cv.style.height=CH+'px';
 }
 addEventListener('resize',()=>{resize()});
+function hsh(a,b){let x=(Math.imul(a,374761393)+Math.imul(b,668265263))>>>0;x=Math.imul(x^(x>>>13),1274126177)>>>0;return x^(x>>>16)}
 function drawTileDeco(ctx,kind,x,y,S){
-  const col=TILES[kind].col;ctx.fillStyle=col+'55';ctx.fillRect(x,y,S,S);
-  ctx.strokeStyle=col;ctx.lineWidth=Math.max(2,S/18);const m=ctx.lineWidth/2;ctx.strokeRect(x+m+1,y+m+1,S-2*m-2,S-2*m-2);
-  const ic=ICO[kind],sc=Math.max(1,Math.floor(S*.42/10)),z=10*sc;ctx.globalAlpha=.85;ctx.drawImage(ic,x+(S-z)/2,y+(S-z)/2,z,z);ctx.globalAlpha=1;
+  const col=TILES[kind].col,u=Math.max(1,Math.round(S/22));ctx.fillStyle=col+'50';ctx.fillRect(x,y,S,S);
+  // пиксельная рамка с «зубчиками» по углам
+  ctx.fillStyle=col;ctx.fillRect(x+u,y+u,S-2*u,u);ctx.fillRect(x+u,y+S-2*u,S-2*u,u);ctx.fillRect(x+u,y+u,u,S-2*u);ctx.fillRect(x+S-2*u,y+u,u,S-2*u);
+  ctx.fillStyle=shade(col,.5);for(const [cx,cy] of [[x+u,y+u],[x+S-3*u,y+u],[x+u,y+S-3*u],[x+S-3*u,y+S-3*u]])ctx.fillRect(cx,cy,2*u,2*u);
+  ctx.fillStyle=col+'33';for(let k=0;k<4;k++)ctx.fillRect(x+S*(.2+.2*k),y+S*.5+(k%2?u:-u)*3,u,u);
+  const ic=ICO[kind],sc=Math.max(1,Math.floor(S*DPR*.62/10))/DPR,z=10*sc;ctx.globalAlpha=.9;ctx.drawImage(ic,Math.round(x+(S-z)/2),Math.round(y+(S-z)/2),z,z);ctx.globalAlpha=1;
 }
+function drawFrame(w,h){
+  const BW=w*T,BH=h*T,u=PU,L=OX-FR,Tp=OY-FR,FW=BW+FR*2,FH=BH+FR*2;
+  // тень под доской
+  g.fillStyle='rgba(0,0,0,.45)';g.fillRect(L+u*4,Tp+u*6,FW,FH+DEP);
+  // торец (толщина доски)
+  g.fillStyle='#3e2622';g.fillRect(L,Tp+FH,FW,DEP);
+  g.fillStyle='#55352c';g.fillRect(L,Tp+FH,FW,u*2);
+  g.fillStyle='#2c1a18';for(let k=0;k<=w;k++)g.fillRect(OX+k*T-u/2,Tp+FH+u*3,u,DEP-u*5);
+  for(let k=0;k<w*3;k++){const hh=hsh(k,77);g.fillStyle='#4a2d27';g.fillRect(L+hh%FW,Tp+FH+u*3+((hh>>>8)%Math.max(1,DEP-u*6)),u*3,u)}
+  g.fillStyle='#1a0f10';g.fillRect(L,Tp+FH+DEP-u,FW,u);
+  // верх рамки, дерево с прожилками
+  g.fillStyle='#7a4b33';g.fillRect(L,Tp,FW,FH);
+  for(let k=0;k<(w+h)*9;k++){const hh=hsh(k,w);const gx=L+hh%FW,gy=Tp+((hh>>>11)%FH);
+    if(gx>OX-u*3&&gx<OX+BW+u*2&&gy>OY-u*3&&gy<OY+BH+u*2)continue;g.fillStyle=k%3?'#6a3f2b':'#8a5a3d';g.fillRect(gx,gy,u*(2+hh%4),u)}
+  g.fillStyle='#a5704a';g.fillRect(L,Tp,FW,u);g.fillRect(L,Tp,u,FH);
+  g.fillStyle='#52301f';g.fillRect(L,Tp+FH-u,FW,u);g.fillRect(L+FW-u,Tp,u,FH);
+  // латунная окантовка игрового поля
+  g.fillStyle='#1d1214';g.fillRect(OX-u*3,OY-u*3,BW+u*6,BH+u*6);
+  g.fillStyle='#c9a15a';g.fillRect(OX-u*2,OY-u*2,BW+u*4,BH+u*4);
+  g.fillStyle='#f0d58f';g.fillRect(OX-u*2,OY-u*2,BW+u*4,u);g.fillRect(OX-u*2,OY-u*2,u,BH+u*4);
+  g.fillStyle='#8a6a32';g.fillRect(OX-u*2,OY+BH+u,BW+u*4,u);g.fillRect(OX+BW+u,OY-u*2,u,BH+u*4);
+  // заклёпки
+  for(const [cx,cy] of [[L+FR/2,Tp+FR/2],[L+FW-FR/2,Tp+FR/2],[L+FR/2,Tp+FH-FR/2],[L+FW-FR/2,Tp+FH-FR/2]]){
+    const x=Math.round(cx-u*2),y=Math.round(cy-u*2);g.fillStyle='#1d1214';g.fillRect(x-u,y-u,u*6,u*6);g.fillStyle='#c9a15a';g.fillRect(x,y,u*4,u*4);
+    g.fillStyle='#f6e2a6';g.fillRect(x,y,u*2,u);g.fillRect(x,y,u,u*2);g.fillStyle='#7d5a28';g.fillRect(x+u*3,y+u,u,u*3);g.fillRect(x+u,y+u*3,u*3,u)}
+  // обводка всего блока
+  g.fillStyle='#140c0e';g.fillRect(L-u,Tp-u,FW+u*2,u);g.fillRect(L-u,Tp,u,FH+DEP);g.fillRect(L+FW,Tp,u,FH+DEP);g.fillRect(L-u,Tp+FH+DEP,FW+u*2,u);
+  // координаты
+  if(FR>=9){g.font=`${Math.max(8,Math.floor(FR*.62))}px EH, monospace`;g.textAlign='center';g.textBaseline='middle';
+    for(let x=0;x<w;x++){const tx=OX+x*T+T/2,ty=OY+BH+FR*.55+u;g.fillStyle='#3a2219';g.fillText('abcdefgh'[x],tx+u,ty+u);g.fillStyle='#e8c99a';g.fillText('abcdefgh'[x],tx,ty)}
+    for(let y=0;y<h;y++){const tx=L+FR*.5,ty=OY+y*T+T/2;g.fillStyle='#3a2219';g.fillText(String(h-y),tx+u,ty+u);g.fillStyle='#e8c99a';g.fillText(String(h-y),tx,ty)}
+    g.textBaseline='alphabetic'}
+}
+const snap=v=>Math.round(v*DPR)/DPR;
 function draw(now){
   requestAnimationFrame(draw);
   if(!B||$('#game').classList.contains('hidden'))return;
-  const s=B.s,w=s.w,h=s.h;
+  const s=B.s,w=s.w,h=s.h,u=PU;
   const dt=Math.min(.05,(now-(draw.last||now))/1000);draw.last=now;
-  let sx=0,sy=0;if(FX.shake>0){FX.shake-=dt;sx=(Math.random()-.5)*8;sy=(Math.random()-.5)*8}
+  let sx=0,sy=0;if(FX.shake>0){FX.shake-=dt;sx=Math.round((Math.random()-.5)*8);sy=Math.round((Math.random()-.5)*8)}
+  g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);
   g.setTransform(DPR,0,0,DPR,sx*DPR,sy*DPR);g.imageSmoothingEnabled=false;
-  g.clearRect(-20,-20,w*T+40,h*T+40);
+  drawFrame(w,h);
+  g.translate(OX,OY);
+  // клетки
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
     const i=y*w+x,px=x*T,py=y*T;
-    if(s.holes[i]){g.fillStyle='#0b0b12';g.fillRect(px,py,T,T);g.fillStyle='#1d1f33';
-      for(let k=0;k<5;k++){const a=((i*37+k*53)%97)/97,b=((i*61+k*29)%89)/89;g.fillRect(px+a*T,py+b*T,2,2)}continue}
-    const light=(x+y)%2===0;g.fillStyle=light?'#e6d6b3':'#5b7a86';g.fillRect(px,py,T,T);
-    g.fillStyle=light?'#d8c69f':'#4d6a75';g.fillRect(px,py+T-3,T,3);
+    if(s.holes[i]){g.fillStyle='#07070c';g.fillRect(px,py,T,T);g.fillStyle='#2a2230';g.fillRect(px,py,T,u*3);g.fillStyle='#17131c';g.fillRect(px,py+u*3,T,u*2);
+      g.fillStyle='#2b2f4d';for(let k=0;k<6;k++){const hh=hsh(i,k);g.fillRect(px+u+(hh%(T-u*3)),py+u*6+((hh>>>9)%(T-u*8)),u,u)}continue}
+    const light=(x+y)%2===0;
+    g.fillStyle=light?'#e6d6b3':'#5b7a86';g.fillRect(px,py,T,T);
+    g.fillStyle=light?'#f4e8cb':'#6d8e9a';g.fillRect(px,py,T,u);g.fillRect(px,py,u,T);
+    g.fillStyle=light?'#cbb68c':'#48636d';g.fillRect(px,py+T-u*2,T,u*2);g.fillRect(px+T-u,py,u,T);
+    g.fillStyle=light?'#d8c69e':'#51707b';
+    for(let k=0;k<5;k++){const hh=hsh(i*7+3,k);g.fillRect(px+u*2+(hh%(T-u*6)),py+u*2+((hh>>>9)%(T-u*6)),u*(1+(hh>>>20)%3),u)}
     if(s.tiles[i])drawTileDeco(g,s.tiles[i],px,py,T);
   }
-  // last move
-  if(B.last){for(const i of B.last){g.fillStyle='rgba(255,214,90,.28)';g.fillRect((i%w)*T,((i/w)|0)*T,T,T)}}
-  // crack warning
+  if(B.last){for(const i of B.last){const px=(i%w)*T,py=((i/w)|0)*T;g.fillStyle='rgba(255,214,90,.25)';g.fillRect(px,py,T,T);
+    g.fillStyle='rgba(255,214,90,.7)';g.fillRect(px+u,py+u,T*.25,u);g.fillRect(px+u,py+u,u,T*.25);g.fillRect(px+T-u-T*.25,py+T-u*2,T*.25,u);g.fillRect(px+T-u*2,py+T-u-T*.25,u,T*.25)}}
   if(B.warn>=0){const px=(B.warn%w)*T,py=((B.warn/w)|0)*T,blink=Math.floor(now/250)%2;
     g.fillStyle=blink?'rgba(200,40,40,.45)':'rgba(120,20,20,.3)';g.fillRect(px,py,T,T);
-    g.strokeStyle='#1a0d10';g.lineWidth=3;g.beginPath();g.moveTo(px+T*.2,py+T*.1);g.lineTo(px+T*.45,py+T*.45);g.lineTo(px+T*.3,py+T*.7);g.lineTo(px+T*.55,py+T*.9);
-    g.moveTo(px+T*.45,py+T*.45);g.lineTo(px+T*.8,py+T*.35);g.stroke()}
-  // selection
-  if(B.sel>=0){g.fillStyle='rgba(120,220,130,.45)';g.fillRect((B.sel%w)*T,((B.sel/w)|0)*T,T,T)}
-  // pieces
-  const sc=Math.max(1,Math.floor(T*.84/14)),z=14*sc;
+    g.fillStyle='#1a0d10';const c=[[.2,.1],[.3,.25],[.42,.4],[.35,.55],[.3,.7],[.45,.82],[.55,.9],[.55,.45],[.7,.4],[.82,.32]];for(const [a,b] of c)g.fillRect(px+a*T,py+b*T,u*2,u*2)}
+  if(B.sel>=0){const px=(B.sel%w)*T,py=((B.sel/w)|0)*T;g.fillStyle='rgba(120,220,130,.4)';g.fillRect(px,py,T,T);
+    g.fillStyle='#8ff09a';g.fillRect(px,py,T,u);g.fillRect(px,py+T-u,T,u);g.fillRect(px,py,u,T);g.fillRect(px+T-u,py,u,T)}
+  // фигуры: сначала тени, потом спрайты сверху вниз, чтобы ближние перекрывали дальние
+  const list=[];
   for(let i=0;i<s.cells.length;i++){const p=s.cells[i];if(!p)continue;
     let x=i%w,y=(i/w)|0,hop=0;const a=ANIM.get(p.id);
-    if(a){const k=clamp((now-a.t0)/a.d,0,1);if(k>=1)ANIM.delete(p.id);else{const e=1-(1-k)*(1-k);x=a.fx+(x-a.fx)*e;y=a.fy+(y-a.fy)*e;hop=Math.sin(k*Math.PI)*T*.22}}
-    const px=x*T,py=y*T;
-    g.fillStyle='rgba(0,0,0,.25)';g.fillRect(px+T*.22,py+T*.8,T*.56,T*.08);
-    let bob=(i===B.sel)?Math.floor(Math.sin(now/150)*2)-2:0;
-    g.drawImage(SP[p.side][p.type],Math.round(px+(T-z)/2),Math.round(py+(T-z)/2-T*.05+bob-hop),z,z);
-    if(p.side==='P'&&B.threat.has(i)&&B.turn==='P'){g.fillStyle='#e0484f';const q=Math.max(4,T/8);g.fillRect(px+T-q-2,py+2,q,q);g.fillStyle='#fff';g.fillRect(px+T-q/2-3,py+3,2,q*.55)}
-    if(p.side==='E'&&p.type==='K'&&s.kingLives>1){const q=Math.max(3,Math.floor(T/12));for(let k=0;k<s.kingLives;k++){g.fillStyle='#1a0d12';g.fillRect(px+3+k*(q+3)-1,py+2,q+2,q+2);g.fillStyle='#f3ead4';g.fillRect(px+3+k*(q+3),py+3,q,q)}}
-  }
-  // move markers
-  const mk=(list,col,colCap)=>{for(const t of list){const px=(t%w)*T,py=((t/w)|0)*T;
-    if(s.cells[t]){g.strokeStyle=colCap;g.lineWidth=Math.max(3,T/14);const q=T*.18;
-      g.beginPath();g.moveTo(px+2,py+q);g.lineTo(px+2,py+2);g.lineTo(px+q,py+2);g.moveTo(px+T-q,py+2);g.lineTo(px+T-2,py+2);g.lineTo(px+T-2,py+q);
-      g.moveTo(px+T-2,py+T-q);g.lineTo(px+T-2,py+T-2);g.lineTo(px+T-q,py+T-2);g.moveTo(px+q,py+T-2);g.lineTo(px+2,py+T-2);g.lineTo(px+2,py+T-q);g.stroke()}
-    else{const q=Math.max(6,Math.floor(T/5));g.fillStyle='rgba(20,15,20,.35)';g.fillRect(px+(T-q)/2+1,py+(T-q)/2+2,q,q);g.fillStyle=col;g.fillRect(px+(T-q)/2,py+(T-q)/2,q,q)}}};
+    if(a){const k=clamp((now-a.t0)/a.d,0,1);if(k>=1)ANIM.delete(p.id);else{const e=1-(1-k)*(1-k);x=a.fx+(x-a.fx)*e;y=a.fy+(y-a.fy)*e;hop=Math.sin(k*Math.PI)*T*.3}}
+    list.push({p,i,x,y,hop});}
+  list.sort((a,b)=>a.y-b.y);
+  for(const o of list){const px=o.x*T,py=o.y*T,sh=1-Math.min(.5,o.hop/T);
+    g.fillStyle='rgba(15,8,14,.38)';const ww=T*.74*sh,hh=Math.max(u*2,T*.1);
+    g.fillRect(snap(px+(T-ww)/2+u*2),snap(py+T*.86),snap(ww-u*4),snap(hh));g.fillRect(snap(px+(T-ww)/2),snap(py+T*.86+u),snap(ww),snap(hh-u*2))}
+  const SW=18*PSC,SH=26*PSC;
+  for(const o of list){const px=o.x*T,py=o.y*T;
+    const lift=(o.i===B.sel&&!o.hop)?T*.08+Math.round((Math.sin(now/160)+1)*1.5):0;
+    o.top=py+T*.94-SH-lift-o.hop;
+    g.drawImage(SP[o.p.side][o.p.type],snap(px+(T-SW)/2),snap(o.top),SW,SH)}
+  // маркеры ходов
+  const mk=(lst,col,colCap)=>{for(const t of lst){const px=(t%w)*T,py=((t/w)|0)*T;
+    if(s.cells[t]){g.fillStyle=colCap;const q=Math.round(T*.22),k=Math.max(2,u*2);
+      for(const [cx,cy,dx,dy] of [[px,py,1,1],[px+T,py,-1,1],[px,py+T,1,-1],[px+T,py+T,-1,-1]]){
+        g.fillRect(dx>0?cx:cx-q,dy>0?cy:cy-k,q,k);g.fillRect(dx>0?cx:cx-k,dy>0?cy:cy-q,k,q)}}
+    else{const q=Math.max(6,Math.round(T/5/u)*u),x0=px+(T-q)/2,y0=py+(T-q)/2;
+      g.fillStyle='rgba(20,15,20,.45)';g.fillRect(x0,y0+u,q,q);g.fillStyle=col;g.fillRect(x0+u,y0-u,q-2*u,q+2*u-u);g.fillRect(x0,y0,q,q-u*2);
+      g.fillStyle='rgba(255,255,255,.55)';g.fillRect(x0+u,y0,u,u)}}};
   mk(B.moves,'#7fe08a','#ffdf5a');
-  mk(B.peekMoves,'rgba(230,80,80,.9)','#ff6a6a');
-  if(B.mode==='bolt'){for(let i=0;i<s.cells.length;i++){const p=s.cells[i];if(p&&p.side==='E'&&p.type!=='K'){const px=(i%w)*T,py=((i/w)|0)*T;
-    g.strokeStyle=Math.floor(now/200)%2?'#c9b4ff':'#7a5cf0';g.lineWidth=3;g.strokeRect(px+2,py+2,T-4,T-4)}}}
-  // bolt
+  mk(B.peekMoves,'#e66a6a','#ff6a6a');
+  if(B.mode==='bolt'){for(const o of list){if(o.p.side==='E'&&o.p.type!=='K'){const px=o.x*T,py=o.y*T;
+    g.fillStyle=Math.floor(now/200)%2?'#c9b4ff':'#7a5cf0';g.fillRect(px,py,T,u*2);g.fillRect(px,py+T-u*2,T,u*2);g.fillRect(px,py,u*2,T);g.fillRect(px+T-u*2,py,u*2,T)}}}
+  for(const o of list){const px=o.x*T;
+    if(o.p.side==='P'&&B.threat.has(o.i)&&B.turn==='P'){const q=Math.max(7,Math.round(T/6)),bx=px+T-q-u,by=Math.max(-OY+2,o.top+SH*.2);
+      g.fillStyle='#1a0d10';g.fillRect(bx-u,by-u,q+2*u,q+2*u);g.fillStyle='#e0484f';g.fillRect(bx,by,q,q);g.fillStyle='#fff3e0';g.fillRect(bx+q/2-u/2-.5,by+u,Math.max(1,u),q*.5);g.fillRect(bx+q/2-u/2-.5,by+q*.72,Math.max(1,u),Math.max(1,u))}
+    if(o.p.side==='E'&&o.p.type==='K'&&s.kingLives>1){const q=Math.max(4,Math.round(T/10));const tot=s.kingLives*(q+u*2);
+      for(let k=0;k<s.kingLives;k++){const bx=px+(T-tot)/2+k*(q+u*2),by=o.top-q-u;g.fillStyle='#1a0d12';g.fillRect(bx-u,by-u,q+2*u,q+2*u);g.fillStyle='#f3ead4';g.fillRect(bx,by,q,q);g.fillStyle='#1a0d12';g.fillRect(bx+q*.2,by+q*.3,Math.max(1,q*.2),Math.max(1,q*.2));g.fillRect(bx+q*.6,by+q*.3,Math.max(1,q*.2),Math.max(1,q*.2))}}}
   if(FX.bolt){FX.bolt.t+=dt;const b=FX.bolt;if(b.t>.35)FX.bolt=null;else{g.strokeStyle='#efe8ff';g.lineWidth=4;g.beginPath();
     for(const [x,y] of b.pts)g.lineTo(x,y);g.stroke();g.strokeStyle='#9b7cf5';g.lineWidth=2;g.stroke()}}
-  // particles
   for(let k=FX.parts.length-1;k>=0;k--){const p=FX.parts[k];p.t+=dt;if(p.t>p.life){FX.parts.splice(k,1);continue}
-    p.vy+=380*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;g.fillStyle=p.col;g.fillRect(Math.round(p.x),Math.round(p.y),p.sz,p.sz)}
+    p.vy+=380*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;g.fillStyle=p.col;const z=p.sz*Math.max(1,u/2);g.fillRect(snap(p.x),snap(p.y),z,z)}
   g.font=`${Math.max(12,Math.floor(T/3.2))}px EH, monospace`;g.textAlign='center';
   for(let k=FX.texts.length-1;k>=0;k--){const t=FX.texts[k];t.t+=dt;if(t.t>1.1){FX.texts.splice(k,1);continue}
-    const y=t.y-t.t*T*.6;g.globalAlpha=clamp(1.6-t.t*1.4,0,1);g.fillStyle='#150d12';g.fillText(t.txt,t.x+2,y+2);g.fillStyle=t.col;g.fillText(t.txt,t.x,y);g.globalAlpha=1}
+    const y=t.y-T*.4-t.t*T*.6;g.globalAlpha=clamp(1.6-t.t*1.4,0,1);g.fillStyle='#150d12';g.fillText(t.txt,t.x+2,y+2);g.fillStyle=t.col;g.fillText(t.txt,t.x,y);g.globalAlpha=1}
   if(FX.flash>0){FX.flash-=dt;g.fillStyle=`rgba(235,225,255,${clamp(FX.flash*2,0,.6)})`;g.fillRect(0,0,w*T,h*T)}
 }
 requestAnimationFrame(draw);
+/* пиксельный фон: зацикленный шум, растянутый без сглаживания */
+(function(){const N=64,c=document.createElement('canvas');c.width=c.height=N;const x=c.getContext('2d'),G=8,v=[];
+  for(let i=0;i<G*G;i++)v.push(Math.random());
+  const at=(a,b)=>v[((b%G+G)%G)*G+((a%G+G)%G)];
+  for(let y=0;y<N;y++)for(let X=0;X<N;X++){const fx=X/N*G,fy=y/N*G,a=Math.floor(fx),b=Math.floor(fy),tx=fx-a,ty=fy-b;
+    const s=(1-ty)*((1-tx)*at(a,b)+tx*at(a+1,b))+ty*((1-tx)*at(a,b+1)+tx*at(a+1,b+1));
+    const d=((X+y)%2)*.04;x.fillStyle=s+d>.62?'#202439':s+d>.5?'#191c2d':(X*7+y*13)%97===0?'#2b3050':'#12131d';x.fillRect(X,y,1,1)}
+  document.body.style.backgroundImage=`url(${c.toDataURL()})`;})();
 
 /* ================= UI ================= */
 function setInfo(html){$('#info').innerHTML=html}
@@ -584,7 +656,7 @@ $('#btnSnd').onclick=()=>{sndOn=!sndOn;$('#btnSnd').textContent='Звук: '+(sn
 /* ================= INPUT ================= */
 cv.addEventListener('pointerdown',e=>{
   if(!B)return;const r=cv.getBoundingClientRect();
-  const x=Math.floor((e.clientX-r.left)/T),y=Math.floor((e.clientY-r.top)/T);
+  const x=Math.floor((e.clientX-r.left-OX)/T),y=Math.floor((e.clientY-r.top-OY)/T);
   if(x<0||y<0||x>=B.s.w||y>=B.s.h)return;onCell(y*B.s.w+x);
 });
 function describe(i){
@@ -809,7 +881,7 @@ function renderShop(){
   showPanel(`<h2>Магазин</h2>
     <div class="bigmoney">${img(ICOURL.coin,'px" style="width:22px;height:22px;vertical-align:-4px')} $${RUN.money}</div>
     <h3>Товары</h3>
-    <div class="shopgrid">${S.items.map((it,k)=>`<div class="card ${it.sold?'sold':''} ${S.sel&&S.sel.type==='item'&&S.sel.k===k?'sel':''}" data-item="${k}"><span class="tag">${tag[it.kind]}</span>${img(itemIcon(it))}${itemName(it)}<br><span class="pr">$${price(it.c)}</span></div>`).join('')}</div>
+    <div class="shopgrid">${S.items.map((it,k)=>`<div class="card ${it.sold?'sold':''} ${S.sel&&S.sel.type==='item'&&S.sel.k===k?'sel':''}" data-item="${k}"><span class="tag">${tag[it.kind]}</span>${img(itemIcon(it),it.kind==='piece'?'px':'px ic')}${itemName(it)}<br><span class="pr">$${price(it.c)}</span></div>`).join('')}</div>
     <div class="row"><button class="btn" data-a="reroll" ${RUN.money>=S.reroll?'':'disabled'}>Обновить товары $${S.reroll}</button>
       <button class="btn" data-a="cap" ${!capMax&&RUN.money>=RUN.capCost?'':'disabled'}>${capMax?'Мест на доске: максимум':`Ещё место на доске $${RUN.capCost}`}</button></div>
     <div id="sdesc">${desc}</div>
@@ -817,7 +889,7 @@ function renderShop(){
     <div class="roster">${RUN.roster.map(r=>`<div class="rp ${r.bench?'bench':''} ${S.sel&&S.sel.type==='roster'&&S.sel.id===r.id?'sel':''}" data-ros="${r.id}">${img(SPURL.P[r.type])}${r.bench?'<span class="z">запас</span>':''}</div>`).join('')}</div>
     <div class="mrow">
       <div><h3>Ваша сторона доски</h3><canvas id="mini"></canvas></div>
-      <div style="flex:1;min-width:180px"><h3>Талисманы ${RUN.relics.length}/${MAX_RELICS}</h3><div class="roster">${RUN.relics.map(r=>`<div class="rp ${S.sel&&S.sel.type==='relic'&&S.sel.id===r?'sel':''}" data-rel="${r}">${img(ICOURL[r])}</div>`).join('')||'<span class="sub">Пока нет.</span>'}</div></div>
+      <div style="flex:1;min-width:180px"><h3>Талисманы ${RUN.relics.length}/${MAX_RELICS}</h3><div class="roster">${RUN.relics.map(r=>`<div class="rp ${S.sel&&S.sel.type==='relic'&&S.sel.id===r?'sel':''}" data-rel="${r}">${img(ICOURL[r],'px ic')}</div>`).join('')||'<span class="sub">Пока нет.</span>'}</div></div>
     </div>
     <div class="row" style="margin-top:16px"><button class="btn go" data-a="next" ${S.placing?'disabled':''} style="font-size:17px;padding:10px 18px">Далее ▶ Этап ${RUN.stage} · Партия ${RUN.match}${nextBoss?' — БОСС: '+nextBoss.n:''}</button></div>`);
   drawMini();
