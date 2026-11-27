@@ -9,10 +9,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Орбита — прыжок к звёздам</title>
 <style>
-  :root { --bg: #070512; }
+  :root { --bg: #070512; color-scheme: dark; }
   html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); overflow: hidden;
     touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-  #game { position: fixed; inset: 0; }
+  #game { position: fixed; inset: 0; background: var(--bg); }
   canvas { display: block; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
@@ -22,14 +22,14 @@
 <script>
 'use strict';
 /* =====================================================================
-   ОРБИТА — одно касание, бесконечный подъём.
-   Комета вращается вокруг планеты. Касание — срыв с орбиты по касательной.
-   Долети до следующей планеты, собирай звёзды и не дай Пустоте догнать тебя.
-   Движок: Phaser 3. Вся графика и звук генерируются кодом.
+   ОРБИТА 2.0 — одно касание, бесконечный подъём.
+   Движок: Phaser 3. Вся графика, звук и музыка генерируются кодом.
    ===================================================================== */
 
 const W = 720, H = 1280;
 const FONT = '"Trebuchet MS", "Segoe UI", Arial, sans-serif';
+const ZONE_LEN = 20;
+const REVIVE_COST = 25;
 
 const SKINS = [
   { name: 'Комета',   color: 0x7df9ff, price: 0 },
@@ -38,6 +38,8 @@ const SKINS = [
   { name: 'Изумруд',  color: 0x52ff9a, price: 100 },
   { name: 'Аметист',  color: 0xc77dff, price: 160 },
   { name: 'Призрак',  color: 0xffffff, price: 250 },
+  { name: 'Радуга',   color: 0xff77ff, price: 400, rainbow: true },
+  { name: 'Пульсар',  color: 0x3a86ff, color2: 0xff006e, price: 600, pulsar: true },
 ];
 
 const PLANET_KINDS = [
@@ -50,22 +52,83 @@ const PLANET_KINDS = [
   { a: '#e63946', b: '#ffb4a2', type: 'bands' },
 ];
 
+const ZONES = [
+  { name: 'Лиловая туманность', cols: ['rgba(131,56,236,0.30)', 'rgba(58,134,255,0.20)', 'rgba(255,0,110,0.14)'] },
+  { name: 'Ледяной пояс',       cols: ['rgba(72,202,228,0.28)', 'rgba(144,224,239,0.16)', 'rgba(58,134,255,0.22)'] },
+  { name: 'Алая бездна',        cols: ['rgba(230,57,70,0.30)', 'rgba(247,127,0,0.18)', 'rgba(131,56,236,0.16)'] },
+  { name: 'Изумрудные врата',   cols: ['rgba(6,214,160,0.24)', 'rgba(42,157,143,0.22)', 'rgba(255,210,63,0.12)'] },
+  { name: 'Сердце галактики',   cols: ['rgba(255,210,63,0.22)', 'rgba(255,0,110,0.22)', 'rgba(199,125,255,0.24)'] },
+];
+
+const PU = {
+  shield: { name: 'Щит',        base: 5, color: 0x48cae4, css: '#48cae4' },
+  magnet: { name: 'Магнит',     base: 7, color: 0xff4d6d, css: '#ff4d6d' },
+  slow:   { name: 'Замедление', base: 5, color: 0xc77dff, css: '#c77dff' },
+  x2:     { name: 'Очки ×2',    base: 7, color: 0xffd23f, css: '#ffd23f' },
+};
+const PU_KEYS = Object.keys(PU);
+
+const UPG = [
+  { id: 'aim',    name: 'Прицел',         desc: 'Линия прицела длиннее',          max: 5 },
+  { id: 'shield', name: 'Щит',            desc: 'Щит держится дольше',            max: 5 },
+  { id: 'magnet', name: 'Магнит',         desc: 'Магнит работает дольше',         max: 5 },
+  { id: 'slow',   name: 'Замедление',     desc: 'Время замедлено дольше',         max: 5 },
+  { id: 'x2',     name: 'Очки ×2',        desc: 'Удвоение очков дольше',          max: 5 },
+  { id: 'start',  name: 'Старт со щитом', desc: 'Забег начинается со щитом', max: 1 },
+];
+const upgCost = (u, l) => u.id === 'start' ? 250 : [40, 80, 140, 220, 320][l];
+
+const MISSIONS = {
+  score:    { t: n => `Набери ${n} очков`,              v: [10, 20, 30, 45, 60, 80, 100, 130, 170] },
+  coins:    { t: n => `Собери ${n} ★ за забег`,         v: [5, 10, 15, 25, 35, 50, 70] },
+  combo:    { t: n => `Сделай комбо ×${n}`,             v: [2, 3, 4, 5, 7, 9, 12] },
+  perfect:  { t: n => `${n} идеальных входов`,          v: [3, 5, 8, 12, 16, 22, 30] },
+  hole:     { t: n => `Войди в орбиту чёрной дыры ×${n}`, v: [1, 2, 3, 5, 8] },
+  power:    { t: n => `Подбери бонусы: ${n}`,           v: [1, 2, 3, 5, 7, 10] },
+  unstable: { t: n => `Сбеги с нестабильной планеты ×${n}`, v: [1, 2, 4, 6, 9] },
+};
+const MKEYS = Object.keys(MISSIONS);
+
 /* ---------- сохранение ---------- */
 const Save = {
-  data: { best: 0, coins: 0, owned: [0], skin: 0, sound: true },
+  data: {
+    best: 0, coins: 0, owned: [0], skin: 0, sound: true, music: true, vibro: true, seenHelp: false, games: 0,
+    upg: {}, mlvl: {}, missions: [{ k: 'score' }, { k: 'coins' }, { k: 'combo' }],
+  },
   load() {
     try { const d = JSON.parse(localStorage.getItem('orbit_save_v1')); if (d) Object.assign(this.data, d); } catch (e) {}
+    this.data.upg = Object.assign({ aim: 0, shield: 0, magnet: 0, slow: 0, x2: 0, start: 0 }, this.data.upg);
+    this.data.mlvl = this.data.mlvl || {};
+    if (!Array.isArray(this.data.missions) || this.data.missions.length !== 3) this.data.missions = [{ k: 'score' }, { k: 'coins' }, { k: 'combo' }];
+    if (typeof this.data.music !== 'boolean') this.data.music = true;
+    if (typeof this.data.vibro !== 'boolean') this.data.vibro = true;
   },
   save() { try { localStorage.setItem('orbit_save_v1', JSON.stringify(this.data)); } catch (e) {} },
 };
 Save.load();
 
-/* ---------- звук (синтезатор WebAudio) ---------- */
+const missionLvl = (k) => Save.data.mlvl[k] || 0;
+const missionGoal = (k) => {
+  const v = MISSIONS[k].v, l = missionLvl(k);
+  return l < v.length ? v[l] : Math.round(v[v.length - 1] * Math.pow(1.3, l - v.length + 1));
+};
+const missionReward = (k) => 15 + missionLvl(k) * 12;
+const puDur = (k) => PU[k].base + (Save.data.upg[k] || 0) * 1.5;
+const aimLen = () => 120 + Save.data.upg.aim * 55;
+function vib(p) { if (!Save.data.vibro) return; try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
+
+/* ---------- звук ---------- */
 const Sfx = {
   ctx: null,
   init() {
-    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
-    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    if (!this.ctx) {
+      try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+      if (this.ctx) document.addEventListener('visibilitychange', () => {
+        if (document.hidden) this.ctx.suspend(); else this.ctx.resume();
+      });
+    }
+    if (this.ctx && this.ctx.state === 'suspended' && !document.hidden) this.ctx.resume();
+    Music.sync();
   },
   tone(f, d, type = 'sine', vol = 0.15, slide = 0, delay = 0) {
     const c = this.ctx; if (!c || !Save.data.sound) return;
@@ -76,14 +139,72 @@ const Sfx = {
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0008, t + d);
     o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + d + 0.02);
   },
+  noise(d, vol = 0.2, freq = 800) {
+    const c = this.ctx; if (!c || !Save.data.sound) return;
+    const len = Math.floor(c.sampleRate * d), buf = c.createBuffer(1, len, c.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    f.type = 'lowpass'; f.frequency.value = freq; g.gain.value = vol;
+    s.buffer = buf; s.connect(f); f.connect(g); g.connect(c.destination); s.start();
+  },
   jump()    { this.tone(300, 0.16, 'triangle', 0.14, 360); },
   land()    { this.tone(520, 0.12, 'sine', 0.16); this.tone(780, 0.1, 'sine', 0.08, 0, 0.04); },
   perfect(n){ const b = 520 + Math.min(n, 10) * 60; [0, 4, 7].forEach((s, i) => this.tone(b * Math.pow(2, s / 12), 0.16, 'square', 0.05, 0, i * 0.05)); },
-  coin()    { this.tone(990, 0.07, 'square', 0.05); this.tone(1480, 0.1, 'square', 0.05, 0, 0.06); },
-  die()     { this.tone(240, 0.7, 'sawtooth', 0.14, -200); this.tone(120, 0.8, 'triangle', 0.15, -80); },
+  coin()    { this.tone(990, 0.07, 'square', 0.045); this.tone(1480, 0.1, 'square', 0.045, 0, 0.06); },
+  power()   { [0, 5, 9, 12, 17].forEach((s, i) => this.tone(440 * Math.pow(2, s / 12), 0.12, 'triangle', 0.1, 0, i * 0.045)); },
+  shieldHit(){ this.tone(900, 0.3, 'sine', 0.15, -600); this.noise(0.25, 0.15, 2000); },
+  boom()    { this.noise(0.7, 0.35, 600); this.tone(90, 0.6, 'sine', 0.25, -50); },
+  die()     { this.tone(240, 0.7, 'sawtooth', 0.12, -200); this.tone(120, 0.8, 'triangle', 0.15, -80); this.noise(0.4, 0.12, 900); },
   click()   { this.tone(660, 0.06, 'triangle', 0.1); },
   buy()     { [0, 4, 7, 12].forEach((s, i) => this.tone(523 * Math.pow(2, s / 12), 0.14, 'triangle', 0.1, 0, i * 0.07)); },
   nope()    { this.tone(180, 0.15, 'square', 0.06); },
+  zone()    { [0, 7, 12, 16, 19, 24].forEach((s, i) => this.tone(330 * Math.pow(2, s / 12), 0.35, 'sine', 0.08, 0, i * 0.08)); },
+  wall()    { this.tone(420, 0.08, 'square', 0.06, -150); },
+  tick()    { this.tone(1200, 0.04, 'square', 0.04); },
+};
+
+/* ---------- фоновая музыка (процедурная) ---------- */
+const Music = {
+  timer: null, step: 0, next: 0, bpm: 96, master: null,
+  chords: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]],
+  midi: (n) => 440 * Math.pow(2, (n - 69) / 12),
+  sync() { if (Save.data.music && Sfx.ctx) this.start(); else this.stop(); },
+  start() {
+    const c = Sfx.ctx; if (this.timer || !c) return;
+    this.master = c.createGain(); this.master.gain.setValueAtTime(0.0001, c.currentTime);
+    this.master.gain.exponentialRampToValueAtTime(0.55, c.currentTime + 1.5);
+    const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 2200;
+    this.master.connect(f); f.connect(c.destination);
+    this.next = c.currentTime + 0.1;
+    this.timer = setInterval(() => this.tick(), 60);
+  },
+  stop() {
+    if (!this.timer) return;
+    clearInterval(this.timer); this.timer = null;
+    const m = this.master, c = Sfx.ctx;
+    if (m && c) { m.gain.cancelScheduledValues(c.currentTime); m.gain.setValueAtTime(m.gain.value, c.currentTime); m.gain.linearRampToValueAtTime(0, c.currentTime + 0.3); setTimeout(() => m.disconnect(), 500); }
+  },
+  tick() {
+    const c = Sfx.ctx; if (!c || c.state !== 'running') return;
+    if (this.next < c.currentTime - 0.5) this.next = c.currentTime + 0.05;
+    while (this.next < c.currentTime + 0.25) { this.play(this.step, this.next); this.next += 60 / this.bpm / 2; this.step++; }
+  },
+  play(s, t) {
+    const ch = this.chords[Math.floor(s / 8) % 4], i = s % 8;
+    const pat = [0, 1, 2, 1, 0, 2, 1, 2];
+    this.note(this.midi(ch[pat[i]] + 12 + (i === 5 ? 12 : 0)), t, 0.32, 'triangle', 0.045);
+    if (i === 0) {
+      this.note(this.midi(ch[0] - 24), t, 2.4, 'sine', 0.11);
+      ch.forEach(n => this.note(this.midi(n), t, 2.6, 'sine', 0.022, 0.4));
+    }
+    if (i === 4) this.note(this.midi(ch[0] - 12), t, 0.5, 'sine', 0.05);
+  },
+  note(f, t, d, type, vol, atk = 0.01) {
+    const c = Sfx.ctx, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + atk); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + d + 0.05);
+  },
 };
 
 const rnd = Phaser.Math.Between, rndf = Phaser.Math.FloatBetween;
@@ -91,6 +212,12 @@ const textStyle = (size, color = '#ffffff', extra = {}) => Object.assign({
   fontFamily: FONT, fontSize: size + 'px', color, fontStyle: 'bold',
   stroke: '#0b0620', strokeThickness: Math.max(4, Math.round(size / 9)),
 }, extra);
+
+function skinTint(sk, t) {
+  if (sk.rainbow) return Phaser.Display.Color.HSVToRGB((t * 0.25) % 1, 0.6, 1).color;
+  if (sk.pulsar) return Math.sin(t * 7) > 0 ? sk.color : sk.color2;
+  return sk.color;
+}
 
 /* ---------- кнопка ---------- */
 function makeButton(scene, x, y, w, h, label, color, cb, size = 44) {
@@ -100,9 +227,9 @@ function makeButton(scene, x, y, w, h, label, color, cb, size = 44) {
   let col = color;
   const draw = (pressed) => {
     g.clear();
-    g.fillStyle(0x000000, 0.35).fillRoundedRect(-w / 2, -h / 2 + 8, w, h, 26);
-    g.fillStyle(col, 1).fillRoundedRect(-w / 2, -h / 2 + (pressed ? 6 : 0), w, h, 26);
-    g.fillStyle(0xffffff, 0.18).fillRoundedRect(-w / 2 + 8, -h / 2 + 6 + (pressed ? 6 : 0), w - 16, h * 0.38, 18);
+    g.fillStyle(0x000000, 0.35).fillRoundedRect(-w / 2, -h / 2 + 8, w, h, Math.min(26, h / 2));
+    g.fillStyle(col, 1).fillRoundedRect(-w / 2, -h / 2 + (pressed ? 6 : 0), w, h, Math.min(26, h / 2));
+    g.fillStyle(0xffffff, 0.18).fillRoundedRect(-w / 2 + 8, -h / 2 + 6 + (pressed ? 6 : 0), w - 16, h * 0.36, Math.min(18, h / 4));
     t.y = y + (pressed ? 6 : 0);
   };
   g.setPosition(x, y); draw(false);
@@ -112,8 +239,8 @@ function makeButton(scene, x, y, w, h, label, color, cb, size = 44) {
   const parts = [g, t, z];
   return {
     parts, text: t,
-    setLabel(s) { t.setText(s); },
-    setColor(c) { col = c; draw(false); },
+    setLabel(s) { t.setText(s); return this; },
+    setColor(c) { col = c; draw(false); return this; },
     fixed() { parts.forEach(p => p.setScrollFactor(0)); return this; },
     depth(d) { parts.forEach(p => p.setDepth(d)); return this; },
     destroy() { parts.forEach(p => p.destroy()); },
@@ -121,12 +248,28 @@ function makeButton(scene, x, y, w, h, label, color, cb, size = 44) {
 }
 
 /* ---------- фон ---------- */
-function addBackground(scene) {
+function addBackground(scene, zone = 0) {
   scene.cameras.main.setBackgroundColor('#070512');
-  const neb = scene.add.image(W / 2, H / 2, 'nebula').setScrollFactor(0).setDepth(-30).setDisplaySize(W, H);
+  const neb = scene.add.image(W / 2, H / 2, 'neb' + zone).setScrollFactor(0).setDepth(-30).setDisplaySize(W, H);
   const far = scene.add.tileSprite(W / 2, H / 2, W, H, 'stars1').setScrollFactor(0).setDepth(-20);
   const near = scene.add.tileSprite(W / 2, H / 2, W, H, 'stars2').setScrollFactor(0).setDepth(-10);
+  scene.time.addEvent({ delay: 2600, loop: true, callback: () => { if (Math.random() < 0.6) shootingStar(scene); } });
   return { neb, far, near };
+}
+function shootingStar(scene) {
+  const x = rnd(-100, W), y = rnd(0, H * 0.6), ang = rndf(0.35, 0.7);
+  const s = scene.add.image(x, y, 'streak').setScrollFactor(0).setDepth(-5).setRotation(ang).setAlpha(0).setBlendMode('ADD');
+  const d = rnd(500, 800);
+  scene.tweens.add({ targets: s, x: x + Math.cos(ang) * d, y: y + Math.sin(ang) * d, duration: 900, ease: 'Sine.easeIn',
+    onComplete: () => s.destroy() });
+  scene.tweens.add({ targets: s, alpha: { from: 0, to: 0.9 }, duration: 300, yoyo: true, hold: 200 });
+}
+
+function drawRing(g, r, color, alpha) {
+  g.clear();
+  const n = Math.max(16, Math.round(Math.PI * 2 * r / 22));
+  g.fillStyle(color, alpha);
+  for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; g.fillCircle(Math.cos(a) * r, Math.sin(a) * r, 3); }
 }
 
 /* =====================================================================
@@ -136,70 +279,120 @@ class Boot extends Phaser.Scene {
   constructor() { super('Boot'); }
   create() {
     const canvas = (key, w, h, fn) => { const tx = this.textures.createCanvas(key, w, h); fn(tx.getContext(), w, h); tx.refresh(); };
+    const circle = (c, x, y, r) => { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); };
 
-    // мягкое свечение
     canvas('glow', 128, 128, (c) => {
       const g = c.createRadialGradient(64, 64, 0, 64, 64, 64);
       g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.25, 'rgba(255,255,255,0.8)');
       g.addColorStop(0.55, 'rgba(255,255,255,0.18)'); g.addColorStop(1, 'rgba(255,255,255,0)');
       c.fillStyle = g; c.fillRect(0, 0, 128, 128);
     });
-    // точка-искра
     canvas('dot', 16, 16, (c) => {
       const g = c.createRadialGradient(8, 8, 0, 8, 8, 8);
       g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)');
       c.fillStyle = g; c.fillRect(0, 0, 16, 16);
     });
-    // звезда-монетка
+    canvas('streak', 160, 8, (c) => {
+      const g = c.createLinearGradient(0, 0, 160, 0);
+      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.85, 'rgba(220,230,255,0.8)'); g.addColorStop(1, 'rgba(255,255,255,1)');
+      c.fillStyle = g; c.fillRect(0, 2, 160, 4);
+    });
+    canvas('bubble', 128, 128, (c) => {
+      const g = c.createRadialGradient(64, 64, 30, 64, 64, 62);
+      g.addColorStop(0, 'rgba(72,202,228,0)'); g.addColorStop(0.75, 'rgba(72,202,228,0.25)');
+      g.addColorStop(0.92, 'rgba(190,240,255,0.9)'); g.addColorStop(1, 'rgba(72,202,228,0)');
+      c.fillStyle = g; c.fillRect(0, 0, 128, 128);
+    });
     canvas('coin', 64, 64, (c) => {
       const g = c.createRadialGradient(32, 32, 0, 32, 32, 32);
       g.addColorStop(0, 'rgba(255,230,120,0.6)'); g.addColorStop(1, 'rgba(255,200,60,0)');
       c.fillStyle = g; c.fillRect(0, 0, 64, 64);
       c.beginPath();
-      for (let i = 0; i < 10; i++) {
-        const r = i % 2 ? 9 : 22, a = -Math.PI / 2 + i * Math.PI / 5;
-        c.lineTo(32 + Math.cos(a) * r, 32 + Math.sin(a) * r);
-      }
-      c.closePath(); c.fillStyle = '#ffd23f'; c.fill();
-      c.lineWidth = 3; c.strokeStyle = '#fff3b0'; c.stroke();
+      for (let i = 0; i < 10; i++) { const r = i % 2 ? 9 : 22, a = -Math.PI / 2 + i * Math.PI / 5; c.lineTo(32 + Math.cos(a) * r, 32 + Math.sin(a) * r); }
+      c.closePath(); c.fillStyle = '#ffd23f'; c.fill(); c.lineWidth = 3; c.strokeStyle = '#fff3b0'; c.stroke();
     });
-    // астероид
     canvas('rock', 72, 72, (c) => {
       c.beginPath();
-      for (let i = 0; i < 11; i++) {
-        const a = i / 11 * Math.PI * 2, r = 26 + Math.sin(i * 2.7) * 5 + (i % 3) * 2;
-        c.lineTo(36 + Math.cos(a) * r, 36 + Math.sin(a) * r);
-      }
+      for (let i = 0; i < 11; i++) { const a = i / 11 * Math.PI * 2, r = 26 + Math.sin(i * 2.7) * 5 + (i % 3) * 2; c.lineTo(36 + Math.cos(a) * r, 36 + Math.sin(a) * r); }
       c.closePath();
       const g = c.createRadialGradient(26, 26, 2, 36, 36, 34);
       g.addColorStop(0, '#d9d2e9'); g.addColorStop(0.5, '#8d7fa8'); g.addColorStop(1, '#3d3355');
       c.fillStyle = g; c.fill(); c.lineWidth = 3; c.strokeStyle = '#ff4d6d'; c.stroke();
       c.fillStyle = 'rgba(40,30,60,0.5)';
-      [[28, 30, 5], [44, 40, 6], [34, 48, 3.5]].forEach(([x, y, r]) => { c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); });
+      [[28, 30, 5], [44, 40, 6], [34, 48, 3.5]].forEach(([x, y, r]) => { circle(c, x, y, r); c.fill(); });
     });
-    // планеты
+
+    // иконки бонусов
+    const icon = (key, col, sym) => canvas(key, 96, 96, (c) => {
+      const g = c.createRadialGradient(48, 48, 10, 48, 48, 48);
+      g.addColorStop(0, col); g.addColorStop(0.8, col); g.addColorStop(1, 'rgba(0,0,0,0)');
+      c.globalAlpha = 0.9; c.fillStyle = g; circle(c, 48, 48, 46); c.fill(); c.globalAlpha = 1;
+      c.lineWidth = 4; c.strokeStyle = 'rgba(255,255,255,0.9)'; circle(c, 48, 48, 40); c.stroke();
+      c.fillStyle = '#fff'; c.strokeStyle = '#fff'; c.lineWidth = 7; c.lineCap = 'round'; c.lineJoin = 'round';
+      sym(c);
+    });
+    icon('pu_shield', PU.shield.css, (c) => {
+      c.beginPath(); c.moveTo(48, 22); c.lineTo(70, 30); c.quadraticCurveTo(70, 62, 48, 74); c.quadraticCurveTo(26, 62, 26, 30); c.closePath(); c.fill();
+    });
+    icon('pu_magnet', PU.magnet.css, (c) => {
+      c.lineWidth = 11; c.beginPath(); c.arc(48, 46, 17, Math.PI, 0, true); c.stroke();
+      c.beginPath(); c.moveTo(31, 46); c.lineTo(31, 26); c.moveTo(65, 46); c.lineTo(65, 26); c.stroke();
+    });
+    icon('pu_slow', PU.slow.css, (c) => {
+      c.lineWidth = 6; circle(c, 48, 48, 22); c.stroke();
+      c.beginPath(); c.moveTo(48, 48); c.lineTo(48, 33); c.moveTo(48, 48); c.lineTo(59, 54); c.stroke();
+    });
+    icon('pu_x2', PU.x2.css, (c) => {
+      c.font = 'bold 38px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#3d2600'; c.fillText('×2', 48, 50);
+    });
+
+    // обычные планеты
     PLANET_KINDS.forEach((k, i) => this.makePlanet('planet' + i, k));
+    this.makePlanet('planet_ice', { a: '#a2d2ff', b: '#ffffff', type: 'ice' });
+    this.makePlanet('planet_unstable', { a: '#9d0208', b: '#ffba08', type: 'lava' });
+    this.makePlanet('planet_gold', { a: '#f4a261', b: '#ffe066', type: 'gold' });
+
+    // чёрная дыра
+    canvas('hole', 256, 256, (c) => {
+      const g = c.createRadialGradient(128, 128, 60, 128, 128, 128);
+      g.addColorStop(0, 'rgba(255,170,60,0.9)'); g.addColorStop(0.18, 'rgba(255,0,110,0.6)');
+      g.addColorStop(0.5, 'rgba(131,56,236,0.25)'); g.addColorStop(1, 'rgba(131,56,236,0)');
+      c.fillStyle = g; c.fillRect(0, 0, 256, 256);
+      c.fillStyle = '#000'; circle(c, 128, 128, 64); c.fill();
+      c.lineWidth = 3; c.strokeStyle = 'rgba(255,220,160,0.9)'; circle(c, 128, 128, 66); c.stroke();
+    });
+    canvas('hole_disk', 320, 320, (c) => {
+      c.translate(160, 160);
+      for (let arm = 0; arm < 3; arm++) {
+        for (let i = 0; i < 70; i++) {
+          const t = i / 70, a = arm * Math.PI * 2 / 3 + t * 4.2, r = 70 + t * 85;
+          c.fillStyle = `rgba(255,${Math.round(120 + 100 * t)},${Math.round(200 * t)},${(1 - t) * 0.55})`;
+          circle(c, Math.cos(a) * r, Math.sin(a) * r, 7 * (1 - t) + 2); c.fill();
+        }
+      }
+    });
+
     // звёздные слои
     const starLayer = (key, n, maxR, alpha) => canvas(key, 512, 512, (c) => {
       for (let i = 0; i < n; i++) {
         const x = Math.random() * 512, y = Math.random() * 512, r = Math.random() * maxR + 0.4;
         c.fillStyle = `rgba(${200 + rnd(0, 55)},${200 + rnd(0, 55)},255,${Math.random() * alpha + 0.2})`;
-        c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+        circle(c, x, y, r); c.fill();
       }
     });
     starLayer('stars1', 140, 1.1, 0.5);
     starLayer('stars2', 40, 2.0, 0.7);
-    // туманность
-    canvas('nebula', 360, 640, (c) => {
+
+    // туманности зон
+    ZONES.forEach((z, i) => canvas('neb' + i, 360, 640, (c) => {
       c.fillStyle = '#070512'; c.fillRect(0, 0, 360, 640);
-      [['rgba(131,56,236,0.28)', 80, 160, 220], ['rgba(58,134,255,0.20)', 300, 380, 240], ['rgba(255,0,110,0.14)', 120, 560, 200]]
-        .forEach(([col, x, y, r]) => {
-          const g = c.createRadialGradient(x, y, 0, x, y, r);
-          g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)');
-          c.fillStyle = g; c.fillRect(0, 0, 360, 640);
-        });
-    });
-    // Пустота
+      [[80, 160, 220], [300, 380, 240], [120, 560, 200]].forEach(([x, y, r], j) => {
+        const g = c.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, z.cols[j]); g.addColorStop(1, 'rgba(0,0,0,0)');
+        c.fillStyle = g; c.fillRect(0, 0, 360, 640);
+      });
+    }));
+
     canvas('void', 8, 512, (c) => {
       const g = c.createLinearGradient(0, 0, 0, 512);
       g.addColorStop(0, 'rgba(199,125,255,0)'); g.addColorStop(0.05, 'rgba(199,125,255,0.55)');
@@ -212,13 +405,12 @@ class Boot extends Phaser.Scene {
   makePlanet(key, k) {
     const s = 256, cx = 128, R = 110;
     const tx = this.textures.createCanvas(key, s, s), c = tx.getContext();
-    // атмосфера
     let g = c.createRadialGradient(cx, cx, R * 0.92, cx, cx, R * 1.16);
     g.addColorStop(0, k.b + 'aa'); g.addColorStop(1, k.b + '00');
     c.fillStyle = g; c.beginPath(); c.arc(cx, cx, R * 1.16, 0, Math.PI * 2); c.fill();
     c.save(); c.beginPath(); c.arc(cx, cx, R, 0, Math.PI * 2); c.clip();
     c.fillStyle = k.a; c.fillRect(0, 0, s, s);
-    if (k.type === 'bands') {
+    if (k.type === 'bands' || k.type === 'gold') {
       for (let i = 0; i < 7; i++) {
         c.fillStyle = i % 2 ? k.b + '99' : k.b + '44';
         c.beginPath();
@@ -228,12 +420,31 @@ class Boot extends Phaser.Scene {
         for (let x = s; x >= 0; x -= 16) c.lineTo(x, y0 + 14 + Math.sin(x / 26 + i * 1.7) * 5);
         c.closePath(); c.fill();
       }
+      if (k.type === 'gold') for (let i = 0; i < 12; i++) {
+        c.fillStyle = 'rgba(255,255,255,0.8)'; c.beginPath(); c.arc(rnd(40, 216), rnd(40, 216), rnd(2, 4), 0, 7); c.fill();
+      }
     } else if (k.type === 'craters') {
       for (let i = 0; i < 14; i++) {
         const x = rnd(30, 226), y = rnd(30, 226), r = rnd(6, 22);
         c.fillStyle = k.b + '55'; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
         c.fillStyle = 'rgba(0,0,0,0.18)'; c.beginPath(); c.arc(x + r * 0.2, y + r * 0.2, r * 0.75, 0, 7); c.fill();
       }
+    } else if (k.type === 'ice') {
+      c.strokeStyle = 'rgba(255,255,255,0.7)'; c.lineWidth = 3;
+      for (let i = 0; i < 16; i++) {
+        c.beginPath(); let x = rnd(20, 236), y = rnd(20, 236); c.moveTo(x, y);
+        for (let j = 0; j < 3; j++) { x += rnd(-30, 30); y += rnd(-30, 30); c.lineTo(x, y); }
+        c.stroke();
+      }
+      for (let i = 0; i < 6; i++) { c.fillStyle = 'rgba(255,255,255,0.35)'; c.beginPath(); c.arc(rnd(40, 216), rnd(40, 216), rnd(10, 26), 0, 7); c.fill(); }
+    } else if (k.type === 'lava') {
+      c.strokeStyle = k.b; c.lineWidth = 5; c.shadowColor = '#ffba08'; c.shadowBlur = 10;
+      for (let i = 0; i < 10; i++) {
+        c.beginPath(); let x = rnd(20, 236), y = rnd(20, 236); c.moveTo(x, y);
+        for (let j = 0; j < 4; j++) { x += rnd(-35, 35); y += rnd(-35, 35); c.lineTo(x, y); }
+        c.stroke();
+      }
+      c.shadowBlur = 0;
     } else {
       for (let i = 0; i < 6; i++) {
         c.fillStyle = k.b + 'cc'; c.beginPath();
@@ -242,7 +453,6 @@ class Boot extends Phaser.Scene {
         c.closePath(); c.fill();
       }
     }
-    // объём
     g = c.createRadialGradient(cx - R * 0.45, cx - R * 0.45, R * 0.05, cx, cx, R * 1.05);
     g.addColorStop(0, 'rgba(255,255,255,0.45)'); g.addColorStop(0.45, 'rgba(255,255,255,0)');
     g.addColorStop(0.8, 'rgba(0,0,20,0.35)'); g.addColorStop(1, 'rgba(0,0,20,0.75)');
@@ -257,111 +467,194 @@ class Boot extends Phaser.Scene {
 class Menu extends Phaser.Scene {
   constructor() { super('Menu'); }
   create() {
-    this.bg = addBackground(this);
-    this.t = 0;
+    Music.bpm = 96;
+    this.bg = addBackground(this, 0);
+    this.t = 0; this.panel = null;
 
-    this.add.text(W / 2, 150, 'ОРБИТА', textStyle(120, '#ffffff', { stroke: '#3a0ca3', strokeThickness: 14 }))
+    const title = this.add.text(W / 2, 150, 'ОРБИТА', textStyle(124, '#ffffff', { stroke: '#3a0ca3', strokeThickness: 14 }))
       .setOrigin(0.5).setShadow(0, 0, '#c77dff', 30, true, true);
-    this.add.text(W / 2, 250, 'прыжок к звёздам', textStyle(36, '#c9b8ff')).setOrigin(0.5);
+    this.tweens.add({ targets: title, scale: 1.04, duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    this.add.text(W / 2, 245, 'прыжок к звёздам', textStyle(36, '#c9b8ff')).setOrigin(0.5);
 
-    // демо-планета
-    this.ring = this.add.graphics().setPosition(W / 2, 520);
-    drawRing(this.ring, 150, 0xffffff, 0.35);
-    this.add.image(W / 2, 520, 'planet0').setScale(110 / 110 * 0.9);
-    this.comet = this.add.image(0, 0, 'glow').setScale(0.42);
+    // демо-сцена
+    this.ring = this.add.graphics().setPosition(W / 2, 460);
+    drawRing(this.ring, 125, 0xffffff, 0.35);
+    this.add.image(W / 2, 460, 'planet0').setScale(0.72);
+    this.comet = this.add.image(0, 0, 'glow').setScale(0.42).setBlendMode('ADD');
     this.trail = this.add.particles(0, 0, 'dot', {
       lifespan: 500, scale: { start: 1.6, end: 0 }, alpha: { start: 0.9, end: 0 },
       frequency: 16, blendMode: 'ADD', speed: { min: 2, max: 20 },
     });
     this.trail.startFollow(this.comet);
 
-    this.stats = this.add.text(W / 2, 735, '', textStyle(36, '#ffe08a')).setOrigin(0.5);
+    this.stats = this.add.text(W / 2, 630, '', textStyle(36, '#ffe08a')).setOrigin(0.5);
 
-    // выбор скина
-    this.sel = Save.data.skin;
-    this.add.text(W / 2, 820, 'ВЫБЕРИ КОМЕТУ', textStyle(28, '#9d8fd6')).setOrigin(0.5);
-    this.preview = this.add.image(W / 2, 910, 'glow').setScale(0.75);
-    this.skinName = this.add.text(W / 2, 985, '', textStyle(40)).setOrigin(0.5);
-    const arrow = (x, d, s) => {
-      const t = this.add.text(x, 910, s, textStyle(80, '#ffffff')).setOrigin(0.5).setInteractive({ useHandCursor: true });
-      t.on('pointerup', () => { Sfx.init(); Sfx.click(); this.sel = (this.sel + d + SKINS.length) % SKINS.length; this.refresh(); });
+    // задания
+    const card = this.add.graphics();
+    card.fillStyle(0x1b1340, 0.85).fillRoundedRect(50, 680, W - 100, 255, 28);
+    card.lineStyle(3, 0x5a4aa0, 1).strokeRoundedRect(50, 680, W - 100, 255, 28);
+    this.add.text(W / 2, 712, 'ЗАДАНИЯ', textStyle(28, '#9d8fd6')).setOrigin(0.5);
+    this.mTxt = []; this.mRw = [];
+    for (let i = 0; i < 3; i++) {
+      this.mTxt.push(this.add.text(80, 765 + i * 58, '', textStyle(27, '#ffffff', { strokeThickness: 0 })).setOrigin(0, 0.5));
+      this.mRw.push(this.add.text(W - 80, 765 + i * 58, '', textStyle(28, '#ffd23f', { strokeThickness: 0 })).setOrigin(1, 0.5));
+    }
+
+    makeButton(this, 205, 1010, 290, 92, 'Кометы', 0x6c4ad9, () => this.openSkins(), 38);
+    makeButton(this, 515, 1010, 290, 92, 'Улучшения', 0x2a9d8f, () => this.openUpgrades(), 38);
+    this.playBtn = makeButton(this, W / 2, 1150, 460, 124, 'ИГРАТЬ', 0xff006e, () => { Save.data.games++; Save.save(); this.scene.start('Game'); }, 60);
+
+    const top = (x, ox, label, cb) => {
+      const t = this.add.text(x, 40, label, textStyle(28, '#c9b8ff')).setOrigin(ox, 0).setInteractive({ useHandCursor: true });
+      t.on('pointerup', () => { Sfx.init(); Sfx.click(); cb(); });
     };
-    arrow(W / 2 - 210, -1, '‹'); arrow(W / 2 + 210, 1, '›');
-    this.skinBtn = makeButton(this, W / 2, 1065, 340, 84, '', 0x6c4ad9, () => this.skinAction(), 34);
-
-    this.playBtn = makeButton(this, W / 2, 1185, 440, 120, 'ИГРАТЬ', 0xff006e, () => this.scene.start('Game'), 58);
-
-    // звук
-    this.soundTxt = this.add.text(W - 30, 40, '', textStyle(28, '#c9b8ff')).setOrigin(1, 0).setInteractive({ useHandCursor: true });
-    this.soundTxt.on('pointerup', () => { Save.data.sound = !Save.data.sound; Save.save(); Sfx.init(); Sfx.click(); this.refresh(); });
-
-    // помощь
-    this.helpTxt = this.add.text(30, 40, '? Как играть', textStyle(28, '#c9b8ff')).setOrigin(0, 0).setInteractive({ useHandCursor: true });
-    this.helpTxt.on('pointerup', () => { Sfx.init(); Sfx.click(); this.showHelp(); });
+    top(30, 0, '? Как играть', () => this.openHelp());
+    top(W - 30, 1, 'Настройки', () => this.openSettings());
 
     this.refresh();
-    if (!Save.data.seenHelp) { Save.data.seenHelp = true; Save.save(); this.showHelp(); }
+    if (!Save.data.seenHelp) { Save.data.seenHelp = true; Save.save(); this.openHelp(); }
   }
 
   refresh() {
-    const sk = SKINS[this.sel], owned = Save.data.owned.includes(this.sel);
-    this.preview.setTint(sk.color);
-    this.comet.setTint(SKINS[Save.data.skin].color);
-    this.trail.setParticleTint(SKINS[Save.data.skin].color);
-    this.skinName.setText(sk.name);
     this.stats.setText(`Рекорд: ${Save.data.best}      ★ ${Save.data.coins}`);
-    if (Save.data.skin === this.sel) { this.skinBtn.setLabel('✓ Выбрано'); this.skinBtn.setColor(0x3d348b); }
-    else if (owned) { this.skinBtn.setLabel('Выбрать'); this.skinBtn.setColor(0x6c4ad9); }
-    else { this.skinBtn.setLabel(`Купить ★ ${sk.price}`); this.skinBtn.setColor(Save.data.coins >= sk.price ? 0xf77f00 : 0x55506b); }
-    this.soundTxt.setText(Save.data.sound ? 'Звук: вкл' : 'Звук: выкл');
+    Save.data.missions.forEach((m, i) => {
+      this.mTxt[i].setText(MISSIONS[m.k].t(missionGoal(m.k)));
+      this.mRw[i].setText('+' + missionReward(m.k) + ' ★');
+    });
   }
 
+  /* ----- панели ----- */
+  openPanel(title, top, bottom) {
+    this.closePanel(true);
+    const P = { items: [], btns: [] };
+    P.add = (o, d = 52) => { o.setDepth(d); P.items.push(o); return o; };
+    P.btn = (...a) => { const b = makeButton(this, ...a).depth(53); P.btns.push(b); return b; };
+    P.add(this.add.rectangle(W / 2, H / 2, W, H, 0x05030d, 0.88).setInteractive(), 50);
+    const g = P.add(this.add.graphics(), 51);
+    g.fillStyle(0x1b1340, 1).fillRoundedRect(40, top, W - 80, bottom - top, 34);
+    g.lineStyle(4, 0x8a6cff, 1).strokeRoundedRect(40, top, W - 80, bottom - top, 34);
+    P.add(this.add.text(W / 2, top + 58, title, textStyle(50, '#ffd23f')).setOrigin(0.5));
+    P.btn(W / 2, bottom - 70, 300, 84, 'Закрыть', 0xff006e, () => this.closePanel(), 38);
+    this.panel = P;
+    return P;
+  }
+  closePanel(silent) {
+    if (!this.panel) return;
+    this.panel.items.forEach(o => o.destroy()); this.panel.btns.forEach(b => b.destroy());
+    this.panel = null; if (!silent) this.refresh();
+  }
+
+  openHelp() {
+    const P = this.openPanel('КАК ИГРАТЬ', 70, 1210);
+    P.add(this.add.text(80, 170,
+      '● Нажми на экран — комета сорвётся\n   с орбиты и полетит по касательной.\n' +
+      '● Попади в орбиту другой планеты — очко.\n' +
+      '● Вход вскользь — «ИДЕАЛЬНО» и комбо!\n' +
+      '● Снизу поднимается Пустота — не медли!\n\n' +
+      'ОСОБЫЕ ПЛАНЕТЫ\n' +
+      '● Ледяная — бешеная скорость орбиты.\n' +
+      '● Нестабильная — взорвётся через\n   пару секунд. Улетай!\n' +
+      '● Золотая — даёт 5 ★.\n' +
+      '● Чёрная дыра — притягивает комету\n   в полёте, зато даёт +2 очка.\n' +
+      '● Астероиды кружат по орбитам — берегись.\n\n' +
+      'БОНУСЫ:  щит, магнит, замедление, ×2\n\n' +
+      '★ трать на кометы и улучшения.',
+      textStyle(27, '#ffffff', { strokeThickness: 0, lineSpacing: 6 })));
+  }
+
+  openSettings() {
+    const P = this.openPanel('НАСТРОЙКИ', 300, 1000);
+    const row = (y, label, key) => {
+      let b = null;
+      const upd = () => { b.setLabel(`${label}: ${Save.data[key] ? 'вкл' : 'выкл'}`); b.setColor(Save.data[key] ? 0x6c4ad9 : 0x55506b); };
+      b = P.btn(W / 2, y, 440, 96, '', 0x6c4ad9, () => {
+        Save.data[key] = !Save.data[key]; Save.save(); Sfx.init(); Sfx.click(); upd(); if (key === 'vibro') vib(40);
+      }, 38);
+      upd();
+    };
+    row(450, 'Звуки', 'sound'); row(575, 'Музыка', 'music'); row(700, 'Вибрация', 'vibro');
+    P.add(this.add.text(W / 2, 810, `Сыграно игр: ${Save.data.games}`, textStyle(28, '#9d8fd6')).setOrigin(0.5));
+  }
+
+  openSkins() {
+    if (this.sel === undefined) this.sel = Save.data.skin;
+    const P = this.openPanel('КОМЕТЫ', 160, 1120);
+    const sk = SKINS[this.sel], owned = Save.data.owned.includes(this.sel);
+    P.add(this.add.text(W / 2, 290, `★ ${Save.data.coins}`, textStyle(38, '#ffe08a')).setOrigin(0.5));
+    this.preview = P.add(this.add.image(W / 2, 450, 'glow').setScale(1.1).setBlendMode('ADD'));
+    this.previewSkin = sk;
+    P.add(this.add.text(W / 2, 580, sk.name, textStyle(46)).setOrigin(0.5));
+    if (sk.rainbow || sk.pulsar) P.add(this.add.text(W / 2, 625, sk.rainbow ? 'переливается всеми цветами' : 'мигает двумя цветами', textStyle(24, '#9d8fd6')).setOrigin(0.5));
+    const arrow = (x, d, s) => {
+      const t = P.add(this.add.text(x, 450, s, textStyle(96)).setOrigin(0.5).setInteractive({ useHandCursor: true }), 53);
+      t.on('pointerup', () => { Sfx.init(); Sfx.click(); this.sel = (this.sel + d + SKINS.length) % SKINS.length; this.openSkins(); });
+    };
+    arrow(130, -1, '‹'); arrow(W - 130, 1, '›');
+    let label, col;
+    if (Save.data.skin === this.sel) { label = '✓ Выбрано'; col = 0x3d348b; }
+    else if (owned) { label = 'Выбрать'; col = 0x6c4ad9; }
+    else { label = `Купить ★ ${sk.price}`; col = Save.data.coins >= sk.price ? 0xf77f00 : 0x55506b; }
+    P.btn(W / 2, 720, 380, 92, label, col, () => this.skinAction(), 38);
+    SKINS.forEach((s, i) => {
+      const x = W / 2 + (i - (SKINS.length - 1) / 2) * 72, y = 870;
+      const own = Save.data.owned.includes(i);
+      const d = P.add(this.add.image(x, y, 'glow').setScale(i === this.sel ? 0.55 : 0.4).setTint(s.color).setAlpha(own ? 1 : 0.35).setInteractive({ useHandCursor: true }), 53);
+      d.on('pointerup', () => { Sfx.init(); Sfx.click(); this.sel = i; this.openSkins(); });
+      if (i === Save.data.skin) P.add(this.add.text(x, y + 45, '▲', textStyle(22, '#ffd23f')).setOrigin(0.5));
+    });
+  }
   skinAction() {
     const sk = SKINS[this.sel];
     if (Save.data.owned.includes(this.sel)) { Save.data.skin = this.sel; Sfx.click(); }
-    else if (Save.data.coins >= sk.price) {
-      Save.data.coins -= sk.price; Save.data.owned.push(this.sel); Save.data.skin = this.sel; Sfx.buy();
-      this.tweens.add({ targets: this.preview, scale: 1.1, duration: 140, yoyo: true });
-    } else { Sfx.nope(); this.cameras.main.shake(120, 0.006); }
-    Save.save(); this.refresh();
+    else if (Save.data.coins >= sk.price) { Save.data.coins -= sk.price; Save.data.owned.push(this.sel); Save.data.skin = this.sel; Sfx.buy(); }
+    else { Sfx.nope(); this.cameras.main.shake(120, 0.006); return; }
+    Save.save(); this.refresh(); this.openSkins();
   }
 
-  showHelp() {
-    const parts = [];
-    const shade = this.add.rectangle(W / 2, H / 2, W, H, 0x05030d, 0.88).setInteractive().setDepth(50);
-    const panel = this.add.graphics().setDepth(51);
-    panel.fillStyle(0x1b1340, 1).fillRoundedRect(50, 230, W - 100, 820, 34);
-    panel.lineStyle(4, 0x8a6cff, 1).strokeRoundedRect(50, 230, W - 100, 820, 34);
-    const txt = this.add.text(W / 2, 300, 'КАК ИГРАТЬ', textStyle(54, '#ffd23f')).setOrigin(0.5).setDepth(52);
-    const body = this.add.text(95, 370,
-      '● Комета летает по орбите планеты.\n\n' +
-      '● Нажми на экран — она сорвётся\n   с орбиты и полетит по касательной.\n\n' +
-      '● Попади в орбиту другой планеты —\n   получишь очко.\n\n' +
-      '● Войди в орбиту вскользь —\n   будет «ИДЕАЛЬНО» и комбо!\n\n' +
-      '● Собирай ★ — за них покупаются\n   новые кометы.\n\n' +
-      '● Снизу поднимается Пустота.\n   Не задерживайся! Бойся астероидов.',
-      textStyle(30, '#ffffff', { strokeThickness: 0, lineSpacing: 4 })).setDepth(52);
-    parts.push(shade, panel, txt, body);
-    const ok = makeButton(this, W / 2, 985, 300, 90, 'Понятно!', 0xff006e, () => { parts.forEach(p => p.destroy()); ok.destroy(); }, 42).depth(53);
+  openUpgrades() {
+    const P = this.openPanel('УЛУЧШЕНИЯ', 50, 1230);
+    P.add(this.add.text(W / 2, 160, `★ ${Save.data.coins}`, textStyle(36, '#ffe08a')).setOrigin(0.5));
+    UPG.forEach((u, i) => {
+      const y = 215 + i * 142, lvl = Save.data.upg[u.id];
+      const rowG = P.add(this.add.graphics());
+      rowG.fillStyle(0x2a1f5c, 1).fillRoundedRect(65, y - 10, W - 130, 124, 20);
+      P.add(this.add.text(90, y + 4, u.name, textStyle(32, '#ffffff', { strokeThickness: 0 })));
+      P.add(this.add.text(90, y + 44, u.desc, textStyle(22, '#b8aee6', { strokeThickness: 0 })));
+      for (let k = 0; k < u.max; k++) rowG.fillStyle(k < lvl ? 0x52ff9a : 0x4a3f7a, 1).fillRoundedRect(90 + k * 38, y + 84, 30, 14, 6);
+      if (lvl >= u.max) {
+        P.add(this.add.text(W - 160, y + 50, 'МАКС', textStyle(30, '#52ff9a')).setOrigin(0.5));
+      } else {
+        const cost = upgCost(u, lvl), can = Save.data.coins >= cost;
+        P.btn(W - 160, y + 50, 180, 74, '★ ' + cost, can ? 0xf77f00 : 0x55506b, () => {
+          if (Save.data.coins < cost) { Sfx.nope(); this.cameras.main.shake(120, 0.006); return; }
+          Save.data.coins -= cost; Save.data.upg[u.id]++; Save.save(); Sfx.buy(); this.refresh(); this.openUpgrades();
+        }, 32);
+      }
+    });
   }
 
   update(time, delta) {
     this.t += delta / 1000;
-    const a = this.t * 2.2;
-    this.comet.setPosition(W / 2 + Math.cos(a) * 150, 520 + Math.sin(a) * 150);
+    const a = this.t * 2.2, sk = SKINS[Save.data.skin], tint = skinTint(sk, this.t);
+    this.comet.setPosition(W / 2 + Math.cos(a) * 125, 460 + Math.sin(a) * 125).setTint(tint);
+    this.trail.setParticleTint(tint);
+    if (this.panel && this.preview && this.preview.active) this.preview.setTint(skinTint(this.previewSkin, this.t));
     this.ring.rotation += delta / 6000;
     this.bg.far.tilePositionY -= delta * 0.01;
     this.bg.near.tilePositionY -= delta * 0.025;
   }
 }
 
-function drawRing(g, r, color, alpha) {
-  g.clear();
-  const n = Math.max(16, Math.round(Math.PI * 2 * r / 22));
-  g.fillStyle(color, alpha);
-  for (let i = 0; i < n; i++) {
-    const a = i / n * Math.PI * 2;
-    g.fillCircle(Math.cos(a) * r, Math.sin(a) * r, 3);
+/* =====================================================================
+   PAUSE
+   ===================================================================== */
+class Pause extends Phaser.Scene {
+  constructor() { super('Pause'); }
+  create() {
+    this.add.rectangle(W / 2, H / 2, W, H, 0x05030d, 0.8).setInteractive();
+    this.add.text(W / 2, 470, 'ПАУЗА', textStyle(96, '#ffffff', { stroke: '#3a0ca3', strokeThickness: 12 })).setOrigin(0.5);
+    makeButton(this, W / 2, 650, 420, 110, 'Продолжить', 0xff006e, () => { this.scene.resume('Game'); this.scene.stop(); }, 48);
+    makeButton(this, W / 2, 790, 300, 84, 'Меню', 0x6c4ad9, () => { this.scene.stop('Game'); this.scene.start('Menu'); }, 38);
   }
 }
 
@@ -372,35 +665,44 @@ class Game extends Phaser.Scene {
   constructor() { super('Game'); }
 
   create() {
-    this.bg = addBackground(this);
+    Music.bpm = 112;
+    this.zone = 0;
+    this.bg = addBackground(this, 0);
     this.cam = this.cameras.main;
     this.cam.scrollY = 0;
-    this.skinColor = SKINS[Save.data.skin].color;
+    this.skin = SKINS[Save.data.skin];
+    this.skinColor = this.skin.color;
+    this.t = 0;
 
-    this.planets = []; this.coins = []; this.rocks = [];
-    this.score = 0; this.runCoins = 0; this.combo = 0; this.planetCount = 0;
-    this.maxReached = 0; this.started = false; this.state = 'orbit';
-    this.voidY = H + 300; this.voidSpeed = 0;
+    this.planets = []; this.coins = []; this.rocks = []; this.pickups = [];
+    this.score = 0; this.combo = 0; this.planetCount = 0; this.bestBeaten = false;
+    this.maxReached = 0; this.started = false; this.state = 'orbit'; this.revived = false;
+    this.run = { score: 0, coins: 0, combo: 0, perfect: 0, hole: 0, power: 0, unstable: 0 };
+    this.mSkip = [false, false, false];
+    this.pu = { shield: 0, magnet: 0, slow: 0, x2: 0 }; this.puMax = { shield: 1, magnet: 1, slow: 1, x2: 1 };
+    this.voidY = H + 300;
+    this.toastQ = []; this.toastBusy = false;
 
-    // первая планета
     this.last = null;
-    const first = this.addPlanet(W / 2, H * 0.68, 80, 0, false);
+    const first = this.addPlanet(W / 2, H * 0.68, 80, 0, 'normal', false);
     this.last = first;
     while (this.last.y > this.cam.scrollY - 500) this.spawnNext();
+
+    this.aimG = this.add.graphics().setDepth(17);
 
     // игрок
     this.player = this.add.image(0, 0, 'glow').setTint(this.skinColor).setScale(0.42).setDepth(20).setBlendMode('ADD');
     this.core = this.add.image(0, 0, 'dot').setScale(1.4).setDepth(21);
+    this.bubble = this.add.image(0, 0, 'bubble').setScale(0.8).setDepth(22).setVisible(false);
     this.trail = this.add.particles(0, 0, 'dot', {
       lifespan: 520, scale: { start: 1.7, end: 0 }, alpha: { start: 0.9, end: 0 },
       frequency: 14, blendMode: 'ADD', speed: { min: 2, max: 24 }, tint: this.skinColor,
     }).setDepth(19);
     this.trail.startFollow(this.player);
-
     this.burst = this.add.particles(0, 0, 'dot', {
       lifespan: 650, speed: { min: 120, max: 420 }, scale: { start: 2, end: 0 }, alpha: { start: 1, end: 0 },
       blendMode: 'ADD', emitting: false,
-    }).setDepth(22);
+    }).setDepth(23);
 
     this.orbit = { planet: first, angle: Math.PI * 1.5, dir: 1 };
     this.placeOnOrbit(0);
@@ -414,31 +716,66 @@ class Game extends Phaser.Scene {
     }).setDepth(31);
 
     // HUD
-    this.scoreTxt = this.add.text(W / 2, 70, '0', textStyle(96)).setOrigin(0.5, 0).setScrollFactor(0).setDepth(100);
+    this.scoreTxt = this.add.text(W / 2, 62, '0', textStyle(96)).setOrigin(0.5, 0).setScrollFactor(0).setDepth(100);
+    this.comboTxt = this.add.text(W / 2, 175, '', textStyle(30, '#ffd23f')).setOrigin(0.5, 0).setScrollFactor(0).setDepth(100);
     this.coinTxt = this.add.text(W - 30, 40, '★ ' + Save.data.coins, textStyle(36, '#ffd23f')).setOrigin(1, 0).setScrollFactor(0).setDepth(100);
-    this.bestTxt = this.add.text(30, 40, 'Рекорд ' + Save.data.best, textStyle(30, '#c9b8ff')).setOrigin(0, 0).setScrollFactor(0).setDepth(100);
-    this.hint = this.add.text(W / 2, H - 170, 'Нажми, чтобы прыгнуть', textStyle(44, '#ffffff')).setOrigin(0.5).setScrollFactor(0).setDepth(100);
+    this.bestTxt = this.add.text(112, 44, 'Рекорд ' + Save.data.best, textStyle(28, '#c9b8ff')).setOrigin(0, 0).setScrollFactor(0).setDepth(100);
+    const pg = this.add.graphics().setScrollFactor(0).setDepth(100).setPosition(60, 62);
+    pg.fillStyle(0x1b1340, 0.85).fillCircle(0, 0, 34); pg.lineStyle(3, 0x8a6cff, 1).strokeCircle(0, 0, 34);
+    pg.fillStyle(0xffffff, 1).fillRoundedRect(-12, -14, 8, 28, 3).fillRoundedRect(4, -14, 8, 28, 3);
+    this.add.zone(60, 62, 90, 90).setScrollFactor(0).setDepth(100).setInteractive({ useHandCursor: true })
+      .on('pointerup', () => this.pauseGame());
+
+    this.puSlots = PU_KEYS.map(k => ({
+      k, img: this.add.image(0, 250, 'pu_' + k).setScale(0.55).setScrollFactor(0).setDepth(100).setVisible(false),
+      bar: this.add.graphics().setScrollFactor(0).setDepth(100),
+    }));
+
+    this.hint = this.add.text(W / 2, H - 170, 'Нажми, чтобы прыгнуть', textStyle(44)).setOrigin(0.5).setScrollFactor(0).setDepth(100);
     this.tweens.add({ targets: this.hint, alpha: 0.35, duration: 650, yoyo: true, repeat: -1 });
     this.danger = this.add.rectangle(W / 2, H / 2, W, H, 0xff006e, 0).setScrollFactor(0).setDepth(90);
+    this.slowFx = this.add.rectangle(W / 2, H / 2, W, H, 0x8338ec, 0).setScrollFactor(0).setDepth(89);
+
+    if (Save.data.upg.start) this.activatePU('shield', true);
 
     this.input.on('pointerdown', (p, over) => { if (over.length === 0) this.tap(); });
-    this.input.keyboard && this.input.keyboard.on('keydown-SPACE', () => this.tap());
+    if (this.input.keyboard) {
+      this.input.keyboard.on('keydown-SPACE', () => this.tap());
+      this.input.keyboard.on('keydown-ESC', () => this.pauseGame());
+    }
+  }
+
+  pauseGame() {
+    if (this.state === 'dead') return;
+    Sfx.init(); Sfx.click();
+    this.scene.launch('Pause'); this.scene.pause();
   }
 
   /* ----- уровень ----- */
-  difficulty() { return Math.min(1, this.planetCount / 45); }
+  difficulty() { return Math.min(1, this.planetCount / 50); }
 
-  addPlanet(x, y, r, vx, rock) {
-    const kind = rnd(0, PLANET_KINDS.length - 1);
-    const orbitR = r + 42;
+  addPlanet(x, y, r, vx, type, rock) {
+    let tex = 'planet' + rnd(0, PLANET_KINDS.length - 1);
+    if (type === 'ice') tex = 'planet_ice';
+    if (type === 'unstable') tex = 'planet_unstable';
+    if (type === 'gold') tex = 'planet_gold';
+    const orbitR = type === 'hole' ? r + 62 : r + 42;
     const ring = this.add.graphics().setPosition(x, y).setDepth(5);
-    drawRing(ring, orbitR, 0xffffff, 0.28);
-    const img = this.add.image(x, y, 'planet' + kind).setScale(r / 110).setDepth(6);
-    const p = { id: this.planetCount++, x, y, r, orbitR, vx, img, ring, baseScale: r / 110, rock: null };
+    const ringCol = { ice: 0xbde0fe, unstable: 0xff6b6b, gold: 0xffd23f, hole: 0xc77dff }[type] || 0xffffff;
+    drawRing(ring, orbitR, ringCol, type === 'normal' ? 0.28 : 0.45);
+    const p = { id: this.planetCount++, x, y, r, orbitR, vx, ring, type, rock: null, visited: false };
+    if (type === 'hole') {
+      p.disk = this.add.image(x, y, 'hole_disk').setScale(r / 60).setDepth(5).setBlendMode('ADD');
+      p.img = this.add.image(x, y, 'hole').setScale(r / 64).setDepth(6);
+      p.baseScale = r / 64;
+    } else {
+      p.img = this.add.image(x, y, tex).setScale(r / 110).setDepth(6);
+      p.baseScale = r / 110;
+    }
+    if (type === 'unstable') { p.timer = 2.9 - this.difficulty() * 0.9; p.timerMax = p.timer; p.arc = this.add.graphics().setDepth(7); }
     if (rock) {
       const w = rndf(1.1, 1.6 + this.difficulty()) * (Math.random() < 0.5 ? -1 : 1);
-      const rs = this.add.image(x, y, 'rock').setDepth(18).setScale(0.9);
-      p.rock = { img: rs, angle: rndf(0, Math.PI * 2), w };
+      p.rock = { img: this.add.image(x, y, 'rock').setDepth(18).setScale(0.9), angle: rndf(0, Math.PI * 2), w };
       this.rocks.push(p);
     }
     this.planets.push(p);
@@ -447,20 +784,28 @@ class Game extends Phaser.Scene {
 
   spawnNext() {
     const prev = this.last, d = this.difficulty(), n = this.planetCount;
-    const r = rnd(Math.round(72 - d * 32), Math.round(88 - d * 30));
-    const orbitR = r + 42;
+    let type = 'normal';
+    const roll = Math.random();
+    if (roll < 0.09) { if (n > 14) type = 'hole'; }
+    else if (roll < 0.21) { if (n > 9) type = 'unstable'; }
+    else if (roll < 0.31) { if (n > 5) type = 'ice'; }
+    else if (roll < 0.36) { if (n > 3) type = 'gold'; }
+
+    const r = type === 'hole' ? rnd(42, 52) : rnd(Math.round(72 - d * 32), Math.round(88 - d * 30));
+    const orbitR = type === 'hole' ? r + 62 : r + 42;
     const gapY = rnd(310, 380) + d * 70;
     let x, tries = 0;
     do { x = rnd(orbitR + 20, W - orbitR - 20); } while (Math.abs(x - prev.x) < 150 && tries++ < 12);
     const y = prev.y - gapY;
-    const moving = n > 5 && Math.random() < 0.2 + d * 0.4;
+    const moving = type !== 'hole' && n > 5 && Math.random() < 0.18 + d * 0.4;
     const vx = moving ? (60 + d * 110) * (Math.random() < 0.5 ? -1 : 1) : 0;
-    const rock = n > 10 && Math.random() < 0.15 + d * 0.4;
-    const p = this.addPlanet(x, y, r, vx, rock);
+    const rock = (type === 'normal' || type === 'ice') && n > 10 && Math.random() < 0.15 + d * 0.4;
+    const p = this.addPlanet(x, y, r, vx, type, rock);
 
-    // звёзды между планетами
-    if (Math.random() < 0.75) {
-      const mx = (prev.x + x) / 2 + rndf(-60, 60), my = (prev.y + y) / 2;
+    const mx = (prev.x + x) / 2 + rndf(-60, 60), my = (prev.y + y) / 2;
+    if (n > 2 && Math.random() < 0.13) {
+      this.addPickup(Phaser.Math.Clamp(mx, 70, W - 70), my, Phaser.Utils.Array.GetRandom(PU_KEYS));
+    } else if (Math.random() < 0.75) {
       const cnt = Math.random() < 0.3 ? 3 : 1;
       for (let i = 0; i < cnt; i++) this.addCoin(Phaser.Math.Clamp(mx + (i - (cnt - 1) / 2) * 60, 50, W - 50), my + Math.abs(i - (cnt - 1) / 2) * 25);
     }
@@ -472,16 +817,48 @@ class Game extends Phaser.Scene {
     this.tweens.add({ targets: img, scale: 1.1, angle: 15, duration: 600 + rnd(0, 200), yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.coins.push({ x, y, img });
   }
+  addPickup(x, y, k) {
+    const img = this.add.image(x, y, 'pu_' + k).setDepth(16).setScale(0.8);
+    const glow = this.add.image(x, y, 'glow').setDepth(15).setScale(1.1).setTint(PU[k].color).setBlendMode('ADD').setAlpha(0.7);
+    this.tweens.add({ targets: img, y: y - 12, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    this.tweens.add({ targets: glow, scale: 1.4, alpha: 0.3, duration: 700, yoyo: true, repeat: -1 });
+    this.pickups.push({ x, y, k, img, glow });
+  }
+
+  destroyPlanet(p) {
+    p.img.destroy(); p.ring.destroy();
+    if (p.disk) p.disk.destroy();
+    if (p.arc) p.arc.destroy();
+    if (p.rock) p.rock.img.destroy();
+    this.rocks = this.rocks.filter(q => q !== p);
+    this.planets = this.planets.filter(q => q !== p);
+    p.dead = true;
+  }
+
+  /* ----- физика ----- */
+  flySpeed() { return 720 + this.difficulty() * 120; }
+  gravity(x, y, exclude) {
+    let ax = 0, ay = 0;
+    for (const h of this.planets) {
+      if (h.type !== 'hole' || h === exclude) continue;
+      const dx = h.x - x, dy = h.y - y, d2 = dx * dx + dy * dy;
+      if (d2 > 480 * 480) continue;
+      const d = Math.sqrt(d2), a = 1.7e7 / Math.max(d2, 8000);
+      ax += dx / d * a; ay += dy / d * a;
+    }
+    return [ax, ay];
+  }
 
   /* ----- управление ----- */
   tap() {
     Sfx.init();
     if (this.state !== 'orbit') return;
-    const o = this.orbit, p = o.planet;
-    const speed = 720 + this.difficulty() * 120;
-    this.vx = -Math.sin(o.angle) * o.dir * speed;
-    this.vy = Math.cos(o.angle) * o.dir * speed;
+    const o = this.orbit, p = o.planet, sp = this.flySpeed();
+    this.vx = -Math.sin(o.angle) * o.dir * sp;
+    this.vy = Math.cos(o.angle) * o.dir * sp;
     this.from = p; this.flyTime = 0; this.state = 'fly';
+    if (p.type === 'unstable' && p.timer > 0 && !p.escaped && this.started) { p.escaped = true; this.run.unstable++; this.checkMissions(); }
+    if (p.arc) p.arc.clear();
     Sfx.jump();
     if (!this.started) {
       this.started = true;
@@ -493,7 +870,8 @@ class Game extends Phaser.Scene {
 
   placeOnOrbit(dt) {
     const o = this.orbit, p = o.planet;
-    const lin = 380 + this.difficulty() * 140;
+    let lin = 380 + this.difficulty() * 140;
+    if (p.type === 'ice') lin *= 1.5;
     o.angle += o.dir * (lin / p.orbitR) * dt;
     this.player.setPosition(p.x + Math.cos(o.angle) * p.orbitR, p.y + Math.sin(o.angle) * p.orbitR);
   }
@@ -504,22 +882,24 @@ class Game extends Phaser.Scene {
     const cross = dx * this.vy - dy * this.vx;
     this.orbit = { planet: p, angle: Math.atan2(dy, dx), dir: cross > 0 ? 1 : -1 };
     this.state = 'orbit';
-    // безопасная посадка — убрать астероид из точки входа
     if (p.rock) {
       const diff = Phaser.Math.Angle.Wrap(p.rock.angle - this.orbit.angle);
       if (Math.abs(diff) < 1.0) p.rock.angle = this.orbit.angle + Math.PI;
     }
     this.placeOnOrbit(0);
+    vib(12);
 
     this.tweens.add({ targets: p.img, scale: p.baseScale * 1.12, duration: 90, yoyo: true });
-    p.ring.clear(); drawRing(p.ring, p.orbitR, this.skinColor, 0.65);
+    drawRing(p.ring, p.orbitR, this.skinColor, 0.65);
 
     if (p.id > this.maxReached) {
       this.maxReached = p.id;
       let gain = 1;
+      if (p.type === 'hole') { gain += 2; this.run.hole++; this.popup(p.x, p.y + 70, 'ЧЁРНАЯ ДЫРА +2', '#c77dff', 34); }
       const perfect = Math.abs(radial) < 0.42;
       if (perfect) {
-        this.combo++; gain += this.combo;
+        this.combo++; gain += this.combo; this.run.perfect++;
+        this.run.combo = Math.max(this.run.combo, this.combo);
         Sfx.perfect(this.combo);
         this.popup(this.player.x, this.player.y - 50, this.combo > 1 ? `ИДЕАЛЬНО ×${this.combo}` : 'ИДЕАЛЬНО!', '#ffd23f', 46);
         this.burst.setParticleTint(0xffd23f); this.burst.explode(18, this.player.x, this.player.y);
@@ -528,17 +908,89 @@ class Game extends Phaser.Scene {
         this.combo = 0; Sfx.land();
         this.burst.setParticleTint(this.skinColor); this.burst.explode(10, this.player.x, this.player.y);
       }
+      if (this.pu.x2 > 0) gain *= 2;
       this.addScore(gain);
-      this.popup(p.x, p.y, '+' + gain, '#ffffff', 52);
+      this.popup(p.x, p.y, '+' + gain, this.pu.x2 > 0 ? '#ffd23f' : '#ffffff', 52);
+      this.comboTxt.setText(this.combo >= 2 ? `КОМБО ×${this.combo}` : '');
+      if (p.type === 'gold' && !p.visited) {
+        this.addCoins(5);
+        this.popup(p.x, p.y - 70, '+5 ★', '#ffd23f', 44);
+        this.burst.setParticleTint(0xffd23f); this.burst.explode(30, p.x, p.y);
+      }
+      const zn = Math.floor(this.maxReached / ZONE_LEN), z = zn % ZONES.length;
+      if (zn > 0 && z !== this.zone) this.setZone(z, zn + 1);
+      this.checkMissions();
     } else {
       Sfx.land();
     }
+    p.visited = true;
+  }
+
+  setZone(z, num) {
+    this.zone = z;
+    const old = this.bg.neb;
+    const neb = this.add.image(W / 2, H / 2, 'neb' + z).setScrollFactor(0).setDepth(-29).setDisplaySize(W, H).setAlpha(0);
+    this.bg.neb = neb;
+    this.tweens.add({ targets: neb, alpha: 1, duration: 1500, onComplete: () => { old.destroy(); neb.setDepth(-30); } });
+    Sfx.zone(); this.addCoins(10);
+    const t1 = this.add.text(W / 2, 400, 'ЗОНА ' + num, textStyle(40, '#c9b8ff')).setOrigin(0.5).setScrollFactor(0).setDepth(101).setAlpha(0);
+    const t2 = this.add.text(W / 2, 460, ZONES[z].name, textStyle(58, '#ffffff')).setOrigin(0.5).setScrollFactor(0).setDepth(101).setAlpha(0);
+    const t3 = this.add.text(W / 2, 525, '+10 ★', textStyle(36, '#ffd23f')).setOrigin(0.5).setScrollFactor(0).setDepth(101).setAlpha(0);
+    this.tweens.add({ targets: [t1, t2, t3], alpha: 1, duration: 400, hold: 1600, yoyo: true, onComplete: () => [t1, t2, t3].forEach(t => t.destroy()) });
   }
 
   addScore(n) {
-    this.score += n;
+    this.score += n; this.run.score = this.score;
     this.scoreTxt.setText(this.score);
     this.tweens.add({ targets: this.scoreTxt, scale: 1.25, duration: 90, yoyo: true });
+    if (this.score > Save.data.best && Save.data.best > 0 && !this.bestBeaten) {
+      this.bestBeaten = true; this.toast('Новый рекорд!');
+    }
+  }
+  addCoins(n) {
+    Save.data.coins += n; this.run.coins += n; Save.save();
+    this.coinTxt.setText('★ ' + Save.data.coins);
+    this.checkMissions();
+  }
+
+  activatePU(k, silent) {
+    this.pu[k] = puDur(k); this.puMax[k] = this.pu[k];
+    if (!silent) {
+      this.run.power++; Sfx.power(); vib(20);
+      this.popup(this.player.x, this.player.y - 60, PU[k].name + '!', PU[k].css, 44);
+      this.checkMissions();
+    }
+  }
+
+  checkMissions() {
+    Save.data.missions.forEach((m, i) => {
+      if (this.mSkip[i]) return;
+      if (this.run[m.k] >= missionGoal(m.k)) {
+        const rw = missionReward(m.k);
+        Save.data.mlvl[m.k] = missionLvl(m.k) + 1;
+        const used = Save.data.missions.map(q => q.k);
+        const free = MKEYS.filter(k => !used.includes(k));
+        Save.data.missions[i] = { k: Phaser.Utils.Array.GetRandom(free) };
+        this.mSkip[i] = true;
+        Save.data.coins += rw; Save.save();
+        this.coinTxt.setText('★ ' + Save.data.coins);
+        this.toast(`Задание выполнено!  +${rw} ★`);
+        Sfx.buy();
+      }
+    });
+  }
+
+  toast(str) { this.toastQ.push(str); if (!this.toastBusy) this.nextToast(); }
+  nextToast() {
+    const s = this.toastQ.shift(); if (!s) { this.toastBusy = false; return; }
+    this.toastBusy = true;
+    const y = H - 120;
+    const g = this.add.graphics();
+    g.fillStyle(0x1b1340, 0.95).fillRoundedRect(-300, -42, 600, 84, 24).lineStyle(3, 0xffd23f, 1).strokeRoundedRect(-300, -42, 600, 84, 24);
+    const t = this.add.text(0, 0, s, textStyle(32, '#ffd23f')).setOrigin(0.5);
+    const c = this.add.container(W / 2, y + 200, [g, t]).setScrollFactor(0).setDepth(150);
+    this.tweens.add({ targets: c, y, duration: 300, ease: 'Back.easeOut', hold: 1500, yoyo: true,
+      onComplete: () => { c.destroy(); this.nextToast(); } });
   }
 
   popup(x, y, str, color, size) {
@@ -546,13 +998,29 @@ class Game extends Phaser.Scene {
     this.tweens.add({ targets: t, y: y - 90, alpha: 0, duration: 900, ease: 'Cubic.easeOut', onComplete: () => t.destroy() });
   }
 
+  useShield(msg) {
+    this.pu.shield = 0; Sfx.shieldHit(); vib(40);
+    this.cam.flash(150, 72, 202, 228, false);
+    this.popup(this.player.x, this.player.y - 60, msg || 'Щит спас!', PU.shield.css, 40);
+  }
+
+  explode(p) {
+    Sfx.boom(); vib([30, 30, 60]);
+    this.burst.setParticleTint(0xff6b00); this.burst.explode(60, p.x, p.y);
+    this.cam.shake(250, 0.015);
+    const onIt = this.state === 'orbit' && this.orbit.planet === p;
+    if (onIt && this.pu.shield > 0) { this.useShield(); this.tap(); }
+    else if (onIt) { this.die('Планета взорвалась'); }
+    this.destroyPlanet(p);
+  }
+
   die(reason) {
     if (this.state === 'dead') return;
     this.state = 'dead';
-    Sfx.die();
-    try { navigator.vibrate && navigator.vibrate([60, 40, 120]); } catch (e) {}
+    Sfx.die(); vib([60, 40, 120]);
     this.burst.setParticleTint(this.skinColor); this.burst.explode(50, this.player.x, this.player.y);
-    this.player.setVisible(false); this.core.setVisible(false); this.trail.stop();
+    this.player.setVisible(false); this.core.setVisible(false); this.bubble.setVisible(false); this.trail.stop();
+    this.aimG.clear();
     this.cam.shake(350, 0.018);
     const best = this.score > Save.data.best;
     if (best) Save.data.best = this.score;
@@ -561,32 +1029,85 @@ class Game extends Phaser.Scene {
   }
 
   showGameOver(reason, best) {
-    const D = 200, items = [];
-    const fx = (o) => { o.setScrollFactor(0).setDepth(D); items.push(o); return o; };
+    const D = 200; this.go = []; this.goBtns = [];
+    const fx = (o) => { o.setScrollFactor(0).setDepth(D); this.go.push(o); return o; };
+    const canRevive = !this.revived;
     fx(this.add.rectangle(W / 2, H / 2, W, H, 0x05030d, 0.75)).setInteractive();
+    const bottom = canRevive ? 1080 : 990;
     const panel = fx(this.add.graphics());
-    panel.fillStyle(0x1b1340, 1).fillRoundedRect(70, 300, W - 140, 690, 36);
-    panel.lineStyle(4, 0x8a6cff, 1).strokeRoundedRect(70, 300, W - 140, 690, 36);
-    fx(this.add.text(W / 2, 370, reason, textStyle(40, '#ff8fab'))).setOrigin(0.5);
-    fx(this.add.text(W / 2, 450, 'СЧЁТ', textStyle(34, '#9d8fd6'))).setOrigin(0.5);
-    const sc = fx(this.add.text(W / 2, 540, '0', textStyle(120))).setOrigin(0.5);
+    panel.fillStyle(0x1b1340, 1).fillRoundedRect(60, 250, W - 120, bottom - 250, 36);
+    panel.lineStyle(4, 0x8a6cff, 1).strokeRoundedRect(60, 250, W - 120, bottom - 250, 36);
+    fx(this.add.text(W / 2, 315, reason, textStyle(40, '#ff8fab'))).setOrigin(0.5);
+    fx(this.add.text(W / 2, 385, 'СЧЁТ', textStyle(32, '#9d8fd6'))).setOrigin(0.5);
+    const sc = fx(this.add.text(W / 2, 470, '0', textStyle(120))).setOrigin(0.5);
     this.tweens.addCounter({ from: 0, to: this.score, duration: Math.min(900, 60 * this.score + 100), onUpdate: (tw) => sc.setText(Math.round(tw.getValue())) });
     if (best && this.score > 0) {
-      const nb = fx(this.add.text(W / 2, 630, '★ НОВЫЙ РЕКОРД! ★', textStyle(42, '#ffd23f'))).setOrigin(0.5);
+      const nb = fx(this.add.text(W / 2, 560, '★ НОВЫЙ РЕКОРД! ★', textStyle(42, '#ffd23f'))).setOrigin(0.5);
       this.tweens.add({ targets: nb, scale: 1.12, duration: 420, yoyo: true, repeat: -1 });
     } else {
-      fx(this.add.text(W / 2, 630, 'Рекорд: ' + Save.data.best, textStyle(38, '#c9b8ff'))).setOrigin(0.5);
+      fx(this.add.text(W / 2, 560, 'Рекорд: ' + Save.data.best, textStyle(38, '#c9b8ff'))).setOrigin(0.5);
     }
-    fx(this.add.text(W / 2, 700, `Звёзд собрано: ${this.runCoins}   (всего ★ ${Save.data.coins})`, textStyle(28, '#ffe08a'))).setOrigin(0.5);
-    makeButton(this, W / 2, 800, 420, 104, 'ЕЩЁ РАЗ', 0xff006e, () => this.scene.restart(), 52).fixed().depth(D + 1);
-    makeButton(this, W / 2, 900, 300, 70, 'Меню', 0x6c4ad9, () => this.scene.start('Menu'), 34).fixed().depth(D + 1);
+    fx(this.add.text(W / 2, 625, `Звёзд за забег: ${this.run.coins}   (всего ★ ${Save.data.coins})`, textStyle(28, '#ffe08a'))).setOrigin(0.5);
+    let y = 730;
+    if (canRevive) {
+      const can = Save.data.coins >= REVIVE_COST;
+      this.goBtns.push(makeButton(this, W / 2, y, 460, 100, `Продолжить  ★ ${REVIVE_COST}`, can ? 0x2a9d8f : 0x55506b, () => {
+        if (Save.data.coins < REVIVE_COST) { Sfx.nope(); this.cam.shake(120, 0.006); return; }
+        Save.data.coins -= REVIVE_COST; Save.save(); Sfx.buy(); this.revive();
+      }, 40).fixed().depth(D + 1));
+      y += 120;
+    }
+    this.goBtns.push(makeButton(this, W / 2, y, 420, 104, 'ЕЩЁ РАЗ', 0xff006e, () => { Save.data.games++; Save.save(); this.scene.restart(); }, 52).fixed().depth(D + 1));
+    this.goBtns.push(makeButton(this, W / 2, y + 112, 300, 72, 'Меню', 0x6c4ad9, () => this.scene.start('Menu'), 34).fixed().depth(D + 1));
+  }
+
+  revive() {
+    this.go.forEach(o => o.destroy()); this.goBtns.forEach(b => b.destroy());
+    this.revived = true;
+    const cands = this.planets.filter(p => p.y < this.voidY - 300 && p.y > this.cam.scrollY - 200 && p.type !== 'hole');
+    const p = cands.filter(q => q.id <= this.maxReached).sort((a, b) => b.id - a.id)[0]
+      || cands.sort((a, b) => b.y - a.y)[0] || this.planets[0];
+    if (p.type === 'unstable') { p.timer = p.timerMax; p.escaped = false; }
+    this.orbit = { planet: p, angle: -Math.PI / 2, dir: 1 };
+    this.voidY = Math.max(this.voidY, p.y + 650);
+    this.state = 'orbit';
+    this.player.setVisible(true); this.core.setVisible(true); this.trail.start();
+    this.placeOnOrbit(0);
+    this.pu.shield = 3; this.puMax.shield = 3;
+    this.cam.flash(250, 82, 255, 154, false);
+    this.popup(this.player.x, this.player.y - 60, 'ВПЕРЁД!', '#52ff9a', 50);
+  }
+
+  drawAim() {
+    const g = this.aimG; g.clear();
+    if (this.state !== 'orbit') return;
+    const o = this.orbit, sp = this.flySpeed(), len = aimLen(), step = 1 / 60;
+    let x = this.player.x, y = this.player.y;
+    let vx = -Math.sin(o.angle) * o.dir * sp, vy = Math.cos(o.angle) * o.dir * sp, dist = 0, i = 0, hit = null;
+    while (dist < len && i < 240 && !hit) {
+      const [ax, ay] = this.gravity(x, y, o.planet);
+      vx += ax * step; vy += ay * step;
+      const s = Math.hypot(vx, vy);
+      x += vx * step; y += vy * step; dist += s * step; i++;
+      if (i % 3 === 0) g.fillStyle(0xffffff, 0.12 + 0.6 * (1 - dist / len)).fillCircle(x, y, 4.5);
+      for (const p of this.planets) {
+        if (p === o.planet) continue;
+        if ((x - p.x) ** 2 + (y - p.y) ** 2 < p.orbitR * p.orbitR) { hit = p; break; }
+      }
+    }
+    if (hit) g.lineStyle(4, 0x52ff9a, 0.9).strokeCircle(x, y, 16);
   }
 
   /* ----- цикл ----- */
   update(time, delta) {
-    const dt = Math.min(delta, 50) / 1000;
+    const rdt = Math.min(delta, 50) / 1000;
+    this.t += rdt;
 
-    // движение планет и астероидов
+    if (this.started && this.state !== 'dead') for (const k of PU_KEYS) if (this.pu[k] > 0) this.pu[k] = Math.max(0, this.pu[k] - rdt);
+    const ts = this.pu.slow > 0 ? 0.55 : 1, dt = rdt * ts;
+    this.slowFx.fillAlpha += ((this.pu.slow > 0 ? 0.1 : 0) - this.slowFx.fillAlpha) * Math.min(1, rdt * 5);
+
+    // планеты
     for (const p of this.planets) {
       if (p.vx) {
         p.x += p.vx * dt;
@@ -595,7 +1116,8 @@ class Game extends Phaser.Scene {
         if (p.x > hi) { p.x = hi; p.vx = -Math.abs(p.vx); }
         p.img.x = p.x; p.ring.x = p.x;
       }
-      p.ring.rotation += dt * 0.25;
+      p.ring.rotation += dt * (p.type === 'hole' ? -0.8 : 0.25);
+      if (p.disk) p.disk.rotation -= dt * 1.6;
       if (p.rock) {
         p.rock.angle += p.rock.w * dt;
         p.rock.img.setPosition(p.x + Math.cos(p.rock.angle) * p.orbitR, p.y + Math.sin(p.rock.angle) * p.orbitR);
@@ -603,9 +1125,23 @@ class Game extends Phaser.Scene {
       }
     }
 
+    // нестабильная планета
+    if (this.state === 'orbit' && this.orbit.planet.type === 'unstable' && this.started) {
+      const p = this.orbit.planet, prev = p.timer;
+      p.timer -= dt;
+      const f = Math.max(0, p.timer / p.timerMax);
+      p.arc.clear().lineStyle(8, f > 0.35 ? 0xffba08 : 0xff2d2d, 1);
+      p.arc.beginPath(); p.arc.arc(p.x, p.y, p.r + 14, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * f, false); p.arc.strokePath();
+      p.img.setScale(p.baseScale * (1 + (1 - f) * 0.08 * Math.sin(this.t * 40)));
+      if (Math.floor(prev * 4) !== Math.floor(p.timer * 4)) Sfx.tick();
+      if (p.timer <= 0) this.explode(p);
+    }
+
     if (this.state === 'orbit') {
       this.placeOnOrbit(dt);
     } else if (this.state === 'fly') {
+      const [ax, ay] = this.gravity(this.player.x, this.player.y, this.from);
+      this.vx += ax * dt; this.vy += ay * dt;
       this.player.x += this.vx * dt; this.player.y += this.vy * dt;
       this.flyTime += dt;
       for (const p of this.planets) {
@@ -614,28 +1150,61 @@ class Game extends Phaser.Scene {
         if (dist < p.orbitR) { this.capture(p, dx, dy, dist); break; }
       }
       if (this.state === 'fly') {
-        if (this.player.x < -40 || this.player.x > W + 40 || this.flyTime > 2.4 || this.player.y < this.cam.scrollY - 80)
+        const sh = this.pu.shield > 0;
+        if (sh && (this.player.x < 24 || this.player.x > W - 24)) {
+          this.player.x = Phaser.Math.Clamp(this.player.x, 24, W - 24); this.vx = -this.vx; Sfx.wall();
+          this.burst.setParticleTint(PU.shield.color); this.burst.explode(8, this.player.x, this.player.y);
+        }
+        if (this.player.x < -40 || this.player.x > W + 40 || this.flyTime > (sh ? 3.6 : 2.4) || this.player.y < this.cam.scrollY - 80)
           this.die('Потерялся в космосе');
       }
     }
 
     if (this.state !== 'dead') {
-      this.core.setPosition(this.player.x, this.player.y);
+      const px = this.player.x, py = this.player.y;
+      const tint = skinTint(this.skin, this.t);
+      this.player.setTint(tint); this.trail.setParticleTint(tint);
+      this.core.setPosition(px, py);
+      const sh = this.pu.shield;
+      this.bubble.setPosition(px, py).setVisible(sh > 0)
+        .setAlpha(sh > 0 && sh < 1.2 && Math.floor(sh * 8) % 2 === 0 ? 0.25 : 0.85 + 0.15 * Math.sin(this.t * 6));
       // астероиды
       for (const p of this.rocks) {
         if (!p.rock) continue;
-        if (Phaser.Math.Distance.Between(this.player.x, this.player.y, p.rock.img.x, p.rock.img.y) < 36) { this.die('Столкновение с астероидом'); break; }
+        if (Phaser.Math.Distance.Between(px, py, p.rock.img.x, p.rock.img.y) < 36) {
+          if (this.pu.shield > 0) {
+            this.useShield('Астероид разбит!');
+            this.burst.setParticleTint(0xb8a9d9); this.burst.explode(25, p.rock.img.x, p.rock.img.y);
+            p.rock.img.destroy(); p.rock = null;
+          } else { this.die('Столкновение с астероидом'); }
+          break;
+        }
       }
-      // звёзды
+    }
+    if (this.state !== 'dead') {
+      const px = this.player.x, py = this.player.y;
       for (let i = this.coins.length - 1; i >= 0; i--) {
         const c = this.coins[i];
-        if (Phaser.Math.Distance.Between(this.player.x, this.player.y, c.x, c.y) < 46) {
+        const d = Phaser.Math.Distance.Between(px, py, c.x, c.y);
+        if (this.pu.magnet > 0 && d < 300) {
+          const k = Math.min(1, rdt * 9);
+          c.x += (px - c.x) * k; c.y += (py - c.y) * k; c.img.setPosition(c.x, c.y);
+        }
+        if (d < 46) {
           this.coins.splice(i, 1);
           this.tweens.killTweensOf(c.img);
           this.tweens.add({ targets: c.img, scale: 2, alpha: 0, duration: 250, onComplete: () => c.img.destroy() });
-          this.runCoins++; Save.data.coins++; Save.save();
-          this.coinTxt.setText('★ ' + Save.data.coins);
-          Sfx.coin();
+          Sfx.coin(); this.addCoins(1);
+        }
+      }
+      for (let i = this.pickups.length - 1; i >= 0; i--) {
+        const u = this.pickups[i];
+        if (Phaser.Math.Distance.Between(px, py, u.x, u.img.y) < 58) {
+          this.pickups.splice(i, 1);
+          this.tweens.killTweensOf([u.img, u.glow]);
+          this.tweens.add({ targets: [u.img, u.glow], scale: 2.2, alpha: 0, duration: 300, onComplete: () => { u.img.destroy(); u.glow.destroy(); } });
+          this.burst.setParticleTint(PU[u.k].color); this.burst.explode(20, u.x, u.y);
+          this.activatePU(u.k);
         }
       }
     }
@@ -643,37 +1212,44 @@ class Game extends Phaser.Scene {
     // камера
     if (this.state !== 'dead') {
       const target = this.player.y - H * 0.62;
-      if (target < this.cam.scrollY) this.cam.scrollY += (target - this.cam.scrollY) * Math.min(1, dt * 4);
+      if (target < this.cam.scrollY) this.cam.scrollY += (target - this.cam.scrollY) * Math.min(1, rdt * 4);
     }
 
     // Пустота
     if (this.started && this.state !== 'dead') {
-      this.voidSpeed = 34 + Math.min(this.score, 80) * 1.6;
-      this.voidY -= this.voidSpeed * dt;
+      const speed = 34 + Math.min(this.score, 90) * 1.6;
+      this.voidY -= speed * dt;
       this.voidY = Math.min(this.voidY, this.cam.scrollY + H + 140);
-      if (this.player.y > this.voidY + 10) this.die('Поглощён Пустотой');
+      if (this.player.y > this.voidY + 10) {
+        if (this.pu.shield > 0) { this.useShield('Щит отбросил Пустоту!'); this.voidY = this.player.y + 560; }
+        else this.die('Поглощён Пустотой');
+      }
       const near = Phaser.Math.Clamp(1 - (this.voidY - this.player.y) / 380, 0, 1);
       this.danger.fillAlpha = near * 0.16 * (0.6 + 0.4 * Math.sin(time / 90));
-    } else if (this.state === 'dead') {
-      this.danger.fillAlpha = 0;
-    }
+    } else if (this.state === 'dead') this.danger.fillAlpha = 0;
     this.voidImg.y = this.voidY - 40;
     this.voidFx.setPosition(0, this.voidY - 30);
 
     // генерация и очистка
     while (this.last.y > this.cam.scrollY - 500) this.spawnNext();
     const cut = Math.max(this.voidY, this.cam.scrollY + H) + 400;
-    this.planets = this.planets.filter(p => {
-      if (p.y > cut && p !== (this.orbit && this.orbit.planet)) {
-        p.img.destroy(); p.ring.destroy(); if (p.rock) p.rock.img.destroy();
-        if (p.rock) this.rocks = this.rocks.filter(q => q !== p);
-        return false;
-      }
-      return true;
-    });
+    for (const p of this.planets.slice()) if (p.y > cut && p !== this.orbit.planet) this.destroyPlanet(p);
     this.coins = this.coins.filter(c => { if (c.y > cut) { this.tweens.killTweensOf(c.img); c.img.destroy(); return false; } return true; });
+    this.pickups = this.pickups.filter(u => { if (u.y > cut) { this.tweens.killTweensOf([u.img, u.glow]); u.img.destroy(); u.glow.destroy(); return false; } return true; });
 
-    // параллакс
+    this.drawAim();
+
+    // HUD бонусов
+    const act = this.puSlots.filter(s => this.pu[s.k] > 0);
+    this.puSlots.forEach(s => { s.img.setVisible(false); s.bar.clear(); });
+    act.forEach((s, i) => {
+      const x = W / 2 + (i - (act.length - 1) / 2) * 90;
+      s.img.setVisible(true).setPosition(x, 250);
+      const f = this.pu[s.k] / this.puMax[s.k];
+      s.bar.fillStyle(0x000000, 0.5).fillRoundedRect(x - 32, 284, 64, 9, 4);
+      s.bar.fillStyle(PU[s.k].color, 1).fillRoundedRect(x - 32, 284, Math.max(1, 64 * f), 9, 4);
+    });
+
     this.bg.far.tilePositionY = this.cam.scrollY * 0.12;
     this.bg.near.tilePositionY = this.cam.scrollY * 0.3;
   }
@@ -687,7 +1263,7 @@ window.game = new Phaser.Game({
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: W, height: H },
   render: { antialias: true },
   input: { activePointers: 2 },
-  scene: [Boot, Menu, Game],
+  scene: [Boot, Menu, Game, Pause],
 });
 </script>
 </body>
