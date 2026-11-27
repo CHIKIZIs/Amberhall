@@ -20,7 +20,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--ink);font-family:EH,'Courier New',Consolas,monospace;font-size:16px;line-height:1.35;
+body{background-color:var(--bg);background-size:240px 240px;color:var(--ink);font-family:EH,'Courier New',Consolas,monospace;font-size:16px;line-height:1.35;
   user-select:none;-webkit-user-select:none;touch-action:manipulation}
 .hidden{display:none!important}
 img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
@@ -32,7 +32,7 @@ button{font-family:inherit;font-size:inherit;color:inherit}
   box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 -4px 0 0 var(--peach2),inset 0 3px 0 0 #fff0e4}
 .btn:active{transform:translateY(2px);box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink)}
 .btn:focus-visible{outline:3px solid var(--rose);outline-offset:4px}
-.btn[disabled]{opacity:.4;cursor:default}
+.btn[disabled]{background:#ece6ee;color:#a29eb2;cursor:default;box-shadow:0 -3px 0 0 #a29eb2,0 3px 0 0 #a29eb2,-3px 0 0 0 #a29eb2,3px 0 0 0 #a29eb2}
 .btn.go{background:var(--ink2);color:var(--bg);box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 -4px 0 0 var(--ink),inset 0 3px 0 0 #656791}
 .btn.warn{background:var(--rose);color:#fff7f8;box-shadow:0 -3px 0 0 var(--ink),0 3px 0 0 var(--ink),-3px 0 0 0 var(--ink),3px 0 0 0 var(--ink),inset 0 -4px 0 0 var(--rose-ink)}
 .btn.sm{padding:5px 8px;font-size:13px;background:var(--surface);box-shadow:0 -2px 0 0 var(--ink),0 2px 0 0 var(--ink),-2px 0 0 0 var(--ink),2px 0 0 0 var(--ink),inset 0 -3px 0 0 var(--sq-light)}
@@ -118,6 +118,9 @@ button{font-family:inherit;font-size:inherit;color:inherit}
 .lines div{display:flex;justify-content:space-between;gap:10px}
 .helpgrid{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;font-size:13px}
 .helpgrid img{width:28px;height:28px}
+.unlock{margin:12px 0;padding:9px 11px;background:var(--peach);font-size:14px;text-align:center;
+  box-shadow:0 -2px 0 0 var(--ink),0 2px 0 0 var(--ink),-2px 0 0 0 var(--ink),2px 0 0 0 var(--ink)}
+.card.locked{opacity:.6}.card.locked img{filter:brightness(0);opacity:.25}
 .logo{display:flex;justify-content:center;align-items:flex-end;gap:10px;margin-top:6px}
 .logo img{height:96px;width:auto}
 </style>
@@ -197,11 +200,6 @@ const TILES={
   spring:{n:'Трамплин',d:'Ваша фигура здесь может прыгать ещё и как конь.',c:5,col:'#6cc46c'},
   altar:{n:'Алтарь',d:'+1 заряд молнии, когда ваша фигура встаёт сюда.',c:5,col:'#b07ae0'},
 };
-const BOSSES=[
-  {id:'clock',n:'Часовщик',d:'Каждый третий ход врага — двойной.'},
-  {id:'quake',n:'Обвальщик',d:'Каждые 2 хода под одной из ваших фигур трескается клетка. Не уйдёте — фигура провалится в бездну.'},
-  {id:'bone',n:'Костяной Король',d:'Вражеский король дважды воскресает на своей линии. Возьмите его трижды!'},
-];
 const MAX_RELICS=6, MAX_ROSTER=12, TURN_LIMIT=60;
 
 /* ================= PIXEL ART ================= */
@@ -244,6 +242,8 @@ fort:["########","#++++++#","#+####+#","#+#++#+#",".#+##+#.",".#+##+#.","..#++#.
 trap:["........","#..#..#.","#..#..#.","##.##.##","##.##.##","########","########","........"],
 spring:["...##...","..####..",".##++##.","##.##.##","...##...",".######.","#++++++#",".######."],
 altar:["...##...","..#++#..",".#+##+#.","#+####+#",".#+##+#.","..#++#..","...##...","........"],
+rock:["........","...###..","..#++##.",".#+#####","########","########",".######.","........"],
+iceb:["...##...","..#++#..",".#+#++#.","#+##+#+#","#+#+##+#",".#+##+#.","..#++#..","...##..."],
 heart:[".##..##.","#++##++#","#+######","########",".######.","..####..","...##...","........"],
 bolt:["....###.","...###..","..###...",".######.","...###..","..###...",".###....",".##....."],
 coin:["..####..",".#++++#.","#++##++#","#+#++#+#","#+#++#+#","#++##++#",".#++++#.","..####.."],
@@ -267,8 +267,8 @@ function bitmap(rows,wd,ht,colorOf,outline){
 /* Необычные фигуры строятся из классических: верблюд — зеркальный конь, остальные получают цветной камень на корпусе. */
 const FAIRY={G:{base:'P',gem:'#5fae68'},C:{base:'N',gem:'#e9a23b',flip:true},A:{base:'B',gem:'#9b6bd8'},H:{base:'R',gem:'#3f8fd0'}};
 const SPR_H=28,SPR_W=10,SPTOP={P:{},E:{}};
-function pieceSprite(t,side){
-  const f=FAIRY[t],pal=PALX[side];
+function pieceSprite(t,side,pal=PALX[side]){
+  const f=FAIRY[t];
   let rows=(side==='P'?SPR_P:SPR_E)[f?f.base:t];
   if(f&&f.flip)rows=rows.map(r=>[...r].reverse().join(''));
   const c=document.createElement('canvas');c.width=SPR_W;c.height=SPR_H;const g=c.getContext('2d');
@@ -284,7 +284,7 @@ function iconSprite(key,col){
 }
 const SP={P:{},E:{}},SPURL={P:{},E:{}},ICO={},ICOURL={};
 function buildSprites(){for(const t of 'KQBNRPGCAH')for(const s of ['P','E']){SP[s][t]=pieceSprite(t,s);SPURL[s][t]=SP[s][t].toDataURL()}}
-const iconCol=k=>(RELICS[k]||TILES[k]||{}).col||({heart:'#e0484f',bolt:'#b49bf5',coin:'#e9b949',skull:'#e6dcc8'})[k]||'#ccc';
+const iconCol=k=>(RELICS[k]||TILES[k]||{}).col||({rock:'#a8957d',iceb:'#9fd6e6',heart:'#e0484f',bolt:'#b49bf5',coin:'#e9b949',skull:'#e6dcc8'})[k]||'#ccc';
 for(const k in ICONS){ICO[k]=iconSprite(k,iconCol(k));ICOURL[k]=ICO[k].toDataURL()}
 const img=(url,cls='px')=>`<img class="${cls}" src="${url}" alt="">`;
 
@@ -409,6 +409,93 @@ function aiChoose(s,depth,noise){
   return best;
 }
 
+/* ================= LOCATIONS & PROGRESSION ================= */
+/* Каждая локация — свой вид доски, фон, цвет вражеской армии, набор врагов, препятствия и босс. */
+const LOCS=[
+  {id:'garden',n:'Цветущий сад',d:'Тихие клумбы и неопытные противники. Самое время освоиться.',size:6,
+   board:['#f4f1e1','#bcd5a3'],slab:['#8fb07a','#6a8a5a'],bg:'#f3f8ea',motif:'flower',mc:['#e0ecce','#f2d4de','#d3e3bf'],
+   enemy:['#19142e','#3d3e62','#656791','#a4aad0'],pool:['G','N','B'],obst:0,obstKind:0,boss:'clock'},
+  {id:'dunes',n:'Песчаные дюны',d:'Жаркий ветер и камни посреди доски. Враги становятся злее.',size:7,
+   board:['#f8eed6','#e2c08a'],slab:['#c9965a','#a0703e'],bg:'#fcf3e2',motif:'cactus',mc:['#f1e0bd','#e9d2a4','#efdcb4'],
+   enemy:['#2a1210','#6b2a1f','#a54a32','#e08a5c'],pool:['N','B','C','G','R'],obst:2,obstKind:2,boss:'quake'},
+  {id:'ice',n:'Ледяные пещеры',d:'Глыбы льда перекрывают путь. Противники играют внимательно.',size:7,
+   board:['#f0f7fb','#aacfe2'],slab:['#7aa7c2','#557f99'],bg:'#eef6fa',motif:'snow',mc:['#d9e9f3','#cbe1ed','#e2eff7'],
+   enemy:['#0f2230','#22506a','#3f86a6','#9fd6e6'],pool:['N','B','C','R','A'],obst:2,obstKind:3,boss:'frost'},
+  {id:'castle',n:'Замок Полуночи',d:'Последний оплот хаоса. Здесь собраны сильнейшие армии.',size:8,
+   board:['#ece5f2','#a291bb'],slab:['#5e4d7a','#3f3157'],bg:'#262036',motif:'star',mc:['#352d4b','#433a5e','#51476f'],
+   enemy:['#120b1c','#2e1f45','#56407a','#9b84c4'],pool:['R','B','N','A','H','Q','C'],obst:0,obstKind:0,boss:'bone'},
+];
+const NLOC=LOCS.length;
+const BOSSES={
+  clock:{id:'clock',n:'Часовщик',d:'Каждый третий ход врага — двойной.'},
+  quake:{id:'quake',n:'Обвальщик',d:'Каждые 2 хода под одной из ваших фигур трескается клетка. Не уйдёте — фигура провалится.'},
+  frost:{id:'frost',n:'Снежная Королева',d:'Каждые 3 хода замораживает одну из ваших фигур на 2 хода.'},
+  bone:{id:'bone',n:'Костяной Король',d:'Вражеский король дважды воскресает на своей линии. Возьмите его трижды!'},
+};
+const MOTIFS={
+  flower:[".a.a.","aabaa",".a.a.","..c..",".cc.."],
+  cactus:["..c..","c.c..","ccc.c","..ccc","..c..","..c..",".bbb."],
+  snow:["a...a",".aba.","..b..",".aba.","a...a"],
+  star:["..a..","..b..","abbba","..b..","..a.."],
+};
+/* Кастомизация: открывается за достижения и хранится между забегами. */
+const PIECE_SKINS=[
+  {id:'peach',n:'Персик',pal:['#884443','#cc7d74','#edb796','#fed5b7']},
+  {id:'ivory',n:'Слоновая кость',pal:['#5a4a3a','#b8a588','#e8dcc4','#fffaf0'],cond:p=>p.wins>=1,hint:'Выиграйте первую партию'},
+  {id:'mint',n:'Мята',pal:['#1f5a4a','#4fa58a','#8fdcc0','#d4f7e9'],cond:p=>!!p.bosses.garden,hint:'Победите босса Сада'},
+  {id:'rose',n:'Роза',pal:['#6a1f3a','#c0587e','#f09ab8','#ffd6e6'],cond:p=>p.kills>=40,hint:'Уничтожьте 40 вражеских фигур'},
+  {id:'gold',n:'Золото',pal:['#6a4210','#c48a22','#f0c24a','#fff0a8'],cond:p=>!!p.bosses.dunes,hint:'Победите босса Дюн'},
+  {id:'crystal',n:'Хрусталь',pal:['#24346a','#5a78c8','#a8c4ff','#ecf3ff'],cond:p=>!!p.bosses.ice,hint:'Победите босса Пещер'},
+  {id:'onyx',n:'Оникс',pal:['#07070b','#26262f','#474756','#8a8aa0'],cond:p=>p.completed,hint:'Пройдите весь забег'},
+];
+const BOARD_SKINS=[
+  {id:'loc',n:'Под локацию'},
+  {id:'marble',n:'Мрамор',sq:['#f6f4f2','#c8c2cc'],slab:['#9d97a5','#76707e'],cond:p=>p.wins>=5,hint:'Выиграйте 5 партий'},
+  {id:'mintb',n:'Мятная',sq:['#e9f6ee','#9fd0b4'],slab:['#6fa88a','#4d7f64'],cond:p=>p.flawless,hint:'Победите, не потеряв ни одной фигуры'},
+  {id:'candy',n:'Конфетная',sq:['#fff0f5','#f4a9c6'],slab:['#d77fa3','#ac5a7d'],cond:p=>p.fast,hint:'Победите за 8 ходов или быстрее'},
+  {id:'choco',n:'Шоколад',sq:['#efd6b8','#9a6a4b'],slab:['#6e4630','#4c2e1f'],cond:p=>Object.keys(p.bosses).length>=3,hint:'Победите 3 разных боссов'},
+  {id:'night',n:'Ночная',sq:['#5a5478','#3a3552'],slab:['#25203a','#17142a'],cond:p=>p.completed,hint:'Пройдите весь забег'},
+];
+function loadProfile(){const d={wins:0,kills:0,bosses:{},flawless:false,fast:false,completed:false,runs:0,pieces:'peach',board:'loc',seen:[]};
+  try{const o=JSON.parse(localStorage.getItem('shah-haos-profile')||'{}');return Object.assign(d,o||{})}catch(e){return d}}
+function saveProfile(){try{localStorage.setItem('shah-haos-profile',JSON.stringify(PROFILE))}catch(e){}}
+let PROFILE=loadProfile();
+const isUnlocked=sk=>!sk.cond||!!sk.cond(PROFILE);
+function checkUnlocks(){
+  const out=[];
+  for(const [kind,list] of [['фигуры',PIECE_SKINS],['доска',BOARD_SKINS]])for(const sk of list){
+    const key=kind+':'+sk.id;if(sk.cond&&sk.cond(PROFILE)&&!PROFILE.seen.includes(key)){PROFILE.seen.push(key);out.push(`${kind} «${sk.n}»`)}}
+  saveProfile();return out;
+}
+function unlockHtml(list){return list.length?`<div class="unlock"><b>Новая награда!</b> Открыто: ${list.join(', ')}. Выберите в «Коллекции» главного меню.</div>`:''}
+let LOOK_LOC=0;const PAT={};
+function locPattern(li){
+  if(PAT[li])return PAT[li];
+  const L=LOCS[li],N=80,c=document.createElement('canvas');c.width=c.height=N;const x=c.getContext('2d'),M=MOTIFS[L.motif];
+  [[6,8],[46,4],[26,30],[62,40],[10,56],[44,62]].forEach(([sx,sy])=>M.forEach((r,yy)=>[...r].forEach((ch,xx)=>{if(ch!=='.'){x.fillStyle=L.mc['abc'.indexOf(ch)];x.fillRect(sx+xx,sy+yy,1,1)}})));
+  x.fillStyle=L.mc[2];for(let k=0;k<12;k++)x.fillRect((k*37+li*11+5)%N,(k*53+li*29+3)%N,1,1);
+  return PAT[li]=c.toDataURL();
+}
+function curSkins(){return [PIECE_SKINS.find(s=>s.id===PROFILE.pieces&&isUnlocked(s))||PIECE_SKINS[0],BOARD_SKINS.find(s=>s.id===PROFILE.board&&isUnlocked(s))||BOARD_SKINS[0]]}
+function applyLook(li){
+  LOOK_LOC=li;const L=LOCS[li],[ps,bs]=curSkins();
+  PALX.P=ps.pal;PALX.E=L.enemy;
+  const sq=bs.sq||L.board,sl=bs.slab||L.slab;BC.light=sq[0];BC.dark=sq[1];BC.slab=sl[0];BC.slabLo=sl[1];
+  document.body.style.backgroundColor=L.bg;document.body.style.backgroundImage=`url(${locPattern(li)})`;
+  const tc=document.querySelector('meta[name=theme-color]');if(tc)tc.content=L.bg;
+  buildSprites();
+}
+/* Сложность: растёт с номером партии, но бюджет врага всегда ограничен силой вашей армии,
+   а после каждого поражения подряд враги слабеют («пощада»). */
+const battleNo=()=>(RUN.stage-1)*3+RUN.match;
+function playerPower(){let v=0,c=0;for(const r of RUN.roster){if(r.type==='K'||r.bench)continue;if(c++>=RUN.cap)break;v+=VAL[r.type]}return v+RUN.relics.length*.7+RUN.tiles.length*.4}
+function aiParams(){
+  const n=battleNo(),boss=!!B.boss;
+  let depth=n<=1?1:2;if(RUN.mercy>=2)depth=Math.min(depth,2);
+  const noise=Math.max(.5,3.2-n*.22)*(boss?.85:1)+RUN.mercy*.8;
+  return {depth,noise};
+}
+
 /* ================= RUN STATE ================= */
 let RUN=null,B=null,SHOP=null,PID=1,BATTLE_TOKEN=0;
 const mkR=t=>({id:PID++,type:t,bench:false});
@@ -421,7 +508,8 @@ function loadBest(){try{return JSON.parse(localStorage.getItem('shah-haos-best')
 function saveBest(){try{const b=loadBest();const v=(RUN.stage-1)*3+RUN.match;if(!b||v>b.v)localStorage.setItem('shah-haos-best',JSON.stringify({v,stage:RUN.stage,match:RUN.match}))}catch(e){}}
 
 function newRun(){
-  RUN={stage:1,match:1,hearts:3,money:4,cap:4,capCost:8,roster:[mkR('K'),mkR('N'),mkR('P'),mkR('P'),mkR('P')],relics:[],tiles:[],wins:0,kills:0};
+  PROFILE.runs++;saveProfile();
+  RUN={stage:1,match:1,hearts:3,money:4,cap:4,capCost:8,roster:[mkR('K'),mkR('N'),mkR('P'),mkR('P'),mkR('P')],relics:[],tiles:[],wins:0,kills:0,mercy:0,seenLoc:0};
   prepareBattle();
 }
 
@@ -434,39 +522,48 @@ function deploy(s,types,side){
   types.filter(t=>t!=='K'&&t!=='P').sort((a,b)=>VAL[b]-VAL[a]).forEach(t=>put(t,[rows[0],rows[1],rows[2]]));
   types.filter(t=>t==='P').forEach(t=>put(t,[rows[1],rows[2],rows[0]]));
 }
-function enemyArmy(st,m,boss,w){
-  const pool=st===1?['G','N','B','N','B','G']:st===2?['N','B','C','R','G','R','A']:['R','B','N','A','H','Q','C','R'];
-  let budget=3+st*4+m*2+(boss?4:0);
-  const pawns=Math.min(w,2+st+(m>1?1:0));
+function enemyArmy(li,m,boss,w){
+  const L=LOCS[li],n=li*3+m;
+  const base=3.5+n*1.4+(boss?2.5:0);
+  const ratio=.55+.033*(n-1)+(boss?.05:0);
+  let budget=Math.max(3,Math.round(Math.min(base,playerPower()*ratio+2)-RUN.mercy*3));
+  const pawns=clamp(Math.round(budget*.3),1,w-2);
   const list=['K'];for(let i=0;i<pawns;i++)list.push('P');budget-=pawns;
   let off=0;
-  while(budget>=2&&off<w-1){const c=pool.filter(t=>VAL[t]<=budget);if(!c.length)break;const t=pick(c);list.push(t);budget-=VAL[t];off++}
+  while(budget>=2&&off<w-1){const c=L.pool.filter(t=>VAL[t]<=budget);if(!c.length)break;const t=pick(c);list.push(t);budget-=VAL[t];off++}
   return list;
 }
+
 function prepareBattle(){
-  const st=RUN.stage,m=RUN.match,boss=m===3?BOSSES[st-1]:null;
+  const li=RUN.stage-1;applyLook(li);
+  if(RUN.seenLoc!==RUN.stage){RUN.seenLoc=RUN.stage;showLocIntro();return}
+  const boss=RUN.match===3?BOSSES[LOCS[li].boss]:null;
   if(boss){showBossIntro(boss);return}
   startBattle();
 }
+
 function startBattle(){
   BATTLE_TOKEN++;
-  const st=RUN.stage,m=RUN.match,boss=m===3?BOSSES[st-1]:null;
-  const w=[6,7,8][st-1],h=w;
+  const li=RUN.stage-1,L=LOCS[li],m=RUN.match,boss=m===3?BOSSES[L.boss]:null;
+  applyLook(li);
+  const w=L.size,h=w;
   const s={w,h,cells:new Array(w*h).fill(null),tiles:new Array(w*h).fill(null),holes:new Array(w*h).fill(0),relics:relicObj(),kingLives:boss&&boss.id==='bone'?3:1,winner:null};
   const off=Math.floor((w-6)/2);
   for(const t of RUN.tiles)s.tiles[(h-1-t.r)*w+t.c+off]=t.kind;
   const mine=[];let cnt=0;
   for(const r of RUN.roster){if(r.type==='K')continue;if(!r.bench&&cnt<RUN.cap){mine.push(r.type);cnt++}}
   deploy(s,['K',...mine],'P');
-  deploy(s,enemyArmy(st,m,boss,w),'E');
+  deploy(s,enemyArmy(li,m,boss,w),'E');
+  if(L.obst){const mid=[];for(let y=2;y<h-2;y++)for(let x=1;x<w-1;x++){const i=y*w+x;if(!s.cells[i]&&!s.tiles[i])mid.push(i)}
+    shuffle(mid);for(let k=0;k<L.obst&&k<mid.length;k++)s.holes[mid[k]]=L.obstKind}
   B={s,boss,skips:3+(hasR('hourglass')?2:0),skipsMax:3+(hasR('hourglass')?2:0),charge:0,turn:'P',pTurns:1,eTurns:0,
-     extra:hasR('sword')?1:0,sel:-1,moves:[],peek:-1,peekMoves:[],mode:null,last:null,warn:-1,over:false,kills:0,earned:0,threat:new Set()};
+     extra:hasR('sword')?1:0,sel:-1,moves:[],peek:-1,peekMoves:[],mode:null,last:null,warn:-1,over:false,kills:0,lost:0,earned:0,threat:new Set(),frozen:new Map()};
   if(hasR('bomb')){const ps=[];s.cells.forEach((p,i)=>{if(p&&p.side==='E'&&p.type==='P')ps.push(i)});
     if(ps.length){const i=pick(ps);s.cells[i]=null;setTimeout(()=>{boom(i,'#ffb347',22);floatText(i,'Бабах!','#ffcf6a')},300)}}
   FX.parts.length=0;FX.texts.length=0;ANIM.clear();
   $('#ov').classList.add('hidden');$('#game').classList.remove('hidden');
   recalcThreat();resize();updateUI();
-  setInfo(boss?`<b>${boss.n}</b>: ${boss.d}`:(B.extra?'Первый удар: у вас два хода подряд! Возьмите вражеского короля.':'Ваш ход. Цель — взять вражеского короля. Шаха нет: короля просто бьют!'));
+  setInfo(boss?`<b>${boss.n}</b>: ${boss.d}`:(B.extra?'Первый удар: у вас два хода подряд! Возьмите вражеского короля.':`<b>${L.n}</b>, партия ${m}. Возьмите вражеского короля — шаха нет, короля просто бьют!`));
 }
 
 /* ================= FX ================= */
@@ -528,8 +625,9 @@ function draw(now){
   g.translate(OX,OY);
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
     const i=y*w+x,px=x*T,py=y*T;
-    if(s.holes[i]){g.fillStyle=BC.ink;g.fillRect(px,py,T,T);g.fillStyle=BC.ink2;g.fillRect(px,py,T,u*2);continue}
+    if(s.holes[i]===1){g.fillStyle=BC.ink;g.fillRect(px,py,T,T);g.fillStyle=BC.ink2;g.fillRect(px,py,T,u*2);continue}
     g.fillStyle=(x+y)%2===0?BC.light:BC.dark;g.fillRect(px,py,T,T);
+    if(s.holes[i]){const z=Math.max(1,Math.floor(T*DPR*.78/10))/DPR*10;g.fillStyle='rgba(25,20,46,.18)';g.fillRect(snap(px+(T-z)/2+u),snap(py+(T+z)/2-u*2),z-u*2,u*3);g.drawImage(ICO[s.holes[i]===2?'rock':'iceb'],snap(px+(T-z)/2),snap(py+(T-z)/2-u),z,z);continue}
     if(s.tiles[i])drawTileDeco(g,s.tiles[i],px,py,T);
   }
   if(B.last)for(const i of B.last){g.fillStyle=BC.last;g.fillRect((i%w)*T,((i/w)|0)*T,T,T)}
@@ -555,6 +653,8 @@ function draw(now){
     const lift=(o.i===B.sel&&!o.hop)?T*.07+Math.round((Math.sin(now/170)+1)*1.5):0;
     o.top=py+T*.9-SH-lift-o.hop;o.vt=o.top+SPTOP[o.p.side][o.p.type]*PSC;
     g.drawImage(SP[o.p.side][o.p.type],snap(px+(T-SW)/2),snap(o.top),SW,SH)}
+  if(B.frozen&&B.frozen.size)for(const o of list){if(!B.frozen.has(o.p.id))continue;const px=o.x*T,x0=snap(px+T*.2),y0=snap(o.vt-u),ww=snap(T*.6),hh=snap(o.top+SH-o.vt);
+    g.fillStyle='rgba(175,220,250,.55)';g.fillRect(x0,y0,ww,hh);g.fillStyle='#ffffff';g.fillRect(x0,y0,ww,u);g.fillRect(x0,y0,u,hh);g.fillRect(snap(x0+ww*.6),snap(y0+hh*.3),u*2,u*2);g.fillStyle='#5aa8d6';g.fillRect(x0,y0+hh-u,ww,u);g.fillRect(x0+ww-u,y0,u,hh)}
   const caps=(lst,col)=>{for(const t of lst){if(!s.cells[t])continue;const px=(t%w)*T,py=((t/w)|0)*T,q=Math.round(T*.24),k=Math.max(2,u*2);
     g.fillStyle=col;for(const [cx,cy,dx,dy] of [[px,py,1,1],[px+T,py,-1,1],[px,py+T,1,-1],[px+T,py+T,-1,-1]])
       for(let r=0;r<q;r+=k)g.fillRect(dx>0?cx:cx-(q-r),dy>0?cy+r:cy-r-k,q-r,k)}};
@@ -581,7 +681,7 @@ function readTheme(){
   const cs=getComputedStyle(document.documentElement),v=n=>cs.getPropertyValue(n).trim();
   BC={bg:v('--bg'),ink:v('--ink'),ink2:v('--ink2'),muted:v('--muted'),rose:v('--rose'),peach:v('--peach'),light:v('--sq-light'),dark:v('--sq-dark'),
       slab:v('--slab'),slabLo:v('--slab-lo'),last:v('--last'),dot:v('--dot')};
-  buildSprites();
+  applyLook(LOOK_LOC);
 }
 
 /* ================= UI ================= */
@@ -589,7 +689,7 @@ function setInfo(html){$('#info').innerHTML=html}
 function pipStr(n,m){return '■'.repeat(n)+'□'.repeat(Math.max(0,m-n))}
 function updateUI(){
   if(!RUN)return;
-  $('#stageLbl').textContent=`Этап ${RUN.stage}/3 · Партия ${RUN.match}/3`;
+  $('#stageLbl').textContent=`${LOCS[RUN.stage-1].n} · ${RUN.match}/3`;
   $('#hearts').innerHTML=Array.from({length:3},(_, i)=>`<img class="px" src="${ICOURL.heart}" style="opacity:${i<RUN.hearts?1:.2}" alt="">`).join('');
   $('#money').innerHTML=`<img class="px" src="${ICOURL.coin}" style="width:18px;height:18px;vertical-align:-3px" alt=""> $${RUN.money}`;
   const rb=$('#relicBar');let html='';
@@ -609,6 +709,7 @@ function updateUI(){
     if(B.boss.id==='clock'){const n=(3-((B.eTurns+1)%3))%3;extra=n===0?'Следующий ход врага — <b>двойной!</b>':`Двойной ход через ${n+1}`}
     if(B.boss.id==='quake')extra=B.warn>=0?'<b>Клетка трескается!</b> Уведите фигуру.':`Трещина через ${2-(B.eTurns%2)}`;
     if(B.boss.id==='bone')extra=`Жизни короля: <b>${B.s.kingLives}</b>`;
+    if(B.boss.id==='frost'){const n=3-(B.eTurns%3);extra=`Заморозка через ${n}`+(B.frozen.size?` · заморожено: <b>${B.frozen.size}</b>`:'')}
     bb.innerHTML=`БОСС <b>${B.boss.n}</b> — ${B.boss.d}<br>${extra}`}
   else bb.classList.add('hidden');
 }
@@ -627,7 +728,7 @@ function describe(i){
   const s=B.s,p=s.cells[i],t=s.tiles[i];let txt='';
   if(p)txt=`<b>${PNAME[p.type]}</b>${p.side==='E'?' (враг)':''}: ${PDESC[p.type]}`;
   if(t)txt+=`${txt?'<br>':''}<b>${TILES[t].n}</b>: ${TILES[t].d}`;
-  if(s.holes[i])txt='Бездна. Сюда нельзя ходить.';
+  if(s.holes[i])txt=['','Бездна.','Камень.','Ледяная глыба.'][s.holes[i]]+' Сюда нельзя ходить, и через неё нельзя пройти.';
   return txt;
 }
 function onCell(i){
@@ -637,6 +738,7 @@ function onCell(i){
   if(B.mode==='bolt'){if(p&&p.side==='E'&&p.type!=='K')doBolt(i);else{B.mode=null;setInfo('Молния отменена.');updateUI()}return}
   if(B.sel>=0&&B.moves.includes(i)){const f=B.sel;B.sel=-1;B.moves=[];B.peekMoves=[];playerMove(f,i);return}
   B.peekMoves=[];
+  if(p&&p.side==='P'&&B.frozen.has(p.id)){B.sel=-1;B.moves=[];SFX.err();setInfo(`<b>${PNAME[p.type]}</b> заморожена ещё ${B.frozen.get(p.id)} ход(а).`);return}
   if(p&&p.side==='P'){if(B.sel===i){B.sel=-1;B.moves=[];setInfo(describe(i));return}
     B.sel=i;B.moves=movesFrom(s,i);SFX.sel();setInfo(describe(i)+(B.moves.length?'':'<br><i>Ходов нет.</i>'))}
   else{B.sel=-1;B.moves=[];if(p){B.peekMoves=movesFrom(s,i);setInfo(describe(i)+'<br><span class="sub">Красным — куда она может пойти.</span>')}else setInfo(describe(i)||'Выберите свою фигуру.')}
@@ -661,6 +763,7 @@ function doMove(f,t,side){
   side==='P'?SFX.move():SFX.emove();
   if(cap){
     setTimeout(()=>{boom(t,cap.side==='E'?PALX.E[2]:PALX.P[2]);SFX.cap();FX.shake=.12},120);
+    if(cap.side==='P')B.lost++;
     if(cap.side==='E'){B.kills++;RUN.kills++;gainCharge(1);if(hasR('bounty'))addMoney(1,t)}
     else if(hasR('martyr')&&cap.type!=='K'){addMoney(2,t);gainCharge(1)}
     if(cap.type==='K'&&ns.kingLives<s.kingLives){const r=ns.cells.findIndex(q=>q&&q.side==='E'&&q.type==='K');
@@ -692,14 +795,16 @@ function doBolt(i){
   B.s={...s,cells};B.charge=0;B.mode=null;recalcThreat();
   setInfo(targets.length>1?'Цепная молния поразила две фигуры!':'Молния! Фигура уничтожена. Ваш ход продолжается.');updateUI();
 }
+function playerCanMove(){const mv=genMoves(B.s,'P');for(let k=0;k<mv.length;k+=2){if(!B.frozen.has(B.s.cells[mv[k]].id))return true}return false}
 async function enemyPhase(){
   const tok=BATTLE_TOKEN;
-  B.turn='E';B.sel=-1;B.moves=[];B.peekMoves=[];updateUI();
+  B.turn='E';B.sel=-1;B.moves=[];B.peekMoves=[];
+  for(const [id,n] of [...B.frozen])if(n<=1)B.frozen.delete(id);else B.frozen.set(id,n-1);
+  updateUI();
   await sleep(380);if(tok!==BATTLE_TOKEN||B.over)return;
   B.eTurns++;
   const n=(B.boss&&B.boss.id==='clock'&&B.eTurns%3===0)?2:1;
-  const depth=(RUN.stage>=3||(B.boss&&RUN.stage>=2))?3:2;
-  const noise=[1.3,.7,.3][RUN.stage-1]*(B.boss?.5:1);
+  const {depth,noise}=aiParams();
   for(let k=0;k<n;k++){
     if(k>0){const ki=B.s.cells.findIndex(p=>p&&p.side==='E'&&p.type==='K');if(ki>=0)floatText(ki,'Тик-так!','#ffb35c');await sleep(420);if(tok!==BATTLE_TOKEN||B.over)return}
     let d=depth;const mvE=genMoves(B.s,'E').length/2,mvP=genMoves(B.s,'P').length/2;if(d===3&&mvE*mvP*mvE>60000)d=2;
@@ -708,14 +813,21 @@ async function enemyPhase(){
     await sleep(260);if(tok!==BATTLE_TOKEN||B.over)return;
   }
   if(B.boss&&B.boss.id==='quake')quakeTick();
+  if(B.boss&&B.boss.id==='frost'&&B.eTurns%3===0)frostTick();
   if(B.over)return;
   B.turn='P';B.pTurns++;
-  if(B.pTurns>TURN_LIMIT){endBattle(false,'Время вышло: вы не успели взять короля.');return}
-  if(!genMoves(B.s,'P').length){setInfo('У вас нет ходов — ход пропущен.');updateUI();await sleep(500);return enemyPhase()}
+  if(B.pTurns>TURN_LIMIT){const d=materialDiff();endBattle(d>=0,'Время вышло, а у врага на доске больше сил.');if(d>=0)setInfo('<b>Время вышло!</b> У вас больше сил на доске — победа по очкам.');return}
+  if(!playerCanMove()){setInfo('У вас нет ходов — ход пропущен.');updateUI();await sleep(500);return enemyPhase()}
   if(!B.extra&&B.threat.size)setInfo(`Ваш ход. <span class="no">Под ударом: ${B.threat.size}</span> (красный значок).`);
   else setInfo('Ваш ход.');
   updateUI();
 }
+function materialDiff(){let d=0;for(const p of B.s.cells)if(p&&p.type!=='K')d+=p.side==='P'?VAL[p.type]:-VAL[p.type];return d}
+function frostTick(){
+  const c=[];B.s.cells.forEach((p,i)=>{if(p&&p.side==='P'&&p.type!=='K'&&!B.frozen.has(p.id))c.push(i)});
+  if(!c.length)return;const i=pick(c);B.frozen.set(B.s.cells[i].id,2);boom(i,'#bfe6ff',16);floatText(i,'Заморожена!','#9fd6e6');SFX.crack();
+}
+
 function quakeTick(){
   const s=B.s;
   if(B.warn>=0){const i=B.warn;B.warn=-1;const holes=s.holes.slice();holes[i]=1;const cells=s.cells.slice();const p=cells[i];
@@ -737,20 +849,55 @@ function endBattle(win,reason){
 /* ================= SCREENS ================= */
 function showPanel(html){$('#panel').innerHTML=html;$('#ov').classList.remove('hidden');$('#panel').scrollTop=0}
 function showTitle(){
-  RUN=null;B=null;$('#game').classList.add('hidden');
+  RUN=null;B=null;SHOP=null;$('#game').classList.add('hidden');applyLook(0);
   const best=loadBest();
+  const bestTxt=best?(best.v>=99?'игра пройдена!':((LOCS[best.stage-1]||LOCS[0]).n+', партия '+best.match)):'';
+  const got=PIECE_SKINS.filter(isUnlocked).length+BOARD_SKINS.filter(isUnlocked).length,all=PIECE_SKINS.length+BOARD_SKINS.length;
   showPanel(`
     <div class="logo">${img(SPURL.P.N)}${img(SPURL.P.K)}${img(SPURL.E.K)}${img(SPURL.E.N)}</div>
     <h1>ШАХ И ХАОС</h1>
-    <p class="center sub">Шахматный рогалик. Ломайте правила, собирайте армию, свергайте боссов.</p>
+    <p class="center sub">Шахматный рогалик. Четыре локации, растущие армии врагов и боссы со своими правилами.</p>
     <div class="row" style="margin-top:16px"><button class="btn go" data-a="new" style="font-size:18px;padding:10px 22px">Новый забег</button></div>
-    <div class="row"><button class="btn" data-a="help">Как играть</button></div>
-    ${best?`<p class="center sub" style="margin-top:12px">Лучший результат: этап ${best.stage}, партия ${best.match}</p>`:''}`);
+    <div class="row"><button class="btn" data-a="coll">Коллекция ${got}/${all}</button><button class="btn" data-a="help">Как играть</button></div>
+    ${best?`<p class="center sub" style="margin-top:12px">Лучший результат: ${bestTxt}</p>`:''}`);
 }
+const PREV={};
+function prevPiece(sk){return PREV['p'+sk.id]||(PREV['p'+sk.id]=pieceSprite('K','P',sk.pal).toDataURL())}
+function prevBoard(sk){
+  if(PREV['b'+sk.id])return PREV['b'+sk.id];
+  const sq=sk.sq||LOCS[0].board,sl=sk.slab||LOCS[0].slab,c=document.createElement('canvas');c.width=10;c.height=11;const x=c.getContext('2d');
+  x.fillStyle='#19142e';x.fillRect(0,0,10,11);
+  for(let r=0;r<4;r++)for(let q=0;q<4;q++){x.fillStyle=(r+q)%2?sq[1]:sq[0];x.fillRect(1+q*2,1+r*2,2,2)}
+  x.fillStyle=sl[0];x.fillRect(1,9,8,1);
+  return PREV['b'+sk.id]=c.toDataURL();
+}
+function showCollection(){
+  const card=(sk,kind,sel,pic)=>{const u=isUnlocked(sk);
+    return `<div class="card ${sel?'sel':''} ${u?'':'locked'}" data-a="${u?kind+':'+sk.id:'nop'}">${pic}${sk.n}<br><span class="sub" style="font-size:11px">${u?(sel?'выбрано':'открыто'):sk.hint}</span></div>`};
+  showPanel(`<h2>Коллекция</h2>
+    <p class="center sub">Награды открываются за достижения и остаются навсегда. Нажмите, чтобы выбрать.</p>
+    <h3>Ваши фигуры · ${PIECE_SKINS.filter(isUnlocked).length}/${PIECE_SKINS.length}</h3>
+    <div class="shopgrid">${PIECE_SKINS.map(sk=>card(sk,'skinp',PROFILE.pieces===sk.id,img(prevPiece(sk)))).join('')}</div>
+    <h3>Доски · ${BOARD_SKINS.filter(isUnlocked).length}/${BOARD_SKINS.length}</h3>
+    <div class="shopgrid">${BOARD_SKINS.map(sk=>card(sk,'skinb',PROFILE.board===sk.id,img(prevBoard(sk),'px ic'))).join('')}</div>
+    <p class="sub">«Под локацию» — доска меняется вместе с местом действия.</p>
+    <div class="row"><button class="btn go" data-a="title">Назад</button></div>`);
+}
+function showLocIntro(){
+  const L=LOCS[RUN.stage-1];$('#game').classList.add('hidden');
+  showPanel(`<p class="center sub">Локация ${RUN.stage} из ${NLOC}</p>
+    <h2>${L.n}</h2>
+    <div class="logo">${img(SPURL.E.P)}${img(SPURL.E.N)}${img(SPURL.E.K)}${img(SPURL.E.R)}</div>
+    <p class="center">${L.d}</p>
+    <p class="center sub">Доска ${L.size}×${L.size}${L.obst?' · препятствия на поле':''} · босс: ${BOSSES[L.boss].n}</p>
+    <div class="row"><button class="btn go" data-a="go">Вперёд!</button></div>`);
+}
+
 function showHelp(inGame){
   showPanel(`<h2>Как играть</h2>
   <p>Это шахматы, где <b>нет шаха и мата</b>: чтобы выиграть партию, нужно просто <b>взять вражеского короля</b>. Потеряли своего — партия проиграна и вы теряете ${img(ICOURL.heart,'px" style="width:16px;height:16px;vertical-align:-3px')} жизнь. Кончились жизни — забег окончен.</p>
-  <p>Забег: 3 этапа по 3 партии. Третья партия этапа — <b>босс</b> со своими правилами. Доска растёт: 6×6 → 7×7 → 8×8.</p>
+  <p>Забег: <b>4 локации</b> по 3 партии — Сад, Дюны, Пещеры и Замок. Третья партия — <b>босс</b> со своими правилами; за победу над ним +1 жизнь и сундук с наградой на выбор.</p>
+  <p>Враги поначалу слабые и становятся сильнее, но их армия всегда подстраивается под вашу. После поражения следующая попытка будет мягче. Если за 60 ходов король не взят, побеждает тот, у кого больше сил на доске (при равенстве — вы).</p>
   <h3>Кнопки</h3>
   <div class="helpgrid">
     ${img(ICOURL.bolt)}<div><b>Молния</b> — копите заряд, беря фигуры. Когда шкала полна, уничтожьте любую вражескую фигуру (кроме короля). Ход не тратится.</div>
@@ -758,62 +905,97 @@ function showHelp(inGame){
     ${img(ICOURL.coin)}<div><b>Деньги</b> — за победы (и проценты: +$1 за каждые $5, до $5). Тратьте в магазине.</div>
   </div>
   <h3>Магазин</h3>
-  <p>Нанимайте фигуры (включая необычные: Страж, Верблюд, Архиепископ, Канцлер), покупайте <b>талисманы</b>, меняющие правила, и <b>клетки</b> для своей половины доски. Нажмите на фигуру в армии, чтобы отправить её в запас или продать. Число мест на доске можно увеличить.</p>
+  <p>Нанимайте фигуры (включая необычные: Страж, Верблюд, Архиепископ, Канцлер — с цветным камнем), покупайте <b>талисманы</b>, меняющие правила, и <b>клетки</b> для своей половины доски.</p>
   <h3>Клетки</h3>
   <div class="helpgrid">${Object.keys(TILES).map(k=>`${img(ICOURL[k])}<div><b>${TILES[k].n}</b> — ${TILES[k].d}</div>`).join('')}</div>
-  <p class="sub">Красный значок на вашей фигуре — её могут взять. Нажмите на вражескую фигуру, чтобы увидеть её ходы.</p>
+  <h3>Коллекция</h3>
+  <p>За достижения открываются новые цвета фигур и доски. Выбрать их можно в главном меню.</p>
   <div class="row"><button class="btn go" data-a="${inGame?'closehelp':'title'}">${inGame?'Назад к игре':'Понятно'}</button>${inGame?'<button class="btn" data-a="quit">Выйти в меню</button>':''}</div>`);
 }
+
 function showBossIntro(boss){
   $('#game').classList.add('hidden');
-  showPanel(`<h2>Босс: ${boss.n}</h2>
+  showPanel(`<p class="center sub">${LOCS[RUN.stage-1].n} · партия 3</p>
+    <h2>Босс: ${boss.n}</h2>
     <div class="logo">${img(SPURL.E.K)}</div>
     <p class="center">${boss.d}</p>
-    <p class="center sub">Этап ${RUN.stage} · Партия 3</p>
     <div class="row"><button class="btn go" data-a="fight">В бой!</button></div>`);
 }
+
 function onWin(){
-  const st=RUN.stage,boss=RUN.match===3;
-  const base=3+st+(boss?4:0),interest=Math.min(5,Math.floor(RUN.money/5)),piggy=hasR('piggy')?3:0,quick=B.pTurns<=12?2:0;
+  const li=RUN.stage-1,L=LOCS[li],boss=RUN.match===3;
+  const base=3+RUN.stage+(boss?4:0),interest=Math.min(5,Math.floor(RUN.money/5)),piggy=hasR('piggy')?3:0,quick=B.pTurns<=12?2:0;
   const lines=[[`Победа${boss?' над боссом':''}`,base],['Проценты',interest]];if(piggy)lines.push(['Копилка',piggy]);if(quick)lines.push(['Быстрая победа (≤12 ходов)',quick]);
-  const earnedInBattle=B.earned;const total=base+interest+piggy+quick;RUN.money+=total;RUN.wins++;
-  if(st===3&&boss){saveBestFinal();showVictory();return}
+  const earnedInBattle=B.earned;const total=base+interest+piggy+quick;RUN.money+=total;RUN.wins++;RUN.mercy=0;
+  PROFILE.wins++;PROFILE.kills+=B.kills;if(B.lost===0)PROFILE.flawless=true;if(B.pTurns<=8)PROFILE.fast=true;if(boss)PROFILE.bosses[L.id]=1;
+  const final=boss&&RUN.stage===NLOC;if(final)PROFILE.completed=true;
+  const un=checkUnlocks();
+  if(final){saveBestFinal();showVictory(un);return}
+  let heal=false;if(boss&&RUN.hearts<3){RUN.hearts++;heal=true}
   RUN.match++;if(RUN.match>3){RUN.match=1;RUN.stage++}
   saveBest();
   showPanel(`<h2>Победа!</h2>
     <div class="lines">${lines.map(l=>`<div><span>${l[0]}</span><span class="ok">+$${l[1]}</span></div>`).join('')}
     ${earnedInBattle?`<div><span>Заработано в бою</span><span class="ok">+$${earnedInBattle}</span></div>`:''}
     <div><span><b>Итого в кошельке</b></span><span><b>$${RUN.money}</b></span></div></div>
-    ${boss?`<p class="center">Этап пройден! Впереди этап ${RUN.stage}: доска ${[6,7,8][RUN.stage-1]}×${[6,7,8][RUN.stage-1]}.</p>`:''}
-    <div class="row"><button class="btn go" data-a="shop">В магазин ▶</button></div>`);
+    ${heal?`<p class="center ok">+1 жизнь за победу над боссом</p>`:''}
+    ${boss?`<p class="center">Локация пройдена! Впереди: <b>${LOCS[RUN.stage-1].n}</b>.</p>`:''}
+    ${unlockHtml(un)}
+    <div class="row"><button class="btn go" data-a="${boss?'chest':'shop'}">${boss?'Открыть сундук ▶':'В магазин ▶'}</button></div>`);
 }
-function saveBestFinal(){try{localStorage.setItem('shah-haos-best',JSON.stringify({v:99,stage:3,match:'3 — победа!'}))}catch(e){}}
+let CHEST=null;
+function showChest(){
+  const li=RUN.stage-2,avail=shuffle(Object.keys(RELICS).filter(r=>!RUN.relics.includes(r)));
+  const strong=pick(li<=0?['R','A','C']:li===1?['R','A','H']:['A','H','Q']);
+  CHEST=[];
+  if(avail.length&&RUN.relics.length<MAX_RELICS)CHEST.push({kind:'relic',t:avail[0]});
+  if(RUN.roster.length<MAX_ROSTER)CHEST.push({kind:'piece',t:strong});
+  CHEST.push({kind:'money',n:8+Math.max(0,li)*3});
+  const tag={relic:'талисман',piece:'фигура',money:'монеты'};
+  showPanel(`<h2>Сундук босса</h2><p class="center sub">Выберите одну награду.</p>
+    <div class="shopgrid">${CHEST.map((c,k)=>`<div class="card" data-a="take${k}"><span class="tag">${tag[c.kind]}</span>${c.kind==='money'?img(ICOURL.coin,'px ic'):c.kind==='piece'?img(SPURL.P[c.t]):img(ICOURL[c.t],'px ic')}${c.kind==='money'?'$'+c.n:c.kind==='piece'?PNAME[c.t]:RELICS[c.t].n}<br><span class="sub" style="font-size:11px">${c.kind==='money'?'Сразу в кошелёк':c.kind==='piece'?PDESC[c.t]:RELICS[c.t].d}</span></div>`).join('')}</div>`);
+}
+function takeChest(k){
+  const c=CHEST&&CHEST[k];if(!c)return;
+  if(c.kind==='relic')RUN.relics.push(c.t);
+  if(c.kind==='piece'){const r=mkR(c.t);r.bench=onBoardCount()>=RUN.cap;RUN.roster.push(r)}
+  if(c.kind==='money')RUN.money+=c.n;
+  CHEST=null;SFX.buy();openShop();
+}
+
+function saveBestFinal(){try{localStorage.setItem('shah-haos-best',JSON.stringify({v:99,stage:NLOC,match:3}))}catch(e){}}
+
 function onLose(reason){
-  RUN.hearts--;
+  RUN.hearts--;RUN.mercy=Math.min(3,RUN.mercy+1);
+  PROFILE.kills+=B.kills;const un=checkUnlocks();
   if(RUN.hearts<=0){saveBest();showPanel(`<h2>Забег окончен</h2>
     <div class="logo">${img(SPURL.P.K)}</div>
     <p class="center">${reason||'Ваш король пал.'}</p>
-    <div class="lines"><div><span>Дошли до</span><span>этап ${RUN.stage}, партия ${RUN.match}</span></div><div><span>Побед</span><span>${RUN.wins}</span></div><div><span>Уничтожено фигур</span><span>${RUN.kills}</span></div></div>
+    <div class="lines"><div><span>Дошли до</span><span>${LOCS[RUN.stage-1].n}, партия ${RUN.match}</span></div><div><span>Побед</span><span>${RUN.wins}</span></div><div><span>Уничтожено фигур</span><span>${RUN.kills}</span></div></div>
+    ${unlockHtml(un)}
     <div class="row"><button class="btn go" data-a="new">Новый забег</button><button class="btn" data-a="title">В меню</button></div>`);return}
   RUN.money+=2;
   showPanel(`<h2>Поражение</h2>
     <p class="center">${reason||'Ваш король пал.'} Вы теряете одну жизнь.</p>
     <div class="center" id="hearts2">${Array.from({length:3},(_, i)=>img(ICOURL.heart,'px" style="width:32px;height:32px;opacity:'+(i<RUN.hearts?1:.2))).join('')}</div>
-    <p class="center sub">Утешительные $2. Подготовьтесь получше и сыграйте эту партию снова.</p>
+    <p class="center sub">Утешительные $2. В следующей попытке противники будут чуть слабее.</p>
+    ${unlockHtml(un)}
     <div class="row"><button class="btn go" data-a="shop">В магазин ▶</button></div>`);
 }
-function showVictory(){
+
+function showVictory(un=[]){
   showPanel(`<div class="logo">${img(SPURL.P.K)}${img(SPURL.P.Q)}${img(SPURL.P.K)}</div>
     <h1>ПОБЕДА!</h1>
-    <p class="center">Костяной Король повержен. Хаос подчинился вам!</p>
+    <p class="center">Костяной Король повержен. Все четыре локации пройдены!</p>
     <div class="lines"><div><span>Побед</span><span>${RUN.wins}</span></div><div><span>Уничтожено фигур</span><span>${RUN.kills}</span></div><div><span>Осталось жизней</span><span>${RUN.hearts}</span></div><div><span>Талисманов</span><span>${RUN.relics.length}</span></div></div>
+    ${unlockHtml(un)}
     <div class="row"><button class="btn go" data-a="new">Новый забег</button><button class="btn" data-a="title">В меню</button></div>`);
 }
 
 /* ================= SHOP ================= */
 function genShop(){
-  const st=RUN.stage;
-  const pool=st===1?['P','P','G','G','N','B','C','R']:st===2?['P','G','N','B','C','R','R','A','H']:['G','N','B','C','R','A','H','Q','Q'];
+  const li=RUN.stage-1;
+  const pool=[['P','P','G','G','N','B','C','R'],['P','G','N','B','C','R','R','A'],['G','N','B','C','R','A','H'],['N','B','R','A','H','Q','Q']][li]||['N','B','R','A','H','Q'];
   const items=[];
   for(let k=0;k<3;k++){const t=pick(pool);items.push({kind:'piece',t,c:COST[t]})}
   const avail=shuffle(Object.keys(RELICS).filter(r=>!RUN.relics.includes(r)));
@@ -821,12 +1003,13 @@ function genShop(){
   const tk=pick(Object.keys(TILES));items.push({kind:'tile',t:tk,c:TILES[tk].c});
   return {items,reroll:SHOP?SHOP.reroll:2,sel:null,placing:null};
 }
+
 function openShop(){B=null;$('#game').classList.add('hidden');SHOP=genShop();SHOP.reroll=2;renderShop()}
 function itemIcon(it){return it.kind==='piece'?SPURL.P[it.t]:ICOURL[it.t]}
 function itemName(it){return it.kind==='piece'?PNAME[it.t]:it.kind==='relic'?RELICS[it.t].n:TILES[it.t].n}
 function itemDesc(it){return it.kind==='piece'?PDESC[it.t]:it.kind==='relic'?RELICS[it.t].d:TILES[it.t].d}
 function renderShop(){
-  const S=SHOP,nextBoss=RUN.match===3?BOSSES[RUN.stage-1]:null;
+  const S=SHOP,nextBoss=RUN.match===3?BOSSES[LOCS[RUN.stage-1].boss]:null;
   const tag={piece:'фигура',relic:'талисман',tile:'клетка'};
   let desc='<span class="sub">Нажмите на товар или свою фигуру, чтобы узнать подробности.</span>';
   if(S.placing)desc=`<b>${TILES[S.placing].n}</b>: выберите клетку на мини-доске ниже (это три нижних ряда вашей стороны).`;
@@ -842,7 +1025,7 @@ function renderShop(){
   }
   const ob=onBoardCount();
   const capMax=RUN.cap>=10;
-  showPanel(`<h2>Магазин</h2>
+  showPanel(`<p class="center sub">${LOCS.map((L,k)=>k===RUN.stage-1?`<b>${L.n}</b>`:L.n).join(' ▸ ')}</p><h2>Магазин</h2>
     <div class="bigmoney">$${RUN.money}</div>
     <h3>Товары</h3>
     <div class="shopgrid">${S.items.map((it,k)=>`<div class="card ${it.sold?'sold':''} ${S.sel&&S.sel.type==='item'&&S.sel.k===k?'sel':''}" data-item="${k}"><span class="tag">${tag[it.kind]}</span>${img(itemIcon(it),it.kind==='piece'?'px':'px ic')}${itemName(it)}<br><span class="pr">$${price(it.c)}</span></div>`).join('')}</div>
@@ -855,7 +1038,7 @@ function renderShop(){
       <div><h3>Ваша сторона доски</h3><canvas id="mini"></canvas></div>
       <div style="flex:1;min-width:180px"><h3>Талисманы ${RUN.relics.length}/${MAX_RELICS}</h3><div class="roster">${RUN.relics.map(r=>`<div class="rp ${S.sel&&S.sel.type==='relic'&&S.sel.id===r?'sel':''}" data-rel="${r}">${img(ICOURL[r],'px ic')}</div>`).join('')||'<span class="sub">Пока нет.</span>'}</div></div>
     </div>
-    <div class="row" style="margin-top:16px"><button class="btn go" data-a="next" ${S.placing?'disabled':''} style="font-size:17px;padding:10px 18px">Далее ▶ Этап ${RUN.stage} · Партия ${RUN.match}${nextBoss?' — БОСС: '+nextBoss.n:''}</button></div>`);
+    <div class="row" style="margin-top:16px"><button class="btn go" data-a="next" ${S.placing?'disabled':''} style="font-size:17px;padding:10px 18px">Далее ▶ ${LOCS[RUN.stage-1].n} · ${RUN.match}/3${nextBoss?' — БОСС: '+nextBoss.n:''}</button></div>`);
   drawMini();
 }
 const MT=40;
@@ -897,6 +1080,13 @@ $('#panel').addEventListener('click',e=>{
     if(act==='quit'){BATTLE_TOKEN++;showTitle();return}
     if(act==='fight'){startBattle();return}
     if(act==='shop'){openShop();return}
+    if(act==='go'){prepareBattle();return}
+    if(act==='chest'){showChest();return}
+    if(act.startsWith('take')){takeChest(+act.slice(4));return}
+    if(act==='coll'){showCollection();return}
+    if(act==='nop'){SFX.err();return}
+    if(act.startsWith('skinp:')){PROFILE.pieces=act.slice(6);saveProfile();applyLook(0);SFX.sel();showCollection();return}
+    if(act.startsWith('skinb:')){PROFILE.board=act.slice(6);saveProfile();applyLook(0);SFX.sel();showCollection();return}
     if(SHOP){shopAction(act);return}
   }
   if(!SHOP||SHOP.placing)return;
@@ -905,7 +1095,7 @@ $('#panel').addEventListener('click',e=>{
   const rl=e.target.closest('[data-rel]');if(rl){SHOP.sel={type:'relic',id:rl.dataset.rel};SFX.sel();renderShop();return}
 });
 
-window.__G={get RUN(){return RUN},get B(){return B},get SHOP(){return SHOP},newRun,onCell,genMoves,apply,aiChoose,openShop,shopAction,startBattle,endBattle};
+window.__G={negamax,get PROFILE(){return PROFILE},applyLook,showCollection,aiParams,enemyArmy,get RUN(){return RUN},get B(){return B},get SHOP(){return SHOP},newRun,onCell,genMoves,apply,aiChoose,openShop,shopAction,startBattle,endBattle};
 readTheme();
 showTitle();
 </script>
