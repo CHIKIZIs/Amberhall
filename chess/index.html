@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#12131d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Шах и Хаос</title>
+<style>
+@font-face{font-family:EH;src:url(data:font/woff;base64,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) format('woff');font-display:block}
+:root{
+  --bg:#12131d; --bg2:#1b1d2c; --dots:#23263a;
+  --panel:#eadfc4; --panel2:#d8c9a5; --ink:#2b2026; --edge:#3a2b33; --muted:#7b6a64;
+  --gold:#e9b949; --good:#5fae68; --bad:#c94b4b; --blue:#5a93cf; --violet:#a07ae0;
+  --light:#e6d6b3; --dark:#5b7a86;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#12131d}}
+:root[data-theme="dark"]{--bg:#12131d}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--panel);
+  font-family:EH,'Courier New',Consolas,monospace;font-size:16px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+body{background:
+  radial-gradient(circle at 50% 40%, #1f2236 0, transparent 70%),
+  repeating-linear-gradient(45deg, transparent 0 14px, var(--dots) 14px 16px),
+  var(--bg)}
+.hidden{display:none!important}
+img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
+button{font-family:inherit;font-size:inherit;color:inherit}
+
+/* pixel frames */
+.pnl{background:var(--panel);color:var(--ink);
+  box-shadow:0 -4px 0 0 var(--edge),0 4px 0 0 var(--edge),-4px 0 0 0 var(--edge),4px 0 0 0 var(--edge),
+  inset 0 -4px 0 0 var(--panel2)}
+.btn{background:var(--panel);color:var(--ink);border:0;padding:8px 12px;cursor:pointer;line-height:1.1;
+  box-shadow:0 -3px 0 0 var(--edge),0 3px 0 0 var(--edge),-3px 0 0 0 var(--edge),3px 0 0 0 var(--edge),inset 0 -4px 0 0 var(--panel2);
+  margin:3px;white-space:nowrap}
+.btn:active{transform:translateY(2px);box-shadow:0 -3px 0 0 var(--edge),0 3px 0 0 var(--edge),-3px 0 0 0 var(--edge),3px 0 0 0 var(--edge)}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn.go{background:#8fcf87;box-shadow:0 -3px 0 0 var(--edge),0 3px 0 0 var(--edge),-3px 0 0 0 var(--edge),3px 0 0 0 var(--edge),inset 0 -4px 0 0 #5fa05a}
+.btn.warn{background:#f0b860}
+.btn.sm{padding:5px 8px;font-size:14px}
+
+#game{position:fixed;inset:0;display:grid;padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));
+  gap:8px;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto minmax(0,1fr) auto;
+  grid-template-areas:"top" "boss" "relics" "board" "side"}
+#top{grid-area:top;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#stageLbl{padding:6px 10px;font-size:14px}
+#hearts{display:flex;gap:2px}
+#hearts img{width:24px;height:24px}
+#money{padding:6px 10px;color:var(--ink);font-size:15px}
+#top .spacer{flex:1}
+#boss{grid-area:boss;padding:6px 10px;font-size:13px;background:#3a2030;color:#ffd7c2;
+  box-shadow:0 -3px 0 0 #6b2a3e,0 3px 0 0 #6b2a3e,-3px 0 0 0 #6b2a3e,3px 0 0 0 #6b2a3e}
+#boss b{color:#ffb35c}
+#relicBar{grid-area:relics;display:flex;gap:6px;flex-wrap:wrap;min-height:34px;align-items:center}
+.chip{width:34px;height:34px;display:grid;place-items:center;background:#2a2d44;cursor:pointer;
+  box-shadow:0 -2px 0 0 #444a6e,0 2px 0 0 #444a6e,-2px 0 0 0 #444a6e,2px 0 0 0 #444a6e}
+.chip img{width:24px;height:24px}
+.chip.empty{opacity:.35;cursor:default}
+#boardwrap{grid-area:board;display:grid;place-items:center;min-height:0;min-width:0;position:relative}
+#board{display:block;touch-action:none;
+  box-shadow:0 -6px 0 0 #2a1f27,0 6px 0 0 #2a1f27,-6px 0 0 0 #2a1f27,6px 0 0 0 #2a1f27,0 0 0 9px #c9b68f,0 0 0 12px #2a1f27,0 14px 30px 12px rgba(0,0,0,.55)}
+#side{grid-area:side;display:flex;flex-direction:column;gap:8px}
+#info{min-height:52px;padding:7px 10px;font-size:14px;line-height:1.3}
+#info b{color:#7a2e3b}
+#actions{display:flex;align-items:stretch;justify-content:center;flex-wrap:wrap;gap:4px}
+#actions .btn{flex:1;min-width:92px;font-size:14px;padding:8px 6px}
+.pips{display:block;margin-top:3px;font-size:10px;letter-spacing:2px}
+#turnLbl{flex:1;min-width:92px;display:grid;place-items:center;font-size:14px;padding:8px 6px;margin:3px;text-align:center}
+#turnLbl.p{background:#8fcf87;color:var(--ink)}
+#turnLbl.e{background:#c95a5a;color:#fff3e8}
+#btnBolt.ready{background:#b6a1f5;animation:pulse 1s infinite steps(2)}
+@keyframes pulse{50%{background:#e2d7ff}}
+
+@media (min-aspect-ratio: 5/4){
+  #game{grid-template-columns:minmax(170px,1fr) auto minmax(190px,1fr);grid-template-rows:auto auto 1fr;
+    grid-template-areas:"top board side" "boss board side" "relics board side"}
+  #top{flex-direction:column;align-items:stretch}
+  #top .spacer{display:none}
+  #relicBar{align-content:flex-start}
+  #side{justify-content:center}
+  #actions{flex-direction:column}
+  #boardwrap{width:var(--bw,60vh)}
+}
+
+/* overlay */
+#ov{position:fixed;inset:0;background:rgba(8,8,14,.78);display:grid;place-items:center;z-index:10;padding:16px;overflow:auto}
+#panel{width:min(640px,100%);max-height:calc(100% - 8px);overflow:auto;padding:18px 18px 16px;font-size:15px;line-height:1.35}
+#panel h1{font-size:38px;margin:4px 0 2px;text-align:center;color:#7a2e3b;letter-spacing:2px;text-shadow:3px 3px 0 #c9b68f}
+#panel h2{font-size:24px;margin:0 0 10px;text-align:center;color:#7a2e3b}
+#panel h3{font-size:15px;margin:14px 0 6px;color:#5b4a46;border-bottom:3px solid var(--panel2);padding-bottom:3px}
+#panel p{margin:6px 0}
+.center{text-align:center}
+.sub{color:var(--muted);font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:8px}
+.shopgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
+.card{background:#f6efdc;padding:8px 4px 6px;text-align:center;cursor:pointer;position:relative;font-size:12px;
+  box-shadow:0 -3px 0 0 var(--edge),0 3px 0 0 var(--edge),-3px 0 0 0 var(--edge),3px 0 0 0 var(--edge)}
+.card img{width:44px;height:44px;display:block;margin:0 auto 4px}
+.card .pr{display:inline-block;margin-top:4px;background:var(--ink);color:var(--gold);padding:2px 6px;font-size:12px}
+.card .tag{position:absolute;top:2px;left:3px;font-size:9px;color:var(--muted)}
+.card.sel{background:#fff7d6;box-shadow:0 -3px 0 0 #c98a1a,0 3px 0 0 #c98a1a,-3px 0 0 0 #c98a1a,3px 0 0 0 #c98a1a}
+.card.sold{opacity:.3;pointer-events:none}
+.roster{display:flex;flex-wrap:wrap;gap:6px}
+.rp{width:48px;height:52px;background:#f6efdc;display:grid;place-items:center;cursor:pointer;position:relative;
+  box-shadow:0 -2px 0 0 var(--edge),0 2px 0 0 var(--edge),-2px 0 0 0 var(--edge),2px 0 0 0 var(--edge)}
+.rp img{width:40px;height:40px}
+.rp.bench{opacity:.4}
+.rp.sel{background:#fff7d6;box-shadow:0 -2px 0 0 #c98a1a,0 2px 0 0 #c98a1a,-2px 0 0 0 #c98a1a,2px 0 0 0 #c98a1a}
+.rp .z{position:absolute;bottom:1px;right:2px;font-size:9px;color:var(--muted)}
+#sdesc{min-height:74px;background:#f6efdc;padding:8px 10px;margin-top:12px;font-size:14px;
+  box-shadow:0 -2px 0 0 var(--panel2),0 2px 0 0 var(--panel2),-2px 0 0 0 var(--panel2),2px 0 0 0 var(--panel2)}
+#sdesc b{color:#7a2e3b}
+.mrow{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+#mini{cursor:pointer;box-shadow:0 0 0 3px var(--edge)}
+.bigmoney{color:#a2700f;font-size:20px;text-align:center}
+.ok{color:#2f7a39}.no{color:#a33}
+.lines{background:#f6efdc;padding:8px 12px;margin:10px 0}
+.lines div{display:flex;justify-content:space-between;gap:10px}
+.helpgrid{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;font-size:13px}
+.helpgrid img{width:32px;height:32px}
+.logo{display:flex;justify-content:center;gap:4px;margin-top:6px}
+.logo img{width:48px;height:48px}
+</style>
+</head>
+<body>
+<div id="game" class="hidden">
+  <div id="top">
+    <div id="stageLbl" class="pnl"></div>
+    <div id="hearts"></div>
+    <div id="money" class="pnl"></div>
+    <div class="spacer"></div>
+    <div style="display:flex;gap:4px">
+      <button id="btnHelp" class="btn sm" title="Справка">Справка</button>
+      <button id="btnSnd" class="btn sm" title="Звук">Звук: вкл</button>
+    </div>
+  </div>
+  <div id="boss" class="hidden"></div>
+  <div id="relicBar"></div>
+  <div id="boardwrap"><canvas id="board"></canvas></div>
+  <div id="side">
+    <div id="info" class="pnl"></div>
+    <div id="actions">
+      <button id="btnBolt" class="btn">Молния<span class="pips" id="boltPips"></span></button>
+      <button id="btnSkip" class="btn">Пропуск<span class="pips" id="skipPips"></span></button>
+      <div id="turnLbl" class="pnl"></div>
+    </div>
+  </div>
+</div>
+<div id="ov"><div id="panel" class="pnl"></div></div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ================= DATA ================= */
+const VAL={P:1,G:2,N:3,B:3,C:3,R:5,A:7,H:8,Q:9,K:0};
+const COST={P:2,G:4,N:5,B:5,C:5,R:7,A:9,H:10,Q:12,K:0};
+const PNAME={P:'Пешка',G:'Страж',N:'Конь',B:'Слон',C:'Верблюд',R:'Ладья',A:'Архиепископ',H:'Канцлер',Q:'Ферзь',K:'Король'};
+const PDESC={
+  P:'Шаг вперёд (с места — до 2), бьёт по диагонали вперёд. Дойдя до края — становится ферзём.',
+  G:'На 1 клетку в любую сторону.',
+  N:'Прыжок буквой «Г» (2+1). Перепрыгивает фигуры.',
+  C:'Длинный прыжок (3+1). Перепрыгивает фигуры.',
+  B:'Сколько угодно клеток по диагонали.',
+  R:'Сколько угодно клеток по прямой.',
+  A:'Ходит как слон и как конь.',
+  H:'Ходит как ладья и как конь.',
+  Q:'Сколько угодно клеток в любую сторону.',
+  K:'На 1 клетку в любую сторону. Потеряешь короля — проиграешь партию.'
+};
+const RELICS={
+  piggy:{n:'Копилка',d:'+$3 после каждой победы.',c:6,col:'#e99ab0'},
+  bounty:{n:'Награда',d:'+$1 за каждую уничтоженную вражескую фигуру.',c:7,col:'#e0a33a'},
+  hourglass:{n:'Песочные часы',d:'+2 пропуска в каждой партии.',c:5,col:'#d9c27a'},
+  capacitor:{n:'Конденсатор',d:'Молнии нужно на 1 заряд меньше.',c:7,col:'#7ec8f0'},
+  pawnrush:{n:'Штурм',d:'Пешки всегда могут шагнуть на 2 и бьют ещё и прямо вперёд.',c:6,col:'#f3e7c8'},
+  kingstep:{n:'Королевский шаг',d:'Король ходит до 2 клеток в любую сторону.',c:5,col:'#f0c94a'},
+  horseshoe:{n:'Подковы',d:'Кони и верблюды могут ходить ещё и на 1 клетку в любую сторону.',c:5,col:'#b8bcd0'},
+  staff:{n:'Посох',d:'Слоны могут шагнуть на 1 клетку по прямой.',c:5,col:'#c99a5a'},
+  ram:{n:'Таран',d:'Ладьи и канцлеры проходят сквозь одну фигуру.',c:7,col:'#9aa4b0'},
+  martyr:{n:'Мученик',d:'Когда враг берёт вашу фигуру: +$2 и +1 заряд молнии.',c:6,col:'#e0605a'},
+  crown:{n:'Ранняя коронация',d:'Пешки становятся ферзями на предпоследней линии.',c:6,col:'#f6d55c'},
+  sword:{n:'Первый удар',d:'В начале партии вы ходите дважды.',c:8,col:'#d5dee6'},
+  coupon:{n:'Купон',d:'Всё в магазине дешевле на $1.',c:5,col:'#8fd18a'},
+  bomb:{n:'Саботаж',d:'В начале партии взрывается случайная вражеская пешка.',c:7,col:'#9aa0aa'},
+  chain:{n:'Цепная молния',d:'Молния бьёт ещё и одну соседнюю вражескую фигуру.',c:8,col:'#b49bf5'},
+};
+const TILES={
+  gold:{n:'Золотая клетка',d:'+$1, когда ваша фигура встаёт сюда.',c:5,col:'#e9b949'},
+  fort:{n:'Бастион',d:'Вашу фигуру здесь нельзя взять (кроме короля).',c:7,col:'#6fa0d8'},
+  trap:{n:'Шипы',d:'Вражеская фигура, вставшая сюда, погибает.',c:6,col:'#d9534f'},
+  spring:{n:'Трамплин',d:'Ваша фигура здесь может прыгать ещё и как конь.',c:5,col:'#6cc46c'},
+  altar:{n:'Алтарь',d:'+1 заряд молнии, когда ваша фигура встаёт сюда.',c:5,col:'#b07ae0'},
+};
+const BOSSES=[
+  {id:'clock',n:'Часовщик',d:'Каждый третий ход врага — двойной.'},
+  {id:'quake',n:'Обвальщик',d:'Каждые 2 хода под одной из ваших фигур трескается клетка. Не уйдёте — фигура провалится в бездну.'},
+  {id:'bone',n:'Костяной Король',d:'Вражеский король дважды воскресает на своей линии. Возьмите его трижды!'},
+];
+const MAX_RELICS=6, MAX_ROSTER=12, TURN_LIMIT=60;
+
+/* ================= PIXEL ART ================= */
+const SPR={
+P:["............",".....##.....","....####....","....####....",".....##.....","....####....",".....##.....",".....##.....","....####....","...######...","..########..","..########.."],
+N:["............","....##......","...#####....","..###x###...",".#########..",".####.####..","..#..#####..",".....#####..","....#####...","....####....","..########..","..########.."],
+B:[".....##.....","....####....","...##.###...","...#.####...","...######...","....####....",".....##.....","....####....",".....##.....","....####....","..########..","..########.."],
+R:["..##.##.##..","..########..","..########..","...######...","...######...","...##x###...","...######...","...######...","...######...","..########..",".##########.",".##########."],
+Q:[".#...##...#.",".##.####.##.","..########..","..##x##x##..","...######...","....####....","....####....","...######...","....####....","...######...","..########..","..########.."],
+K:[".....##.....","....####....",".....##.....","..##.##.##..",".##########.",".####xx####.","..########..","...######...","....####....","...######...","..########..","..########.."],
+G:["............","..########..","..##x##x##..","..########..","..###xx###..","...######...","....####....",".....##.....","....####....","...######...","..########..","..########.."],
+C:["............","........##..",".......####.","...##..##x#.","..######.##.",".#######....",".#######....","..#.##.#....","..#.##.#....","...######...","..########..","..########.."],
+A:[".....##.....","...######...","..##.##.##..","..###..###..","..###xx###..","...######...","....####....","...######...",".....##.....","....####....","..########..","..########.."],
+H:["..#.#.#.....","..#######...","..###x####..","..########..","...#######..","..#.#.#.#...","..#######...","...#####....","...#####....","...#####....","..#######...",".#########.."],
+};
+const PAL={
+  P:{o:'#22181d',b:'#f1e5c8',l:'#fffbf0',s:'#bfa880',x:'#4f8fd0'},
+  E:{o:'#140a0e',b:'#b2474f',l:'#e06a6e',s:'#702634',x:'#ffd24a'},
+};
+const ICONS={
+piggy:["........","..####..",".#+####.",".#+#####",".#######","..####..","..#..#..","........"],
+bounty:["..####..",".#....#.","#..##..#","#.#++#.#","#.#++#.#","#..##..#",".#....#.","..####.."],
+hourglass:[".######.",".#++++#.","..#++#..","...##...","...##...","..#..#..",".#.++.#.",".######."],
+capacitor:["....###.","...###..","..###...",".######.","...###..","..###...",".###....",".##....."],
+pawnrush:["...##...","..####..",".##++##.","...##...","...##...","..####..",".##++##.","...##..."],
+kingstep:["........","#..##..#","##.##.##","########","#+#++#+#","########","........","........"],
+horseshoe:[".##..##.",".#....#.","#+....+#","#......#","#......#",".#....#.","..####..","........"],
+staff:[".....##.","....#++#",".....##.","....#...","...#....","..#.....",".#......","#......."],
+ram:[".######.",".#++++#.",".######.","...##...","...##...","...##...","...##...","...##..."],
+martyr:["........",".##..##.","#++##++#","#+######",".######.","..####..","...##...","........"],
+crown:["...##...","...##...","########",".##++##.","..####..",".##..##.",".#....#.","........"],
+sword:[".......#","......#+",".....#+.","#...#+..",".#.#+...","..#+....",".#.#....","#...#..."],
+coupon:["........","..#####.",".#+++++#","#+.++++#",".#+++++#","..#####.","........","........"],
+bomb:[".....#..","....#...","..####..",".##++##.",".#+####.",".######.","..####..","........"],
+chain:[".#...#..",".##..##.","..##..##",".##..##.","##..##..",".##..##.","..#...#.","........"],
+gold:["..####..",".#++++#.","#++##++#","#+#++#+#","#+#++#+#","#++##++#",".#++++#.","..####.."],
+fort:["########","#++++++#","#+####+#","#+#++#+#",".#+##+#.",".#+##+#.","..#++#..","...##..."],
+trap:["........","#..#..#.","#..#..#.","##.##.##","##.##.##","########","########","........"],
+spring:["...##...","..####..",".##++##.","##.##.##","...##...",".######.","#++++++#",".######."],
+altar:["...##...","..#++#..",".#+##+#.","#+####+#",".#+##+#.","..#++#..","...##...","........"],
+heart:[".##..##.","#++##++#","#+######","########",".######.","..####..","...##...","........"],
+bolt:["....###.","...###..","..###...",".######.","...###..","..###...",".###....",".##....."],
+coin:["..####..",".#++++#.","#++##++#","#+#++#+#","#+#++#+#","#++##++#",".#++++#.","..####.."],
+skull:["..####..",".######.","##..#..#","##..#..#",".######.","..#.#.#.","..#####.","........"],
+};
+function shade(hex,k){const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;
+  const f=v=>clamp(Math.round(k>0?v+(255-v)*k:v*(1+k)),0,255);return '#'+((1<<24)+(f(r)<<16)+(f(g)<<8)+f(b)).toString(16).slice(1)}
+function bitmap(rows,size,colorOf,outline){
+  const c=document.createElement('canvas');c.width=size+2;c.height=size+2;const g=c.getContext('2d');
+  const at=(x,y)=>{const ch=(rows[y]||'')[x];return ch&&ch!=='.'?ch:null};
+  for(let y=-1;y<=size;y++)for(let x=-1;x<=size;x++){
+    const ch=at(x,y);let col=null;
+    if(ch)col=colorOf(ch,x,y,at);
+    else if(outline&&(at(x-1,y)||at(x+1,y)||at(x,y-1)||at(x,y+1)))col=outline;
+    if(col){g.fillStyle=col;g.fillRect(x+1,y+1,1,1)}
+  }
+  return c;
+}
+function pieceSprite(t,side){
+  const p=PAL[side];
+  return bitmap(SPR[t],12,(ch,x,y,at)=>{
+    if(ch==='x')return p.x;
+    if(!at(x-1,y)||!at(x,y-1))return p.l;
+    if(!at(x+1,y)||!at(x,y+1))return p.s;
+    return p.b;
+  },p.o);
+}
+function iconSprite(key,col){
+  return bitmap(ICONS[key],8,(ch,x,y,at)=>ch==='+'?shade(col,.55):(!at(x+1,y)||!at(x,y+1))?shade(col,-.25):col,'#1c1418');
+}
+const SP={P:{},E:{}},SPURL={P:{},E:{}},ICO={},ICOURL={};
+for(const t in SPR)for(const s of ['P','E']){SP[s][t]=pieceSprite(t,s);SPURL[s][t]=SP[s][t].toDataURL()}
+const iconCol=k=>(RELICS[k]||TILES[k]||{}).col||({heart:'#e0484f',bolt:'#b49bf5',coin:'#e9b949',skull:'#e6dcc8'})[k]||'#ccc';
+for(const k in ICONS){ICO[k]=iconSprite(k,iconCol(k));ICOURL[k]=ICO[k].toDataURL()}
+const img=(url,cls='px')=>`<img class="${cls}" src="${url}" alt="">`;
+
+/* ================= SOUND ================= */
+let AC=null,sndOn=true;
+function beep(f,d,type='square',v=.045,slide=0,delay=0){
+  if(!sndOn)return;
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const t=AC.currentTime+delay,o=AC.createOscillator(),g=AC.createGain();
+    o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),t+d);
+    g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.02);
+  }catch(e){}
+}
+const SFX={
+  sel:()=>beep(520,.04,'square',.03),
+  move:()=>beep(300,.07,'triangle',.08),
+  emove:()=>beep(200,.07,'triangle',.08),
+  cap:()=>{beep(220,.12,'square',.05,-150);beep(80,.18,'triangle',.09)},
+  bolt:()=>{beep(1400,.3,'sawtooth',.04,-1300);beep(60,.4,'square',.05,0,.05)},
+  buy:()=>{beep(660,.06);beep(990,.09,'square',.045,0,.06)},
+  coin:()=>beep(1200,.08,'square',.03,300),
+  err:()=>beep(110,.12,'square',.04),
+  win:()=>[523,659,784,1046].forEach((f,i)=>beep(f,.14,'square',.045,0,i*.1)),
+  lose:()=>[392,330,262,196].forEach((f,i)=>beep(f,.18,'triangle',.08,0,i*.13)),
+  crack:()=>beep(90,.25,'sawtooth',.05,-40),
+};
+
+/* ================= RULES ENGINE ================= */
+const ORTH=[[1,0],[-1,0],[0,1],[0,-1]],DIAG=[[1,1],[1,-1],[-1,1],[-1,-1]],ALL8=ORTH.concat(DIAG);
+const KN=[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]];
+const CM=[[1,3],[3,1],[-1,3],[-3,1],[1,-3],[3,-1],[-1,-3],[-3,-1]];
+const NONE={};
+function capturable(s,ti,q){return !(q.side==='P'&&q.type!=='K'&&s.tiles[ti]==='fort')}
+function pieceMoves(s,i,out){
+  const w=s.w,h=s.h,cells=s.cells,holes=s.holes,p=cells[i],x=i%w,y=(i/w)|0,R=p.side==='P'?s.relics:NONE;
+  const step=(dx,dy,mode)=>{ // mode 0 any, 1 move-only, 2 capture-only
+    const tx=x+dx,ty=y+dy;if(tx<0||ty<0||tx>=w||ty>=h)return false;const ti=ty*w+tx;if(holes[ti])return false;
+    const q=cells[ti];if(!q){if(mode!==2)out.push(i,ti);return true}
+    if(mode!==1&&q.side!==p.side&&capturable(s,ti,q))out.push(i,ti);return false;
+  };
+  const steps=d=>{for(const v of d)step(v[0],v[1],0)};
+  const slide=(dirs,max,jump)=>{
+    for(const [dx,dy] of dirs){let jumped=false;
+      for(let k=1;k<=max;k++){const tx=x+dx*k,ty=y+dy*k;if(tx<0||ty<0||tx>=w||ty>=h)break;const ti=ty*w+tx;if(holes[ti])break;
+        const q=cells[ti];if(!q){out.push(i,ti);continue}
+        if(q.side!==p.side&&capturable(s,ti,q))out.push(i,ti);
+        if(jump&&!jumped){jumped=true;continue}break;}
+    }
+  };
+  switch(p.type){
+    case 'P':{const d=p.side==='P'?-1:1;
+      if(step(0,d,1)&&(!p.moved||R.pawnrush))step(0,2*d,1);
+      step(-1,d,2);step(1,d,2);if(R.pawnrush)step(0,d,2);break}
+    case 'G':steps(ALL8);break;
+    case 'K':if(R.kingstep)slide(ALL8,2);else steps(ALL8);break;
+    case 'N':steps(KN);if(R.horseshoe)steps(ALL8);break;
+    case 'C':steps(CM);if(R.horseshoe)steps(ALL8);break;
+    case 'B':slide(DIAG,99);if(R.staff)steps(ORTH);break;
+    case 'R':slide(ORTH,99,!!R.ram);break;
+    case 'Q':slide(ALL8,99);break;
+    case 'A':slide(DIAG,99);steps(KN);break;
+    case 'H':slide(ORTH,99,!!R.ram);steps(KN);break;
+  }
+  if(p.side==='P'&&s.tiles[i]==='spring'&&p.type!=='N')steps(KN);
+}
+function genMoves(s,side){const out=[];for(let i=0;i<s.cells.length;i++){const p=s.cells[i];if(p&&p.side===side)pieceMoves(s,i,out)}return out}
+function movesFrom(s,i){const out=[];pieceMoves(s,i,out);const r=[];for(let k=1;k<out.length;k+=2)if(!r.includes(out[k]))r.push(out[k]);return r}
+function respawnSquare(s,cells,avoid){
+  const w=s.w;const order=[...Array(w).keys()].sort((a,b)=>Math.abs(a-(w-1)/2)-Math.abs(b-(w-1)/2));
+  for(let y=0;y<s.h;y++)for(const x of order){const i=y*w+x;if(i!==avoid&&!cells[i]&&!s.holes[i])return i}
+  return -1;
+}
+function apply(s,f,t){
+  const cells=s.cells.slice();const p=cells[f],cap=cells[t];
+  const ns={w:s.w,h:s.h,cells,tiles:s.tiles,holes:s.holes,relics:s.relics,kingLives:s.kingLives,winner:null};
+  let np={id:p.id,type:p.type,side:p.side,moved:true};
+  cells[f]=null;cells[t]=np;
+  if(cap&&cap.type==='K'){
+    if(cap.side==='E'&&s.kingLives>1){ns.kingLives=s.kingLives-1;const r=respawnSquare(s,cells,t);if(r>=0)cells[r]={id:cap.id,type:'K',side:'E',moved:true};else ns.winner='P'}
+    else ns.winner=cap.side==='E'?'P':'E';
+  }
+  if(np.side==='E'&&s.tiles[t]==='trap')cells[t]=null;
+  else if(np.type==='P'){const ty=(t/s.w)|0;
+    if(np.side==='P'?ty<=(s.relics.crown?1:0):ty>=s.h-1)cells[t]={id:np.id,type:'Q',side:np.side,moved:true};}
+  return ns;
+}
+function evalS(s){
+  let v=0;const w=s.w,h=s.h,cx=(w-1)/2,cy=(h-1)/2;
+  for(let i=0;i<s.cells.length;i++){const p=s.cells[i];if(!p)continue;const x=i%w,y=(i/w)|0;
+    let val=VAL[p.type];
+    if(p.type==='P')val+=0.12*(p.side==='E'?y:h-1-y);
+    else if(p.type!=='K')val+=0.04*(4-Math.abs(x-cx)-Math.abs(y-cy));
+    v+=p.side==='E'?val:-val;}
+  return v+(s.kingLives-1)*5;
+}
+function orderMoves(s,mv){
+  const n=mv.length/2,keys=new Array(n),idx=new Array(n);
+  for(let k=0;k<n;k++){const q=s.cells[mv[2*k+1]];idx[k]=k;keys[k]=q?(q.type==='K'?1000:VAL[q.type]*10-VAL[s.cells[mv[2*k]].type]):0}
+  idx.sort((a,b)=>keys[b]-keys[a]);return idx;
+}
+let NODES=0;
+function negamax(s,depth,alpha,beta,side){
+  NODES++;
+  if(s.winner)return (s.winner===side?1:-1)*(100000+depth);
+  if(depth===0){const e=evalS(s);return side==='E'?e:-e}
+  const mv=genMoves(s,side);
+  if(!mv.length){const e=evalS(s);return side==='E'?e:-e}
+  const o=side==='E'?'P':'E';let best=-1e9;
+  for(const k of orderMoves(s,mv)){
+    const v=-negamax(apply(s,mv[2*k],mv[2*k+1]),depth-1,-beta,-alpha,o);
+    if(v>best)best=v;if(v>alpha)alpha=v;if(alpha>=beta)break;
+  }
+  return best;
+}
+function aiChoose(s,depth,noise){
+  const mv=genMoves(s,'E');if(!mv.length)return null;
+  NODES=0;let best=null,bv=-1e12;
+  for(const k of orderMoves(s,mv)){
+    const v=-negamax(apply(s,mv[2*k],mv[2*k+1]),depth-1,-1e9,1e9,'P')+Math.random()*noise;
+    if(v>bv){bv=v;best=[mv[2*k],mv[2*k+1]]}
+  }
+  return best;
+}
+
+/* ================= RUN STATE ================= */
+let RUN=null,B=null,SHOP=null,PID=1,BATTLE_TOKEN=0;
+const mkR=t=>({id:PID++,type:t,bench:false});
+const hasR=id=>RUN&&RUN.relics.includes(id);
+function relicObj(){const o={};for(const r of RUN.relics)o[r]=true;return o}
+function boltMax(){return hasR('capacitor')?3:4}
+function price(c){return Math.max(1,c-(hasR('coupon')?1:0))}
+function onBoardCount(){return RUN.roster.filter(r=>r.type!=='K'&&!r.bench).length}
+function loadBest(){try{return JSON.parse(localStorage.getItem('shah-haos-best')||'null')}catch(e){return null}}
+function saveBest(){try{const b=loadBest();const v=(RUN.stage-1)*3+RUN.match;if(!b||v>b.v)localStorage.setItem('shah-haos-best',JSON.stringify({v,stage:RUN.stage,match:RUN.match}))}catch(e){}}
+
+function newRun(){
+  RUN={stage:1,match:1,hearts:3,money:4,cap:4,capCost:8,roster:[mkR('K'),mkR('N'),mkR('P'),mkR('P'),mkR('P')],relics:[],tiles:[],wins:0,kills:0};
+  prepareBattle();
+}
+
+/* ================= BATTLE SETUP ================= */
+function deploy(s,types,side){
+  const w=s.w,h=s.h,rows=side==='P'?[h-1,h-2,h-3]:[0,1,2];
+  const order=[...Array(w).keys()].sort((a,b)=>Math.abs(a-(w-1)/2)-Math.abs(b-(w-1)/2)||(side==='P'?a-b:b-a));
+  const put=(t,pref)=>{for(const y of pref)for(const x of order){const i=y*w+x;if(!s.cells[i]&&!s.holes[i]){s.cells[i]={id:PID++,type:t,side,moved:false};return}}};
+  put('K',[rows[0]]);
+  types.filter(t=>t!=='K'&&t!=='P').sort((a,b)=>VAL[b]-VAL[a]).forEach(t=>put(t,[rows[0],rows[1],rows[2]]));
+  types.filter(t=>t==='P').forEach(t=>put(t,[rows[1],rows[2],rows[0]]));
+}
+function enemyArmy(st,m,boss,w){
+  const pool=st===1?['G','N','B','N','B','G']:st===2?['N','B','C','R','G','R','A']:['R','B','N','A','H','Q','C','R'];
+  let budget=3+st*4+m*2+(boss?4:0);
+  const pawns=Math.min(w,2+st+(m>1?1:0));
+  const list=['K'];for(let i=0;i<pawns;i++)list.push('P');budget-=pawns;
+  let off=0;
+  while(budget>=2&&off<w-1){const c=pool.filter(t=>VAL[t]<=budget);if(!c.length)break;const t=pick(c);list.push(t);budget-=VAL[t];off++}
+  return list;
+}
+function prepareBattle(){
+  const st=RUN.stage,m=RUN.match,boss=m===3?BOSSES[st-1]:null;
+  if(boss){showBossIntro(boss);return}
+  startBattle();
+}
+function startBattle(){
+  BATTLE_TOKEN++;
+  const st=RUN.stage,m=RUN.match,boss=m===3?BOSSES[st-1]:null;
+  const w=[6,7,8][st-1],h=w;
+  const s={w,h,cells:new Array(w*h).fill(null),tiles:new Array(w*h).fill(null),holes:new Array(w*h).fill(0),relics:relicObj(),kingLives:boss&&boss.id==='bone'?3:1,winner:null};
+  const off=Math.floor((w-6)/2);
+  for(const t of RUN.tiles)s.tiles[(h-1-t.r)*w+t.c+off]=t.kind;
+  const mine=[];let cnt=0;
+  for(const r of RUN.roster){if(r.type==='K')continue;if(!r.bench&&cnt<RUN.cap){mine.push(r.type);cnt++}}
+  deploy(s,['K',...mine],'P');
+  deploy(s,enemyArmy(st,m,boss,w),'E');
+  B={s,boss,skips:3+(hasR('hourglass')?2:0),skipsMax:3+(hasR('hourglass')?2:0),charge:0,turn:'P',pTurns:1,eTurns:0,
+     extra:hasR('sword')?1:0,sel:-1,moves:[],peek:-1,peekMoves:[],mode:null,last:null,warn:-1,over:false,kills:0,earned:0,threat:new Set()};
+  if(hasR('bomb')){const ps=[];s.cells.forEach((p,i)=>{if(p&&p.side==='E'&&p.type==='P')ps.push(i)});
+    if(ps.length){const i=pick(ps);s.cells[i]=null;setTimeout(()=>{boom(i,'#ffb347',22);floatText(i,'Бабах!','#ffcf6a')},300)}}
+  FX.parts.length=0;FX.texts.length=0;ANIM.clear();
+  $('#ov').classList.add('hidden');$('#game').classList.remove('hidden');
+  recalcThreat();resize();updateUI();
+  setInfo(boss?`<b>${boss.n}</b>: ${boss.d}`:(B.extra?'Первый удар: у вас два хода подряд! Возьмите вражеского короля.':'Ваш ход. Цель — взять вражеского короля. Шаха нет: короля просто бьют!'));
+}
+
+/* ================= FX ================= */
+const FX={parts:[],texts:[],flash:0,shake:0,bolt:null};
+const ANIM=new Map();
+function cellCenter(i){const w=B.s.w;return [(i%w+.5)*T,(((i/w)|0)+.5)*T]}
+function boom(i,col,n=14){const [x,y]=cellCenter(i);for(let k=0;k<n;k++){const a=Math.random()*6.28,v=40+Math.random()*140;
+  FX.parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-60,life:.5+Math.random()*.4,t:0,col:Math.random()<.5?col:'#2a1f27',sz:2+rnd(3)})}}
+function floatText(i,txt,col){const [x,y]=cellCenter(i);FX.texts.push({x,y:y-T*.3,txt,col,t:0})}
+function animate(id,f,t,dur=200){const w=B.s.w;ANIM.set(id,{fx:f%w,fy:(f/w)|0,t0:performance.now(),d:dur})}
+
+/* ================= BOARD RENDER ================= */
+const cv=$('#board'),g=cv.getContext('2d');let T=48,DPR=1;
+function resize(){
+  if(!B)return;
+  const wrap=$('#boardwrap');const land=matchMedia('(min-aspect-ratio: 5/4)').matches;
+  let W,H;
+  if(land){H=wrap.clientHeight;W=Math.min(window.innerWidth*.56,H);document.documentElement.style.setProperty('--bw',Math.floor(W)+'px')}
+  else{W=wrap.clientWidth;H=wrap.clientHeight}
+  const pad=land?24:16;T=Math.max(22,Math.floor(Math.min((W-pad*2)/B.s.w,(H-pad*2)/B.s.h)));
+  DPR=Math.min(3,window.devicePixelRatio||1);
+  cv.width=B.s.w*T*DPR;cv.height=B.s.h*T*DPR;cv.style.width=B.s.w*T+'px';cv.style.height=B.s.h*T+'px';
+}
+addEventListener('resize',()=>{resize()});
+function drawTileDeco(ctx,kind,x,y,S){
+  const col=TILES[kind].col;ctx.fillStyle=col+'55';ctx.fillRect(x,y,S,S);
+  ctx.strokeStyle=col;ctx.lineWidth=Math.max(2,S/18);const m=ctx.lineWidth/2;ctx.strokeRect(x+m+1,y+m+1,S-2*m-2,S-2*m-2);
+  const ic=ICO[kind],sc=Math.max(1,Math.floor(S*.42/10)),z=10*sc;ctx.globalAlpha=.85;ctx.drawImage(ic,x+(S-z)/2,y+(S-z)/2,z,z);ctx.globalAlpha=1;
+}
+function draw(now){
+  requestAnimationFrame(draw);
+  if(!B||$('#game').classList.contains('hidden'))return;
+  const s=B.s,w=s.w,h=s.h;
+  const dt=Math.min(.05,(now-(draw.last||now))/1000);draw.last=now;
+  let sx=0,sy=0;if(FX.shake>0){FX.shake-=dt;sx=(Math.random()-.5)*8;sy=(Math.random()-.5)*8}
+  g.setTransform(DPR,0,0,DPR,sx*DPR,sy*DPR);g.imageSmoothingEnabled=false;
+  g.clearRect(-20,-20,w*T+40,h*T+40);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const i=y*w+x,px=x*T,py=y*T;
+    if(s.holes[i]){g.fillStyle='#0b0b12';g.fillRect(px,py,T,T);g.fillStyle='#1d1f33';
+      for(let k=0;k<5;k++){const a=((i*37+k*53)%97)/97,b=((i*61+k*29)%89)/89;g.fillRect(px+a*T,py+b*T,2,2)}continue}
+    const light=(x+y)%2===0;g.fillStyle=light?'#e6d6b3':'#5b7a86';g.fillRect(px,py,T,T);
+    g.fillStyle=light?'#d8c69f':'#4d6a75';g.fillRect(px,py+T-3,T,3);
+    if(s.tiles[i])drawTileDeco(g,s.tiles[i],px,py,T);
+  }
+  // last move
+  if(B.last){for(const i of B.last){g.fillStyle='rgba(255,214,90,.28)';g.fillRect((i%w)*T,((i/w)|0)*T,T,T)}}
+  // crack warning
+  if(B.warn>=0){const px=(B.warn%w)*T,py=((B.warn/w)|0)*T,blink=Math.floor(now/250)%2;
+    g.fillStyle=blink?'rgba(200,40,40,.45)':'rgba(120,20,20,.3)';g.fillRect(px,py,T,T);
+    g.strokeStyle='#1a0d10';g.lineWidth=3;g.beginPath();g.moveTo(px+T*.2,py+T*.1);g.lineTo(px+T*.45,py+T*.45);g.lineTo(px+T*.3,py+T*.7);g.lineTo(px+T*.55,py+T*.9);
+    g.moveTo(px+T*.45,py+T*.45);g.lineTo(px+T*.8,py+T*.35);g.stroke()}
+  // selection
+  if(B.sel>=0){g.fillStyle='rgba(120,220,130,.45)';g.fillRect((B.sel%w)*T,((B.sel/w)|0)*T,T,T)}
+  // pieces
+  const sc=Math.max(1,Math.floor(T*.84/14)),z=14*sc;
+  for(let i=0;i<s.cells.length;i++){const p=s.cells[i];if(!p)continue;
+    let x=i%w,y=(i/w)|0,hop=0;const a=ANIM.get(p.id);
+    if(a){const k=clamp((now-a.t0)/a.d,0,1);if(k>=1)ANIM.delete(p.id);else{const e=1-(1-k)*(1-k);x=a.fx+(x-a.fx)*e;y=a.fy+(y-a.fy)*e;hop=Math.sin(k*Math.PI)*T*.22}}
+    const px=x*T,py=y*T;
+    g.fillStyle='rgba(0,0,0,.25)';g.fillRect(px+T*.22,py+T*.8,T*.56,T*.08);
+    let bob=(i===B.sel)?Math.floor(Math.sin(now/150)*2)-2:0;
+    g.drawImage(SP[p.side][p.type],Math.round(px+(T-z)/2),Math.round(py+(T-z)/2-T*.05+bob-hop),z,z);
+    if(p.side==='P'&&B.threat.has(i)&&B.turn==='P'){g.fillStyle='#e0484f';const q=Math.max(4,T/8);g.fillRect(px+T-q-2,py+2,q,q);g.fillStyle='#fff';g.fillRect(px+T-q/2-3,py+3,2,q*.55)}
+    if(p.side==='E'&&p.type==='K'&&s.kingLives>1){const q=Math.max(3,Math.floor(T/12));for(let k=0;k<s.kingLives;k++){g.fillStyle='#1a0d12';g.fillRect(px+3+k*(q+3)-1,py+2,q+2,q+2);g.fillStyle='#f3ead4';g.fillRect(px+3+k*(q+3),py+3,q,q)}}
+  }
+  // move markers
+  const mk=(list,col,colCap)=>{for(const t of list){const px=(t%w)*T,py=((t/w)|0)*T;
+    if(s.cells[t]){g.strokeStyle=colCap;g.lineWidth=Math.max(3,T/14);const q=T*.18;
+      g.beginPath();g.moveTo(px+2,py+q);g.lineTo(px+2,py+2);g.lineTo(px+q,py+2);g.moveTo(px+T-q,py+2);g.lineTo(px+T-2,py+2);g.lineTo(px+T-2,py+q);
+      g.moveTo(px+T-2,py+T-q);g.lineTo(px+T-2,py+T-2);g.lineTo(px+T-q,py+T-2);g.moveTo(px+q,py+T-2);g.lineTo(px+2,py+T-2);g.lineTo(px+2,py+T-q);g.stroke()}
+    else{const q=Math.max(6,Math.floor(T/5));g.fillStyle='rgba(20,15,20,.35)';g.fillRect(px+(T-q)/2+1,py+(T-q)/2+2,q,q);g.fillStyle=col;g.fillRect(px+(T-q)/2,py+(T-q)/2,q,q)}}};
+  mk(B.moves,'#7fe08a','#ffdf5a');
+  mk(B.peekMoves,'rgba(230,80,80,.9)','#ff6a6a');
+  if(B.mode==='bolt'){for(let i=0;i<s.cells.length;i++){const p=s.cells[i];if(p&&p.side==='E'&&p.type!=='K'){const px=(i%w)*T,py=((i/w)|0)*T;
+    g.strokeStyle=Math.floor(now/200)%2?'#c9b4ff':'#7a5cf0';g.lineWidth=3;g.strokeRect(px+2,py+2,T-4,T-4)}}}
+  // bolt
+  if(FX.bolt){FX.bolt.t+=dt;const b=FX.bolt;if(b.t>.35)FX.bolt=null;else{g.strokeStyle='#efe8ff';g.lineWidth=4;g.beginPath();
+    for(const [x,y] of b.pts)g.lineTo(x,y);g.stroke();g.strokeStyle='#9b7cf5';g.lineWidth=2;g.stroke()}}
+  // particles
+  for(let k=FX.parts.length-1;k>=0;k--){const p=FX.parts[k];p.t+=dt;if(p.t>p.life){FX.parts.splice(k,1);continue}
+    p.vy+=380*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;g.fillStyle=p.col;g.fillRect(Math.round(p.x),Math.round(p.y),p.sz,p.sz)}
+  g.font=`${Math.max(12,Math.floor(T/3.2))}px EH, monospace`;g.textAlign='center';
+  for(let k=FX.texts.length-1;k>=0;k--){const t=FX.texts[k];t.t+=dt;if(t.t>1.1){FX.texts.splice(k,1);continue}
+    const y=t.y-t.t*T*.6;g.globalAlpha=clamp(1.6-t.t*1.4,0,1);g.fillStyle='#150d12';g.fillText(t.txt,t.x+2,y+2);g.fillStyle=t.col;g.fillText(t.txt,t.x,y);g.globalAlpha=1}
+  if(FX.flash>0){FX.flash-=dt;g.fillStyle=`rgba(235,225,255,${clamp(FX.flash*2,0,.6)})`;g.fillRect(0,0,w*T,h*T)}
+}
+requestAnimationFrame(draw);
+
+/* ================= UI ================= */
+function setInfo(html){$('#info').innerHTML=html}
+function pipStr(n,m){return '■'.repeat(n)+'□'.repeat(Math.max(0,m-n))}
+function updateUI(){
+  if(!RUN)return;
+  $('#stageLbl').textContent=`Этап ${RUN.stage}/3 · Партия ${RUN.match}/3`;
+  $('#hearts').innerHTML=Array.from({length:3},(_, i)=>`<img class="px" src="${ICOURL.heart}" style="opacity:${i<RUN.hearts?1:.2}" alt="">`).join('');
+  $('#money').innerHTML=`${img(ICOURL.coin)} $${RUN.money}`.replace('<img','<img style="width:18px;height:18px;vertical-align:-3px"');
+  const rb=$('#relicBar');let html='';
+  for(let k=0;k<MAX_RELICS;k++){const r=RUN.relics[k];html+=r?`<div class="chip" data-relic="${r}">${img(ICOURL[r])}</div>`:`<div class="chip empty"></div>`}
+  rb.innerHTML=html;
+  if(!B)return;
+  const bm=boltMax(),ready=B.charge>=bm&&B.turn==='P'&&!B.over;
+  $('#boltPips').textContent=pipStr(Math.min(B.charge,bm),bm);
+  $('#btnBolt').classList.toggle('ready',ready);$('#btnBolt').disabled=!ready&&B.mode!=='bolt';
+  $('#btnBolt').firstChild.textContent=B.mode==='bolt'?'Отмена':'Молния';
+  $('#skipPips').textContent=`${B.skips}/${B.skipsMax}`;
+  $('#btnSkip').disabled=!(B.turn==='P'&&B.skips>0&&!B.over);
+  const tl=$('#turnLbl');tl.className='pnl '+(B.turn==='P'?'p':'e');
+  tl.innerHTML=B.over?'Конец':B.turn==='P'?`Ваш ход<span class="pips">ход ${B.pTurns}/${TURN_LIMIT}</span>`:'Ход врага…';
+  const bb=$('#boss');
+  if(B.boss){bb.classList.remove('hidden');let extra='';
+    if(B.boss.id==='clock'){const n=(3-((B.eTurns+1)%3))%3;extra=n===0?'Следующий ход врага — <b>двойной!</b>':`Двойной ход через ${n+1}`}
+    if(B.boss.id==='quake')extra=B.warn>=0?'<b>Клетка трескается!</b> Уведите фигуру.':`Трещина через ${2-(B.eTurns%2)}`;
+    if(B.boss.id==='bone')extra=`Жизни короля: <b>${B.s.kingLives}</b>`;
+    bb.innerHTML=`БОСС <b>${B.boss.n}</b> — ${B.boss.d}<br>${extra}`}
+  else bb.classList.add('hidden');
+}
+function recalcThreat(){B.threat=new Set();const mv=genMoves(B.s,'E');for(let k=1;k<mv.length;k+=2){const q=B.s.cells[mv[k]];if(q&&q.side==='P')B.threat.add(mv[k])}}
+$('#relicBar').addEventListener('click',e=>{const c=e.target.closest('[data-relic]');if(!c)return;const r=RELICS[c.dataset.relic];setInfo(`<b>${r.n}</b>: ${r.d}`)});
+$('#btnHelp').onclick=()=>showHelp(true);
+$('#btnSnd').onclick=()=>{sndOn=!sndOn;$('#btnSnd').textContent='Звук: '+(sndOn?'вкл':'выкл')};
+
+/* ================= INPUT ================= */
+cv.addEventListener('pointerdown',e=>{
+  if(!B)return;const r=cv.getBoundingClientRect();
+  const x=Math.floor((e.clientX-r.left)/T),y=Math.floor((e.clientY-r.top)/T);
+  if(x<0||y<0||x>=B.s.w||y>=B.s.h)return;onCell(y*B.s.w+x);
+});
+function describe(i){
+  const s=B.s,p=s.cells[i],t=s.tiles[i];let txt='';
+  if(p)txt=`<b>${PNAME[p.type]}</b>${p.side==='E'?' (враг)':''}: ${PDESC[p.type]}`;
+  if(t)txt+=`${txt?'<br>':''}<b>${TILES[t].n}</b>: ${TILES[t].d}`;
+  if(s.holes[i])txt='Бездна. Сюда нельзя ходить.';
+  return txt;
+}
+function onCell(i){
+  const s=B.s,p=s.cells[i];
+  if(B.over)return;
+  if(B.turn!=='P'){if(p){B.peek=i;setInfo(describe(i))}return}
+  if(B.mode==='bolt'){if(p&&p.side==='E'&&p.type!=='K')doBolt(i);else{B.mode=null;setInfo('Молния отменена.');updateUI()}return}
+  if(B.sel>=0&&B.moves.includes(i)){const f=B.sel;B.sel=-1;B.moves=[];B.peekMoves=[];playerMove(f,i);return}
+  B.peekMoves=[];
+  if(p&&p.side==='P'){if(B.sel===i){B.sel=-1;B.moves=[];setInfo(describe(i));return}
+    B.sel=i;B.moves=movesFrom(s,i);SFX.sel();setInfo(describe(i)+(B.moves.length?'':'<br><i>Ходов нет.</i>'))}
+  else{B.sel=-1;B.moves=[];if(p){B.peekMoves=movesFrom(s,i);setInfo(describe(i)+'<br><span class="sub">Красным — куда она может пойти.</span>')}else setInfo(describe(i)||'Выберите свою фигуру.')}
+}
+$('#btnBolt').onclick=()=>{if(!B||B.turn!=='P'||B.over)return;
+  if(B.mode==='bolt'){B.mode=null;setInfo('Молния отменена.');updateUI();return}
+  if(B.charge<boltMax()){SFX.err();return}
+  B.mode='bolt';B.sel=-1;B.moves=[];B.peekMoves=[];setInfo('Выберите вражескую фигуру (не короля) — молния уничтожит её. Ход не тратится.');updateUI()};
+$('#btnSkip').onclick=()=>{if(!B||B.turn!=='P'||B.over||B.skips<=0)return;
+  B.skips--;B.extra=0;B.sel=-1;B.moves=[];B.peekMoves=[];B.mode=null;gainCharge(1);
+  const k=B.s.cells.findIndex(p=>p&&p.side==='P'&&p.type==='K');if(k>=0)floatText(k,'+1 заряд','#c9b4ff');
+  setInfo('Вы пропустили ход и накопили заряд молнии.');enemyPhase()};
+function gainCharge(n){B.charge=Math.min(boltMax(),B.charge+n)}
+function addMoney(n,i,label){RUN.money+=n;B.earned+=n;if(i!=null)floatText(i,`+$${n}`,'#ffd65a');SFX.coin()}
+
+/* ================= TURN FLOW ================= */
+function doMove(f,t,side){
+  const s=B.s,p=s.cells[f],cap=s.cells[t];
+  const ns=apply(s,f,t);
+  animate(p.id,f,t,side==='P'?180:240);
+  B.s=ns;B.last=[f,t];
+  side==='P'?SFX.move():SFX.emove();
+  if(cap){
+    setTimeout(()=>{boom(t,cap.side==='E'?'#e06a6e':'#f1e5c8');SFX.cap();FX.shake=.12},120);
+    if(cap.side==='E'){B.kills++;RUN.kills++;gainCharge(1);if(hasR('bounty'))addMoney(1,t)}
+    else if(hasR('martyr')&&cap.type!=='K'){addMoney(2,t);gainCharge(1)}
+    if(cap.type==='K'&&ns.kingLives<s.kingLives){const r=ns.cells.findIndex(q=>q&&q.side==='E'&&q.type==='K');
+      setTimeout(()=>{floatText(t,'Он восстаёт!','#f3ead4');if(r>=0){boom(r,'#f3ead4',20);}},250)}
+  }
+  const np=ns.cells[t];
+  if(!np){setTimeout(()=>{boom(t,'#d9534f',18);floatText(t,'Шипы!','#ff8a7a');SFX.cap()},200);if(p.side==='E'){B.kills++;if(hasR('bounty'))addMoney(1,t)}}
+  else if(np.type!==p.type){setTimeout(()=>floatText(t,'Коронация!','#ffe27a'),200)}
+  if(np&&side==='P'){
+    if(s.tiles[t]==='gold')addMoney(1,t);
+    if(s.tiles[t]==='altar'){gainCharge(1);floatText(t,'+заряд','#c9b4ff')}
+  }
+  recalcThreat();
+  if(ns.winner){endBattle(ns.winner==='P');return true}
+  return false;
+}
+function playerMove(f,t){
+  if(doMove(f,t,'P'))return;
+  updateUI();
+  if(B.extra>0){B.extra--;setInfo('Ещё один ход!');return}
+  enemyPhase();
+}
+function doBolt(i){
+  const s=B.s,cells=s.cells.slice(),w=s.w,targets=[i];
+  if(hasR('chain')){const x=i%w,y=(i/w)|0,nb=[];for(const [dx,dy] of ALL8){const tx=x+dx,ty=y+dy;if(tx<0||ty<0||tx>=w||ty>=s.h)continue;const j=ty*w+tx,q=cells[j];if(q&&q.side==='E'&&q.type!=='K')nb.push(j)}if(nb.length)targets.push(pick(nb))}
+  const [bx,by]=cellCenter(i);const pts=[];let yy=-10;let xx=bx+(Math.random()-.5)*T;while(yy<by){pts.push([xx,yy]);yy+=T*.4;xx+=(Math.random()-.5)*T*.6+(bx-xx)*.3}pts.push([bx,by]);
+  FX.bolt={pts,t:0};FX.flash=.35;FX.shake=.25;SFX.bolt();
+  for(const t of targets){cells[t]=null;boom(t,'#b49bf5',20);B.kills++;RUN.kills++;if(hasR('bounty'))addMoney(1,t)}
+  B.s={...s,cells};B.charge=0;B.mode=null;recalcThreat();
+  setInfo(targets.length>1?'Цепная молния поразила две фигуры!':'Молния! Фигура уничтожена. Ваш ход продолжается.');updateUI();
+}
+async function enemyPhase(){
+  const tok=BATTLE_TOKEN;
+  B.turn='E';B.sel=-1;B.moves=[];B.peekMoves=[];updateUI();
+  await sleep(380);if(tok!==BATTLE_TOKEN||B.over)return;
+  B.eTurns++;
+  const n=(B.boss&&B.boss.id==='clock'&&B.eTurns%3===0)?2:1;
+  const depth=(RUN.stage>=3||(B.boss&&RUN.stage>=2))?3:2;
+  const noise=[1.3,.7,.3][RUN.stage-1]*(B.boss?.5:1);
+  for(let k=0;k<n;k++){
+    if(k>0){const ki=B.s.cells.findIndex(p=>p&&p.side==='E'&&p.type==='K');if(ki>=0)floatText(ki,'Тик-так!','#ffb35c');await sleep(420);if(tok!==BATTLE_TOKEN||B.over)return}
+    let d=depth;const mvE=genMoves(B.s,'E').length/2,mvP=genMoves(B.s,'P').length/2;if(d===3&&mvE*mvP*mvE>60000)d=2;
+    const m=aiChoose(B.s,d,noise);
+    if(m){if(doMove(m[0],m[1],'E'))return}
+    await sleep(260);if(tok!==BATTLE_TOKEN||B.over)return;
+  }
+  if(B.boss&&B.boss.id==='quake')quakeTick();
+  if(B.over)return;
+  B.turn='P';B.pTurns++;
+  if(B.pTurns>TURN_LIMIT){endBattle(false,'Время вышло: вы не успели взять короля.');return}
+  if(!genMoves(B.s,'P').length){setInfo('У вас нет ходов — ход пропущен.');updateUI();await sleep(500);return enemyPhase()}
+  if(!B.extra&&B.threat.size)setInfo(`Ваш ход. <span class="no">Под ударом: ${B.threat.size}</span> (красный значок).`);
+  else setInfo('Ваш ход.');
+  updateUI();
+}
+function quakeTick(){
+  const s=B.s;
+  if(B.warn>=0){const i=B.warn;B.warn=-1;const holes=s.holes.slice();holes[i]=1;const cells=s.cells.slice();const p=cells[i];
+    SFX.crack();FX.shake=.3;boom(i,'#5b4a46',22);
+    if(p&&p.type!=='K'){cells[i]=null;floatText(i,'Провал!','#ff8a7a')}else if(p&&p.type==='K'){holes[i]=0;floatText(i,'Устоял!','#ffe27a')}
+    B.s={...s,cells,holes};recalcThreat();return}
+  if(B.eTurns%2===0){
+    const mine=[],empty=[];s.cells.forEach((p,i)=>{if(s.holes[i])return;if(p&&p.side==='P'&&p.type!=='K')mine.push(i);else if(!p)empty.push(i)});
+    const c=mine.length?mine:empty;if(c.length){B.warn=pick(c);SFX.crack();floatText(B.warn,'Трещина!','#ff8a7a')}
+  }
+}
+function endBattle(win,reason){
+  B.over=true;B.turn='-';updateUI();const tok=BATTLE_TOKEN;
+  setTimeout(()=>{if(tok!==BATTLE_TOKEN)return;win?onWin():onLose(reason)},900);
+  (win?SFX.win:SFX.lose)();
+  setInfo(win?'<b>Король пал!</b> Победа!':'<b>Ваш король пал…</b>');
+}
+
+/* ================= SCREENS ================= */
+function showPanel(html){$('#panel').innerHTML=html;$('#ov').classList.remove('hidden');$('#panel').scrollTop=0}
+function showTitle(){
+  RUN=null;B=null;$('#game').classList.add('hidden');
+  const best=loadBest();
+  showPanel(`
+    <div class="logo">${img(SPURL.P.N)}${img(SPURL.E.K)}${img(SPURL.P.Q)}</div>
+    <h1>ШАХ И ХАОС</h1>
+    <p class="center sub">Шахматный рогалик. Ломайте правила, собирайте армию, свергайте боссов.</p>
+    <div class="row" style="margin-top:16px"><button class="btn go" data-a="new" style="font-size:18px;padding:10px 22px">Новый забег</button></div>
+    <div class="row"><button class="btn" data-a="help">Как играть</button></div>
+    ${best?`<p class="center sub" style="margin-top:12px">Лучший результат: этап ${best.stage}, партия ${best.match}</p>`:''}`);
+}
+function showHelp(inGame){
+  showPanel(`<h2>Как играть</h2>
+  <p>Это шахматы, где <b>нет шаха и мата</b>: чтобы выиграть партию, нужно просто <b>взять вражеского короля</b>. Потеряли своего — партия проиграна и вы теряете ${img(ICOURL.heart,'px" style="width:16px;height:16px;vertical-align:-3px')} жизнь. Кончились жизни — забег окончен.</p>
+  <p>Забег: 3 этапа по 3 партии. Третья партия этапа — <b>босс</b> со своими правилами. Доска растёт: 6×6 → 7×7 → 8×8.</p>
+  <h3>Кнопки</h3>
+  <div class="helpgrid">
+    ${img(ICOURL.bolt)}<div><b>Молния</b> — копите заряд, беря фигуры. Когда шкала полна, уничтожьте любую вражескую фигуру (кроме короля). Ход не тратится.</div>
+    ${img(ICOURL.hourglass)}<div><b>Пропуск</b> — пропустить ход и получить +1 заряд молнии.</div>
+    ${img(ICOURL.coin)}<div><b>Деньги</b> — за победы (и проценты: +$1 за каждые $5, до $5). Тратьте в магазине.</div>
+  </div>
+  <h3>Магазин</h3>
+  <p>Нанимайте фигуры (включая необычные: Страж, Верблюд, Архиепископ, Канцлер), покупайте <b>талисманы</b>, меняющие правила, и <b>клетки</b> для своей половины доски. Нажмите на фигуру в армии, чтобы отправить её в запас или продать. Число мест на доске можно увеличить.</p>
+  <h3>Клетки</h3>
+  <div class="helpgrid">${Object.keys(TILES).map(k=>`${img(ICOURL[k])}<div><b>${TILES[k].n}</b> — ${TILES[k].d}</div>`).join('')}</div>
+  <p class="sub">Красный значок на вашей фигуре — её могут взять. Нажмите на вражескую фигуру, чтобы увидеть её ходы.</p>
+  <div class="row"><button class="btn go" data-a="${inGame?'closehelp':'title'}">${inGame?'Назад к игре':'Понятно'}</button>${inGame?'<button class="btn" data-a="quit">Выйти в меню</button>':''}</div>`);
+}
+function showBossIntro(boss){
+  $('#game').classList.add('hidden');
+  showPanel(`<h2>Босс: ${boss.n}</h2>
+    <div class="logo">${img(SPURL.E.K)}</div>
+    <p class="center">${boss.d}</p>
+    <p class="center sub">Этап ${RUN.stage} · Партия 3</p>
+    <div class="row"><button class="btn go" data-a="fight">В бой!</button></div>`);
+}
+function onWin(){
+  const st=RUN.stage,boss=RUN.match===3;
+  const base=3+st+(boss?4:0),interest=Math.min(5,Math.floor(RUN.money/5)),piggy=hasR('piggy')?3:0,quick=B.pTurns<=12?2:0;
+  const lines=[[`Победа${boss?' над боссом':''}`,base],['Проценты',interest]];if(piggy)lines.push(['Копилка',piggy]);if(quick)lines.push(['Быстрая победа (≤12 ходов)',quick]);
+  const earnedInBattle=B.earned;const total=base+interest+piggy+quick;RUN.money+=total;RUN.wins++;
+  if(st===3&&boss){saveBestFinal();showVictory();return}
+  RUN.match++;if(RUN.match>3){RUN.match=1;RUN.stage++}
+  saveBest();
+  showPanel(`<h2>Победа!</h2>
+    <div class="lines">${lines.map(l=>`<div><span>${l[0]}</span><span class="ok">+$${l[1]}</span></div>`).join('')}
+    ${earnedInBattle?`<div><span>Заработано в бою</span><span class="ok">+$${earnedInBattle}</span></div>`:''}
+    <div><span><b>Итого в кошельке</b></span><span><b>$${RUN.money}</b></span></div></div>
+    ${boss?`<p class="center">Этап пройден! Впереди этап ${RUN.stage}: доска ${[6,7,8][RUN.stage-1]}×${[6,7,8][RUN.stage-1]}.</p>`:''}
+    <div class="row"><button class="btn go" data-a="shop">В магазин ▶</button></div>`);
+}
+function saveBestFinal(){try{localStorage.setItem('shah-haos-best',JSON.stringify({v:99,stage:3,match:'3 — победа!'}))}catch(e){}}
+function onLose(reason){
+  RUN.hearts--;
+  if(RUN.hearts<=0){saveBest();showPanel(`<h2>Забег окончен</h2>
+    <div class="logo">${img(SPURL.P.K)}</div>
+    <p class="center">${reason||'Ваш король пал.'}</p>
+    <div class="lines"><div><span>Дошли до</span><span>этап ${RUN.stage}, партия ${RUN.match}</span></div><div><span>Побед</span><span>${RUN.wins}</span></div><div><span>Уничтожено фигур</span><span>${RUN.kills}</span></div></div>
+    <div class="row"><button class="btn go" data-a="new">Новый забег</button><button class="btn" data-a="title">В меню</button></div>`);return}
+  RUN.money+=2;
+  showPanel(`<h2>Поражение</h2>
+    <p class="center">${reason||'Ваш король пал.'} Вы теряете одну жизнь.</p>
+    <div class="center" id="hearts2">${Array.from({length:3},(_, i)=>img(ICOURL.heart,'px" style="width:32px;height:32px;opacity:'+(i<RUN.hearts?1:.2))).join('')}</div>
+    <p class="center sub">Утешительные $2. Подготовьтесь получше и сыграйте эту партию снова.</p>
+    <div class="row"><button class="btn go" data-a="shop">В магазин ▶</button></div>`);
+}
+function showVictory(){
+  showPanel(`<div class="logo">${img(SPURL.P.K)}${img(SPURL.P.Q)}${img(SPURL.P.K)}</div>
+    <h1>ПОБЕДА!</h1>
+    <p class="center">Костяной Король повержен. Хаос подчинился вам!</p>
+    <div class="lines"><div><span>Побед</span><span>${RUN.wins}</span></div><div><span>Уничтожено фигур</span><span>${RUN.kills}</span></div><div><span>Осталось жизней</span><span>${RUN.hearts}</span></div><div><span>Талисманов</span><span>${RUN.relics.length}</span></div></div>
+    <div class="row"><button class="btn go" data-a="new">Новый забег</button><button class="btn" data-a="title">В меню</button></div>`);
+}
+
+/* ================= SHOP ================= */
+function genShop(){
+  const st=RUN.stage;
+  const pool=st===1?['P','P','G','G','N','B','C','R']:st===2?['P','G','N','B','C','R','R','A','H']:['G','N','B','C','R','A','H','Q','Q'];
+  const items=[];
+  for(let k=0;k<3;k++){const t=pick(pool);items.push({kind:'piece',t,c:COST[t]})}
+  const avail=shuffle(Object.keys(RELICS).filter(r=>!RUN.relics.includes(r)));
+  for(const r of avail.slice(0,2))items.push({kind:'relic',t:r,c:RELICS[r].c});
+  const tk=pick(Object.keys(TILES));items.push({kind:'tile',t:tk,c:TILES[tk].c});
+  return {items,reroll:SHOP?SHOP.reroll:2,sel:null,placing:null};
+}
+function openShop(){B=null;$('#game').classList.add('hidden');SHOP=genShop();SHOP.reroll=2;renderShop()}
+function itemIcon(it){return it.kind==='piece'?SPURL.P[it.t]:ICOURL[it.t]}
+function itemName(it){return it.kind==='piece'?PNAME[it.t]:it.kind==='relic'?RELICS[it.t].n:TILES[it.t].n}
+function itemDesc(it){return it.kind==='piece'?PDESC[it.t]:it.kind==='relic'?RELICS[it.t].d:TILES[it.t].d}
+function renderShop(){
+  const S=SHOP,nextBoss=RUN.match===3?BOSSES[RUN.stage-1]:null;
+  const tag={piece:'фигура',relic:'талисман',tile:'клетка'};
+  let desc='<span class="sub">Нажмите на товар или свою фигуру, чтобы узнать подробности.</span>';
+  if(S.placing)desc=`<b>${TILES[S.placing].n}</b>: выберите клетку на мини-доске ниже (это три нижних ряда вашей стороны).`;
+  else if(S.sel){
+    if(S.sel.type==='item'){const it=S.items[S.sel.k];const pr=price(it.c);const can=RUN.money>=pr;
+      let block='';if(it.kind==='piece'&&RUN.roster.length>=MAX_ROSTER)block='Армия заполнена.';if(it.kind==='relic'&&RUN.relics.length>=MAX_RELICS)block='Нет места для талисманов (продайте один).';
+      desc=`<b>${itemName(it)}</b> — ${itemDesc(it)}${it.kind==='piece'?`<br><span class="sub">Ценность: ${VAL[it.t]}</span>`:''}<div class="row" style="justify-content:flex-start">${block?`<span class="no">${block}</span>`:`<button class="btn go" data-a="buy" ${can?'':'disabled'}>Купить за $${pr}</button>${can?'':'<span class="no" style="align-self:center">Не хватает денег</span>'}`}</div>`}
+    else if(S.sel.type==='roster'){const r=RUN.roster.find(x=>x.id===S.sel.id);
+      if(r){const sell=Math.max(1,Math.floor(COST[r.type]/2));
+        desc=`<b>${PNAME[r.type]}</b> — ${PDESC[r.type]}<br>${r.type==='K'?'<span class="sub">Король всегда на доске.</span>':r.bench?'<span class="sub">Сейчас в запасе.</span>':'<span class="sub">Выходит на доску.</span>'}
+        ${r.type==='K'?'':`<div class="row" style="justify-content:flex-start"><button class="btn" data-a="bench">${r.bench?'В бой':'В запас'}</button><button class="btn warn" data-a="sell">Продать за $${sell}</button></div>`}`}}
+    else if(S.sel.type==='relic'){const r=RELICS[S.sel.id];desc=`<b>${r.n}</b> — ${r.d}<div class="row" style="justify-content:flex-start"><button class="btn warn" data-a="sellrelic">Продать за $${Math.floor(r.c/2)}</button></div>`}
+  }
+  const ob=onBoardCount();
+  const capMax=RUN.cap>=10;
+  showPanel(`<h2>Магазин</h2>
+    <div class="bigmoney">${img(ICOURL.coin,'px" style="width:22px;height:22px;vertical-align:-4px')} $${RUN.money}</div>
+    <h3>Товары</h3>
+    <div class="shopgrid">${S.items.map((it,k)=>`<div class="card ${it.sold?'sold':''} ${S.sel&&S.sel.type==='item'&&S.sel.k===k?'sel':''}" data-item="${k}"><span class="tag">${tag[it.kind]}</span>${img(itemIcon(it))}${itemName(it)}<br><span class="pr">$${price(it.c)}</span></div>`).join('')}</div>
+    <div class="row"><button class="btn" data-a="reroll" ${RUN.money>=S.reroll?'':'disabled'}>Обновить товары $${S.reroll}</button>
+      <button class="btn" data-a="cap" ${!capMax&&RUN.money>=RUN.capCost?'':'disabled'}>${capMax?'Мест на доске: максимум':`Ещё место на доске $${RUN.capCost}`}</button></div>
+    <div id="sdesc">${desc}</div>
+    <h3>Армия — на доске ${ob}/${RUN.cap} (+ король)</h3>
+    <div class="roster">${RUN.roster.map(r=>`<div class="rp ${r.bench?'bench':''} ${S.sel&&S.sel.type==='roster'&&S.sel.id===r.id?'sel':''}" data-ros="${r.id}">${img(SPURL.P[r.type])}${r.bench?'<span class="z">запас</span>':''}</div>`).join('')}</div>
+    <div class="mrow">
+      <div><h3>Ваша сторона доски</h3><canvas id="mini"></canvas></div>
+      <div style="flex:1;min-width:180px"><h3>Талисманы ${RUN.relics.length}/${MAX_RELICS}</h3><div class="roster">${RUN.relics.map(r=>`<div class="rp ${S.sel&&S.sel.type==='relic'&&S.sel.id===r?'sel':''}" data-rel="${r}">${img(ICOURL[r])}</div>`).join('')||'<span class="sub">Пока нет.</span>'}</div></div>
+    </div>
+    <div class="row" style="margin-top:16px"><button class="btn go" data-a="next" ${S.placing?'disabled':''} style="font-size:17px;padding:10px 18px">Далее ▶ Этап ${RUN.stage} · Партия ${RUN.match}${nextBoss?' — БОСС: '+nextBoss.n:''}</button></div>`);
+  drawMini();
+}
+const MT=40;
+function drawMini(){
+  const c=$('#mini');if(!c)return;const d=Math.min(3,window.devicePixelRatio||1);
+  c.width=6*MT*d;c.height=3*MT*d;c.style.width=6*MT+'px';c.style.height=3*MT+'px';const m=c.getContext('2d');m.setTransform(d,0,0,d,0,0);m.imageSmoothingEnabled=false;
+  for(let r=0;r<3;r++)for(let x=0;x<6;x++){const y=2-r;const light=(x+r)%2===1;m.fillStyle=light?'#e6d6b3':'#5b7a86';m.fillRect(x*MT,y*MT,MT,MT);
+    const t=RUN.tiles.find(q=>q.c===x&&q.r===r);if(t)drawTileDeco(m,t.kind,x*MT,y*MT,MT);
+    if(SHOP.placing){m.strokeStyle='#ffd65a';m.lineWidth=2;m.setLineDash([4,3]);m.strokeRect(x*MT+2,y*MT+2,MT-4,MT-4);m.setLineDash([])}}
+  c.onclick=e=>{const rc=c.getBoundingClientRect();const x=Math.floor((e.clientX-rc.left)/MT),y=Math.floor((e.clientY-rc.top)/MT);
+    if(x<0||x>5||y<0||y>2)return;const r=2-y;
+    if(SHOP.placing){RUN.tiles=RUN.tiles.filter(q=>!(q.c===x&&q.r===r));RUN.tiles.push({kind:SHOP.placing,c:x,r});SHOP.placing=null;SFX.buy();renderShop()}
+    else{const t=RUN.tiles.find(q=>q.c===x&&q.r===r);if(t){SHOP.sel=null;renderShop();$('#sdesc').innerHTML=`<b>${TILES[t.kind].n}</b> — ${TILES[t.kind].d}`}}};
+}
+function shopAction(a){
+  const S=SHOP;
+  if(a==='buy'){const it=S.items[S.sel.k];const pr=price(it.c);if(RUN.money<pr||it.sold){SFX.err();return}
+    if(it.kind==='piece'){if(RUN.roster.length>=MAX_ROSTER)return;const r=mkR(it.t);r.bench=onBoardCount()>=RUN.cap;RUN.roster.push(r)}
+    if(it.kind==='relic'){if(RUN.relics.length>=MAX_RELICS)return;RUN.relics.push(it.t)}
+    if(it.kind==='tile')S.placing=it.t;
+    RUN.money-=pr;it.sold=true;S.sel=null;SFX.buy();renderShop();return}
+  if(a==='reroll'){if(RUN.money<S.reroll)return;RUN.money-=S.reroll;const rr=S.reroll+1;SHOP=genShop();SHOP.reroll=rr;SFX.buy();renderShop();return}
+  if(a==='cap'){if(RUN.money<RUN.capCost||RUN.cap>=10)return;RUN.money-=RUN.capCost;RUN.cap++;RUN.capCost+=4;
+    const b=RUN.roster.find(r=>r.bench&&r.type!=='K');if(b)b.bench=false;SFX.buy();renderShop();return}
+  if(a==='bench'){const r=RUN.roster.find(x=>x.id===S.sel.id);if(!r)return;
+    if(r.bench&&onBoardCount()>=RUN.cap){$('#sdesc').insertAdjacentHTML('beforeend','<div class="no">Нет свободных мест на доске — сначала уберите кого-нибудь в запас.</div>');SFX.err();return}
+    r.bench=!r.bench;SFX.sel();renderShop();return}
+  if(a==='sell'){const r=RUN.roster.find(x=>x.id===S.sel.id);if(!r||r.type==='K')return;RUN.money+=Math.max(1,Math.floor(COST[r.type]/2));RUN.roster=RUN.roster.filter(x=>x!==r);S.sel=null;SFX.coin();renderShop();return}
+  if(a==='sellrelic'){const id=S.sel.id;RUN.money+=Math.floor(RELICS[id].c/2);RUN.relics=RUN.relics.filter(x=>x!==id);S.sel=null;SFX.coin();renderShop();return}
+  if(a==='next'){if(S.placing)return;SHOP=null;prepareBattle();return}
+}
+$('#panel').addEventListener('click',e=>{
+  const a=e.target.closest('[data-a]');
+  if(a&&!a.disabled){const act=a.dataset.a;
+    if(act==='new'){newRun();return}
+    if(act==='help'){showHelp(false);return}
+    if(act==='title'){showTitle();return}
+    if(act==='closehelp'){$('#ov').classList.add('hidden');return}
+    if(act==='quit'){BATTLE_TOKEN++;showTitle();return}
+    if(act==='fight'){startBattle();return}
+    if(act==='shop'){openShop();return}
+    if(SHOP){shopAction(act);return}
+  }
+  if(!SHOP||SHOP.placing)return;
+  const it=e.target.closest('[data-item]');if(it){SHOP.sel={type:'item',k:+it.dataset.item};SFX.sel();renderShop();return}
+  const ro=e.target.closest('[data-ros]');if(ro){SHOP.sel={type:'roster',id:+ro.dataset.ros};SFX.sel();renderShop();return}
+  const rl=e.target.closest('[data-rel]');if(rl){SHOP.sel={type:'relic',id:rl.dataset.rel};SFX.sel();renderShop();return}
+});
+
+window.__G={get RUN(){return RUN},get B(){return B},get SHOP(){return SHOP},newRun,onCell,genMoves,apply,aiChoose,openShop,shopAction,startBattle,endBattle};
+showTitle();
+</script>
+</body>
+</html>
